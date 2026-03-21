@@ -1,6 +1,6 @@
 import 'dart:math' as Math;
+import 'package:dotz/models/wallpaper_settings.dart';
 import 'package:flutter/material.dart';
-import '../models/wallpaper_settings.dart';
 
 class DotGridPainter extends CustomPainter {
   final WallpaperSettings settings;

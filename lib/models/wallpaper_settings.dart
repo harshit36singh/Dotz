@@ -47,20 +47,20 @@ class WallpaperSettings {
     CalendarMode? mode, String? goalName, DateTime? goalDate,
     int? lifeExpectancyYears, DateTime? birthDate,
   }) => WallpaperSettings(
-    backgroundColor:    backgroundColor    ?? this.backgroundColor,
-    pastDotColor:       pastDotColor       ?? this.pastDotColor,
-    futureDotColor:     futureDotColor     ?? this.futureDotColor,
-    todayDotColor:      todayDotColor      ?? this.todayDotColor,
-    textColor:          textColor          ?? this.textColor,
-    columns:            columns            ?? this.columns,
-    showProgressLabel:  showProgressLabel  ?? this.showProgressLabel,
-    isDark:             isDark             ?? this.isDark,
-    target:             target             ?? this.target,
-    mode:               mode               ?? this.mode,
-    goalName:           goalName           ?? this.goalName,
-    goalDate:           goalDate           ?? this.goalDate,
+    backgroundColor:     backgroundColor     ?? this.backgroundColor,
+    pastDotColor:        pastDotColor        ?? this.pastDotColor,
+    futureDotColor:      futureDotColor      ?? this.futureDotColor,
+    todayDotColor:       todayDotColor       ?? this.todayDotColor,
+    textColor:           textColor           ?? this.textColor,
+    columns:             columns             ?? this.columns,
+    showProgressLabel:   showProgressLabel   ?? this.showProgressLabel,
+    isDark:              isDark              ?? this.isDark,
+    target:              target              ?? this.target,
+    mode:                mode                ?? this.mode,
+    goalName:            goalName            ?? this.goalName,
+    goalDate:            goalDate            ?? this.goalDate,
     lifeExpectancyYears: lifeExpectancyYears ?? this.lifeExpectancyYears,
-    birthDate:          birthDate          ?? this.birthDate,
+    birthDate:           birthDate           ?? this.birthDate,
   );
 
   // ── Year helpers ──────────────────────────────────────────────
@@ -68,10 +68,12 @@ class WallpaperSettings {
     final now = DateTime.now();
     return now.difference(DateTime(now.year, 1, 1)).inDays + 1;
   }
+
   static int get daysInYear {
     final y = DateTime.now().year;
-    return ((y%4==0&&y%100!=0)||y%400==0) ? 366 : 365;
+    return ((y % 4 == 0 && y % 100 != 0) || y % 400 == 0) ? 366 : 365;
   }
+
   static double get yearProgress => dayOfYear / daysInYear;
 
   // ── Goal helpers ──────────────────────────────────────────────
@@ -80,11 +82,13 @@ class WallpaperSettings {
     final start = DateTime.now().subtract(const Duration(days: 1));
     return goalDate!.difference(start).inDays.abs() + 1;
   }
+
   int get goalDaysPast {
     if (goalDate == null) return 0;
     final now = DateTime.now();
     return now.isAfter(goalDate!) ? goalTotalDays : 0;
   }
+
   int get goalDaysLeft {
     if (goalDate == null) return 100;
     final now = DateTime.now();
@@ -92,39 +96,48 @@ class WallpaperSettings {
     return diff < 0 ? 0 : diff;
   }
 
-  // ── Life helpers (days) ────────────────────────────────────────
+  // ── Life helpers (days) ───────────────────────────────────────
   int get lifeTotalDays => lifeExpectancyYears * 365;
+
   int get lifeDaysLived {
     if (birthDate == null) return 0;
     final days = DateTime.now().difference(birthDate!).inDays;
     return days.clamp(0, lifeTotalDays);
   }
-  int get lifeDaysLeft => (lifeTotalDays - lifeDaysLived).clamp(0, lifeTotalDays);
+
+  int get lifeDaysLeft =>
+      (lifeTotalDays - lifeDaysLived).clamp(0, lifeTotalDays);
+
   double get lifeProgress => lifeDaysLived / lifeTotalDays;
 
-  // ── Computed dot count & past for each mode ───────────────────
+  // ── Computed dot counts ───────────────────────────────────────
   int get totalDots {
     switch (mode) {
-      case CalendarMode.year:   return daysInYear;
-      case CalendarMode.goal:   return goalTotalDays.clamp(1, 500);
-      case CalendarMode.life:   return lifeTotalDays;
+      case CalendarMode.year: return daysInYear;
+      case CalendarMode.goal: return goalTotalDays.clamp(1, 500);
+      case CalendarMode.life: return lifeTotalDays;
     }
   }
+
   int get pastDots {
     switch (mode) {
-      case CalendarMode.year:   return dayOfYear - 1;
-      case CalendarMode.goal:   return (totalDots - goalDaysLeft).clamp(0, totalDots);
-      case CalendarMode.life:   return lifeDaysLived;
+      case CalendarMode.year: return dayOfYear - 1;
+      case CalendarMode.goal:
+        return (totalDots - goalDaysLeft).clamp(0, totalDots);
+      case CalendarMode.life: return lifeDaysLived;
     }
   }
+
   String get progressLabel {
     switch (mode) {
       case CalendarMode.year:
-        return '${daysInYear - dayOfYear} days left · ${(yearProgress*100).toStringAsFixed(0)}%';
+        return '${daysInYear - dayOfYear} days left · '
+            '${(yearProgress * 100).toStringAsFixed(0)}%';
       case CalendarMode.goal:
         return '$goalDaysLeft days left · $goalName';
       case CalendarMode.life:
-        return '$lifeDaysLeft days left · ${(lifeProgress*100).toStringAsFixed(0)}%';
+        return '$lifeDaysLeft days left · '
+            '${(lifeProgress * 100).toStringAsFixed(0)}%';
     }
   }
 }
@@ -137,6 +150,7 @@ extension WallpaperTargetX on WallpaperTarget {
       case WallpaperTarget.both:       return 'Both';
     }
   }
+
   IconData get icon {
     switch (this) {
       case WallpaperTarget.lockscreen: return Icons.lock_rounded;
