@@ -3,52 +3,42 @@ import '../models/wallpaper_settings.dart';
 
 class DotGridPainter extends CustomPainter {
   final WallpaperSettings settings;
-  final int dayOfYear;
-  final int totalDays;
 
-  DotGridPainter({
-    required this.settings,
-    required this.dayOfYear,
-    required this.totalDays,
-  });
+  DotGridPainter(this.settings);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cols = settings.columns;
+    final cols      = settings.columns;
+    final total     = settings.totalDots;
+    final pastCount = settings.pastDots;
 
-    // Auto-size: fill 88% of width — SAME formula as Kotlin WallpaperService
-    // gridWidth = r*(2.5*cols - 0.5)  →  r = availW / (2.5*cols - 0.5)
     final availW = size.width * 0.88;
-    final r      = (availW / (cols * 2.5 - 0.5)).clamp(4.0, 32.0);
+    final r      = (availW / (cols * 2.5 - 0.5)).clamp(3.0, 28.0);
     final gap    = r * 0.5;
     final cell   = r * 2 + gap;
 
-    final rows  = (totalDays / cols).ceil();
+    final rows  = (total / cols).ceil();
     final gridW = cols * cell - gap;
     final gridH = rows * cell - gap;
-
-    // Center on canvas
     final ox = (size.width  - gridW) / 2;
     final oy = (size.height - gridH) / 2;
 
-    for (int i = 0; i < totalDays; i++) {
+    for (int i = 0; i < total; i++) {
       final col = i % cols;
       final row = i ~/ cols;
       final cx  = ox + col * cell + r;
       final cy  = oy + row * cell + r;
 
-      final isToday = i + 1 == dayOfYear;
-      final isPast  = i + 1 <  dayOfYear;
+      final isToday = i == pastCount;
+      final isPast  = i < pastCount;
 
       if (isToday) {
-        // Pulsing ring
-        canvas.drawCircle(Offset(cx, cy), r * 1.6,
+        canvas.drawCircle(Offset(cx, cy), r * 1.55,
           Paint()
-            ..color = settings.todayDotColor.withOpacity(0.35)
+            ..color = settings.todayDotColor.withOpacity(0.3)
             ..style = PaintingStyle.stroke
-            ..strokeWidth = r * 0.7
+            ..strokeWidth = r * 0.65
             ..isAntiAlias = true);
-        // Solid dot
         canvas.drawCircle(Offset(cx, cy), r,
           Paint()..color = settings.todayDotColor..isAntiAlias = true);
       } else if (isPast) {
@@ -62,62 +52,35 @@ class DotGridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(DotGridPainter old) =>
-      old.settings != settings ||
-      old.dayOfYear != dayOfYear ||
-      old.totalDays != totalDays;
+  bool shouldRepaint(DotGridPainter old) => old.settings != settings;
 }
 
 class DotGridWallpaper extends StatelessWidget {
   final WallpaperSettings settings;
-  final double? forceWidth;
-  final double? forceHeight;
-
-  const DotGridWallpaper({
-    super.key,
-    required this.settings,
-    this.forceWidth,
-    this.forceHeight,
-  });
+  const DotGridWallpaper({super.key, required this.settings});
 
   @override
   Widget build(BuildContext context) {
-    final dayOfYear = WallpaperSettings.dayOfYear;
-    final totalDays = WallpaperSettings.daysInYear;
-    final daysLeft  = totalDays - dayOfYear;
-    final progress  = WallpaperSettings.yearProgress;
-
     return Container(
-      width: forceWidth,
-      height: forceHeight,
       color: settings.backgroundColor,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: CustomPaint(
-              painter: DotGridPainter(
-                settings: settings,
-                dayOfYear: dayOfYear,
-                totalDays: totalDays,
+      child: Stack(children: [
+        Positioned.fill(
+          child: CustomPaint(painter: DotGridPainter(settings)),
+        ),
+        if (settings.showProgressLabel)
+          Positioned(
+            bottom: 24, left: 0, right: 0,
+            child: Text(
+              settings.progressLabel,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: settings.pastDotColor.withOpacity(0.5),
+                fontSize: 11,
+                letterSpacing: 1.2,
               ),
             ),
           ),
-          if (settings.showProgressLabel)
-            Positioned(
-              bottom: 28, left: 0, right: 0,
-              child: Text(
-                '$daysLeft left  ·  ${(progress * 100).toStringAsFixed(0)}%',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: settings.pastDotColor.withOpacity(0.5),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ),
-        ],
-      ),
+      ]),
     );
   }
 }

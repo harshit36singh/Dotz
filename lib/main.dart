@@ -10,21 +10,12 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Dotz',
+      title: 'DotZ',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0A0A0A),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFFFFFFF),
-          secondary: Color(0xFFFF4500),
-          surface: Color(0xFF111111),
-        ),
-        useMaterial3: true,
-      ),
+      theme: ThemeData(useMaterial3: true, fontFamily: 'serif'),
       home: const HomeScreen(),
     );
   }

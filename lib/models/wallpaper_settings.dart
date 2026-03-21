@@ -1,60 +1,135 @@
 import 'package:flutter/material.dart';
 
+enum CalendarMode { year, goal, life }
+enum WallpaperTarget { lockscreen, homescreen, both }
+
 class WallpaperSettings {
   Color backgroundColor;
   Color pastDotColor;
   Color futureDotColor;
   Color todayDotColor;
+  Color textColor;
   int columns;
   bool showProgressLabel;
+  bool isDark;
   WallpaperTarget target;
+  CalendarMode mode;
+
+  // Goal calendar
+  String goalName;
+  DateTime? goalDate;
+
+  // Life calendar (weeks-based)
+  int lifeExpectancyYears;
+  DateTime? birthDate;
 
   WallpaperSettings({
-    this.backgroundColor = const Color(0xFF000000),
-    this.pastDotColor    = const Color(0xFFFFFFFF),
-    this.futureDotColor  = const Color(0xFF2A2A2A),
-    this.todayDotColor   = const Color(0xFFFF4500),
-    this.columns         = 20,
+    this.backgroundColor   = const Color(0xFF000000),
+    this.pastDotColor      = const Color(0xFFFFFFFF),
+    this.futureDotColor    = const Color(0xFF2A2A2A),
+    this.todayDotColor     = const Color(0xFFFF4500),
+    this.textColor         = const Color(0xFFFFFFFF),
+    this.columns           = 20,
     this.showProgressLabel = true,
-    this.target          = WallpaperTarget.lockscreen,
+    this.isDark            = true,
+    this.target            = WallpaperTarget.lockscreen,
+    this.mode              = CalendarMode.year,
+    this.goalName          = 'My Goal',
+    this.goalDate,
+    this.lifeExpectancyYears = 80,
+    this.birthDate,
   });
 
   WallpaperSettings copyWith({
-    Color? backgroundColor,
-    Color? pastDotColor,
-    Color? futureDotColor,
-    Color? todayDotColor,
-    int? columns,
-    bool? showProgressLabel,
-    WallpaperTarget? target,
-  }) {
-    return WallpaperSettings(
-      backgroundColor:   backgroundColor   ?? this.backgroundColor,
-      pastDotColor:      pastDotColor      ?? this.pastDotColor,
-      futureDotColor:    futureDotColor    ?? this.futureDotColor,
-      todayDotColor:     todayDotColor     ?? this.todayDotColor,
-      columns:           columns           ?? this.columns,
-      showProgressLabel: showProgressLabel ?? this.showProgressLabel,
-      target:            target            ?? this.target,
-    );
-  }
+    Color? backgroundColor, Color? pastDotColor, Color? futureDotColor,
+    Color? todayDotColor, Color? textColor, int? columns,
+    bool? showProgressLabel, bool? isDark, WallpaperTarget? target,
+    CalendarMode? mode, String? goalName, DateTime? goalDate,
+    int? lifeExpectancyYears, DateTime? birthDate,
+  }) => WallpaperSettings(
+    backgroundColor:    backgroundColor    ?? this.backgroundColor,
+    pastDotColor:       pastDotColor       ?? this.pastDotColor,
+    futureDotColor:     futureDotColor     ?? this.futureDotColor,
+    todayDotColor:      todayDotColor      ?? this.todayDotColor,
+    textColor:          textColor          ?? this.textColor,
+    columns:            columns            ?? this.columns,
+    showProgressLabel:  showProgressLabel  ?? this.showProgressLabel,
+    isDark:             isDark             ?? this.isDark,
+    target:             target             ?? this.target,
+    mode:               mode               ?? this.mode,
+    goalName:           goalName           ?? this.goalName,
+    goalDate:           goalDate           ?? this.goalDate,
+    lifeExpectancyYears: lifeExpectancyYears ?? this.lifeExpectancyYears,
+    birthDate:          birthDate          ?? this.birthDate,
+  );
 
+  // ── Year helpers ──────────────────────────────────────────────
   static int get dayOfYear {
     final now = DateTime.now();
     return now.difference(DateTime(now.year, 1, 1)).inDays + 1;
   }
-
   static int get daysInYear {
     final y = DateTime.now().year;
-    return ((y % 4 == 0 && y % 100 != 0) || y % 400 == 0) ? 366 : 365;
+    return ((y%4==0&&y%100!=0)||y%400==0) ? 366 : 365;
+  }
+  static double get yearProgress => dayOfYear / daysInYear;
+
+  // ── Goal helpers ──────────────────────────────────────────────
+  int get goalTotalDays {
+    if (goalDate == null) return 100;
+    final start = DateTime.now().subtract(const Duration(days: 1));
+    return goalDate!.difference(start).inDays.abs() + 1;
+  }
+  int get goalDaysPast {
+    if (goalDate == null) return 0;
+    final now = DateTime.now();
+    return now.isAfter(goalDate!) ? goalTotalDays : 0;
+  }
+  int get goalDaysLeft {
+    if (goalDate == null) return 100;
+    final now = DateTime.now();
+    final diff = goalDate!.difference(now).inDays;
+    return diff < 0 ? 0 : diff;
   }
 
-  static double get yearProgress => dayOfYear / daysInYear;
+  // ── Life helpers (weeks) ──────────────────────────────────────
+  int get lifeTotalWeeks => lifeExpectancyYears * 52;
+  int get lifeWeeksLived {
+    if (birthDate == null) return 0;
+    final weeks = DateTime.now().difference(birthDate!).inDays ~/ 7;
+    return weeks.clamp(0, lifeTotalWeeks);
+  }
+  int get lifeWeeksLeft => (lifeTotalWeeks - lifeWeeksLived).clamp(0, lifeTotalWeeks);
+  double get lifeProgress => lifeWeeksLived / lifeTotalWeeks;
+
+  // ── Computed dot count & past for each mode ───────────────────
+  int get totalDots {
+    switch (mode) {
+      case CalendarMode.year:   return daysInYear;
+      case CalendarMode.goal:   return goalTotalDays.clamp(1, 500);
+      case CalendarMode.life:   return lifeTotalWeeks;
+    }
+  }
+  int get pastDots {
+    switch (mode) {
+      case CalendarMode.year:   return dayOfYear - 1;
+      case CalendarMode.goal:   return (totalDots - goalDaysLeft).clamp(0, totalDots);
+      case CalendarMode.life:   return lifeWeeksLived;
+    }
+  }
+  String get progressLabel {
+    switch (mode) {
+      case CalendarMode.year:
+        return '${daysInYear - dayOfYear} days left · ${(yearProgress*100).toStringAsFixed(0)}%';
+      case CalendarMode.goal:
+        return '$goalDaysLeft days left · $goalName';
+      case CalendarMode.life:
+        return '$lifeWeeksLeft weeks left · ${(lifeProgress*100).toStringAsFixed(0)}%';
+    }
+  }
 }
 
-enum WallpaperTarget { lockscreen, homescreen, both }
-
-extension WallpaperTargetLabel on WallpaperTarget {
+extension WallpaperTargetX on WallpaperTarget {
   String get label {
     switch (this) {
       case WallpaperTarget.lockscreen: return 'Lock Screen';
