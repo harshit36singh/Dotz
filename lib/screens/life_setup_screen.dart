@@ -29,8 +29,8 @@ class _S extends State<LifeSetupScreen> {
   Color  get _rul  => _dark ? const Color(0xFF272420) : const Color(0xFFE0DAD0);
 
   int get _age => _b == null ? 0 : DateTime.now().difference(_b!).inDays ~/ 365;
-  int get _wL  => _b == null ? 0 : DateTime.now().difference(_b!).inDays ~/ 7;
-  int get _tot => _exp * 52;
+  int get _wL  => _b == null ? 0 : DateTime.now().difference(_b!).inDays;
+  int get _tot => _exp * 365;
   int get _rem => (_tot - _wL).clamp(0, _tot);
 
   @override
@@ -131,7 +131,7 @@ class _S extends State<LifeSetupScreen> {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('years', style: TextStyle(color: _mid, fontSize: 10,
                     fontWeight: FontWeight.w500, letterSpacing: 1.5)),
-                Text('$_tot weeks total', style: const TextStyle(
+                Text('$_tot days total', style: const TextStyle(
                     color: _redL, fontSize: 11, fontWeight: FontWeight.w600)),
               ]),
               const SizedBox(width: 12),
@@ -159,13 +159,13 @@ class _S extends State<LifeSetupScreen> {
                 color: _mid, fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 3)),
             const SizedBox(height: 20),
 
-            // Giant weeks lived
+            // Giant days lived
             Text(_wL.toString().padLeft(2, '0'),
               style: const TextStyle(
                 color: _redL, fontSize: 88,
                 fontStyle: FontStyle.italic, fontWeight: FontWeight.w900,
                 height: 0.88, letterSpacing: -4)),
-            Text('weeks lived',
+            Text('days lived',
               style: TextStyle(color: _ink, fontSize: 22,
                   fontStyle: FontStyle.italic, fontWeight: FontWeight.w700,
                   letterSpacing: -0.3)),
@@ -174,7 +174,7 @@ class _S extends State<LifeSetupScreen> {
 
             // Stat row
             Row(children: [
-              _Stat('$_rem', 'weeks left', _mid, _rul, _surf),
+              _Stat('$_rem', 'days left', _mid, _rul, _surf),
               const SizedBox(width: 1),
               _Stat(
                 '${(_wL / _tot * 100).toStringAsFixed(1)}%',

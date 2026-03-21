@@ -69,6 +69,8 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _apply() async {
     setState(() => _saving = true);
     try {
+      final modeIdx = _mode == CalendarMode.goal ? 1
+                    : _mode == CalendarMode.life  ? 2 : 0;
       await _ch.invokeMethod('saveSettings', {
         'bgColor':     _toA(_s.backgroundColor),
         'pastColor':   _toA(_s.pastDotColor),
@@ -76,6 +78,12 @@ class _HomeScreenState extends State<HomeScreen>
         'todayColor':  _toA(_s.todayDotColor),
         'columns':     _s.columns,
         'showLabel':   _s.showProgressLabel,
+        'mode':        modeIdx,
+        'goalTotal':   _s.totalDots,
+        'goalPast':    _s.pastDots,
+        'goalName':    _s.goalName,
+        'lifeTotal':   _s.lifeTotalDays,
+        'lifeLived':   _s.lifeDaysLived,
       });
       await _ch.invokeMethod('openWallpaperPicker');
       if (mounted) _bottomSheet();
@@ -570,7 +578,7 @@ class _MainContent extends StatelessWidget {
         )),
       ]),
     ),
-    SizedBox(height: isTablet ? 0 : 0),
+     SizedBox(height: isTablet ? 0 : 0),
   ];
 
   List<Widget> _hero(double hPad) => [
@@ -751,7 +759,7 @@ class _MainContent extends StatelessWidget {
         final d = s.goalDaysLeft;
         return d > 99 ? '$d' : d.toString().padLeft(2, '0');
       case CalendarMode.life:
-        final w = s.lifeWeeksLived;
+        final w = s.lifeDaysLived;
         return w > 99 ? '$w' : w.toString().padLeft(2, '0');
     }
   }
@@ -760,7 +768,7 @@ class _MainContent extends StatelessWidget {
     switch (mode) {
       case CalendarMode.year:  return 'Days\npassed';
       case CalendarMode.goal:  return s.goalName;
-      case CalendarMode.life:  return 'Weeks\nlived';
+      case CalendarMode.life:  return 'Days\nlived';
     }
   }
 
@@ -771,7 +779,7 @@ class _MainContent extends StatelessWidget {
       case CalendarMode.goal:
         return '${s.goalDaysLeft} days left';
       case CalendarMode.life:
-        return '${s.lifeWeeksLived} of ${s.lifeTotalWeeks} wks';
+        return '${s.lifeDaysLived} of ${s.lifeTotalDays} days';
     }
   }
 

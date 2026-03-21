@@ -19,7 +19,7 @@ class WallpaperSettings {
   String goalName;
   DateTime? goalDate;
 
-  // Life calendar (weeks-based)
+  // Life calendar (days-based)
   int lifeExpectancyYears;
   DateTime? birthDate;
 
@@ -92,29 +92,29 @@ class WallpaperSettings {
     return diff < 0 ? 0 : diff;
   }
 
-  // ── Life helpers (weeks) ──────────────────────────────────────
-  int get lifeTotalWeeks => lifeExpectancyYears * 52;
-  int get lifeWeeksLived {
+  // ── Life helpers (days) ────────────────────────────────────────
+  int get lifeTotalDays => lifeExpectancyYears * 365;
+  int get lifeDaysLived {
     if (birthDate == null) return 0;
-    final weeks = DateTime.now().difference(birthDate!).inDays ~/ 7;
-    return weeks.clamp(0, lifeTotalWeeks);
+    final days = DateTime.now().difference(birthDate!).inDays;
+    return days.clamp(0, lifeTotalDays);
   }
-  int get lifeWeeksLeft => (lifeTotalWeeks - lifeWeeksLived).clamp(0, lifeTotalWeeks);
-  double get lifeProgress => lifeWeeksLived / lifeTotalWeeks;
+  int get lifeDaysLeft => (lifeTotalDays - lifeDaysLived).clamp(0, lifeTotalDays);
+  double get lifeProgress => lifeDaysLived / lifeTotalDays;
 
   // ── Computed dot count & past for each mode ───────────────────
   int get totalDots {
     switch (mode) {
       case CalendarMode.year:   return daysInYear;
       case CalendarMode.goal:   return goalTotalDays.clamp(1, 500);
-      case CalendarMode.life:   return lifeTotalWeeks;
+      case CalendarMode.life:   return lifeTotalDays;
     }
   }
   int get pastDots {
     switch (mode) {
       case CalendarMode.year:   return dayOfYear - 1;
       case CalendarMode.goal:   return (totalDots - goalDaysLeft).clamp(0, totalDots);
-      case CalendarMode.life:   return lifeWeeksLived;
+      case CalendarMode.life:   return lifeDaysLived;
     }
   }
   String get progressLabel {
@@ -124,7 +124,7 @@ class WallpaperSettings {
       case CalendarMode.goal:
         return '$goalDaysLeft days left · $goalName';
       case CalendarMode.life:
-        return '$lifeWeeksLeft weeks left · ${(lifeProgress*100).toStringAsFixed(0)}%';
+        return '$lifeDaysLeft days left · ${(lifeProgress*100).toStringAsFixed(0)}%';
     }
   }
 }
