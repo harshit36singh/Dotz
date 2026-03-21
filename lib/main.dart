@@ -17,11 +17,11 @@ class MyApp extends StatelessWidget {
       title: 'Dotz',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0A0A0F),
+        scaffoldBackgroundColor: const Color(0xFF0A0A0A),
         colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFE8E0FF),
-          secondary: Color(0xFF9B8FFF),
-          surface: Color(0xFF14141F),
+          primary: Color(0xFFFFFFFF),
+          secondary: Color(0xFFFF4500),
+          surface: Color(0xFF111111),
         ),
         useMaterial3: true,
       ),
