@@ -104,6 +104,8 @@ class DotGridWallpaper extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
+
+            
           ),
       ]),
     );
