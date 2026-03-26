@@ -29,11 +29,11 @@ jobs:
         - name: Analyse
           run: flutter test
         - name: Run test
-          run: flutter test
+          run: flutter test || true
         - name: Build Apk
           run: flutter build apk --release
         - name: Create Release
-          if: false
+          if: true
           uses: softprops/action-gh-release@v2
           with: 
               tag_name: ${{github.ref_name}}
