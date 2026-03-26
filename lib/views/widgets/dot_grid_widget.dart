@@ -78,7 +78,7 @@ class DotGridWallpaper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final daysLeft = settings.totalDots - settings.pastDots;
+    // final daysLeft = settings.totalDots - settings.pastDots;
     final pct = settings.mode == CalendarMode.life
         ? settings.lifeProgress
         : settings.mode == CalendarMode.goal
