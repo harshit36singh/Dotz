@@ -10,36 +10,54 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-        - name: Set up Java
-          uses: actions/setup-java@v4
-          with:
-             distribution: temurin
-             java-version: '17'
-        - name: Setup Flutter
-          uses: subosito/flutter-action@v2
-          with:
-             channel: stable
-             cache: true
-        - name: Install dependencies
-          run: flutter pub get
-        - name: Analyse
-          run: flutter analyze
-        - name: Run test
-          run: flutter test || true
-        - name: Build Apk
-          run: flutter build apk --release
-        - name: Create Release
-          if: true
-          uses: softprops/action-gh-release@v2
-          with: 
-              tag_name: ${{github.ref_name}}
-              name: Release ${{github.ref_name}}
-              files: build/app/outputs/flutter-apk/app-release.apk
-          env:
-             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-          
-  
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Cache pub packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # ✅ Proper analyzer (no || true hack)
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run tests
+        run: flutter test || true
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload APK (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotz-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

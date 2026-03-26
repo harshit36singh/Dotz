@@ -2,12 +2,9 @@ include: package:flutter_lints/flutter.yaml
 
 analyzer:
   errors:
-    deprecated_member_use: ignore
     unused_local_variable: ignore
     prefer_null_aware_operators: ignore
 
 linter:
   rules:
     library_prefixes: false
-    # override default strict rules
-    deprecated_member_use: false
