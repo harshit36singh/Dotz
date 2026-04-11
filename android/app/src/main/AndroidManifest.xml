@@ -3,9 +3,8 @@
     <application
         android:label="dotz"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
-
-        <activity
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true"> <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
@@ -15,7 +14,6 @@
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
 
-            <!-- Flutter launch theme -->
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
@@ -24,17 +22,26 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-
         </activity>
 
-        <!-- Required for Flutter plugins -->
+        <service
+            android:name=".DotzLiveWallpaper"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.BIND_WALLPAPER">
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/wallpaper" />
+        </service>
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
 
     </application>
 
-    <!-- Required for text processing (Flutter plugin support) -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
