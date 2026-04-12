@@ -63,12 +63,8 @@ class SettingsPage extends StatelessWidget {
             icon: CupertinoIcons.text_bubble,
             child: _LabelModeSection(vm: vm),
           )),
-          const SizedBox(width: 16),
-          Expanded(flex: 2, child: _DarkSection(
-            title: 'ABOUT',
-            icon: CupertinoIcons.info_circle,
-            child: _AboutContent(),
-          )),
+      
+       
         ],
       ),
     ],
@@ -99,12 +95,7 @@ class SettingsPage extends StatelessWidget {
         icon: CupertinoIcons.text_bubble,
         child: _LabelModeSection(vm: vm),
       ),
-      const SizedBox(height: 12),
-      _DarkSection(
-        title: 'ABOUT',
-        icon: CupertinoIcons.info_circle,
-        child: _AboutContent(),
-      ),
+     
     ],
   );
 }
@@ -157,24 +148,7 @@ class _GridDensityContent extends StatelessWidget {
   }
 }
 
-// ── About content ──────────────────────────────────────────────────
-class _AboutContent extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _AboutRow(label: 'App',     value: 'DotZ'),
-      _AboutRow(label: 'Version', value: '1.0.0'),
-      _AboutRow(label: 'Purpose', value: 'Live dot wallpapers'),
-      const SizedBox(height: 10),
-      Text(
-        'Each dot is a day. Watch your year, goals, and life unfold—one dot at a time.',
-        style: TextStyle(
-          color: Colors.white.withOpacity(0.3),
-          fontSize: 12, height: 1.7)),
-    ],
-  );
-}
+
 
 // ── Label mode section ─────────────────────────────────────────────
 class _LabelModeSection extends StatelessWidget {

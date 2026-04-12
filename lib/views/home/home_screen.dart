@@ -149,18 +149,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       child: Row(
         children: [
-          Container(
-            width: 24, height: 24,
-            decoration: const BoxDecoration(
-              color: Colors.white, shape: BoxShape.circle),
-            child: Center(
-              child: Container(
-                width: 8, height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.black, shape: BoxShape.circle),
-              ),
-            ),
-          ),
+      
           const SizedBox(width: 12),
           const Text('DotZ',
             style: TextStyle(
@@ -259,15 +248,8 @@ class _HomeScreenState extends State<HomeScreen>
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       _topBar(hPad),
-      HeroSection(
-        tag: _vm.heroTag, bigNum: '⚙',
-        title: _vm.heroTitle, statA: _vm.heroStatA,
-        statB: _vm.heroStatB, hPad: hPad, fade: _af,
-      ),
-      Transform.translate(
-        offset: const Offset(0, -16),
-        child: SettingsPage(vm: _vm),
-      ),
+      const SizedBox(height: 24), // Added a clean gap instead of the Hero card
+      SettingsPage(vm: _vm),
     ],
   );
 
@@ -297,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen>
     ],
   );
 
-  @override
+ @override
   Widget build(BuildContext context) {
     final mq   = MediaQuery.of(context);
     final sw   = mq.size.width;
@@ -328,22 +310,28 @@ class _HomeScreenState extends State<HomeScreen>
         body: Stack(children: [
           _buildBackground(context),
           SafeArea(
-            child: Stack(children: [
-              SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.only(bottom: 120),
-                child: isSettings
-                    ? _settingsBody(hPad)
-                    : _calendarBody(hPad, ph),
-              ),
-              // Glass navbar — kept glass intentionally
-              Positioned(
-                left: navSideInset,
-                right: navSideInset,
-                bottom: 20,
-                child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
-              ),
-            ]),
+            child: Stack(
+              // ── THE FIX ──
+              // Forces the Stack to take up the full screen height even if 
+              // the settings content is very short. This keeps the navbar pinned!
+              fit: StackFit.expand, 
+              children: [
+                SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.only(bottom: 120),
+                  child: isSettings
+                      ? _settingsBody(hPad)
+                      : _calendarBody(hPad, ph),
+                ),
+                // Glass navbar
+                Positioned(
+                  left: navSideInset,
+                  right: (navSideInset+18), // Removed the +18 so it stays perfectly centered
+                  bottom: 20,
+                  child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
+                ),
+              ],
+            ),
           ),
         ]),
       ),
