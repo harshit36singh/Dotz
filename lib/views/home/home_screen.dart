@@ -1,3 +1,4 @@
+import 'dart:ui'; 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/app_theme.dart';
@@ -97,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen>
   ).then((_) => _vm.checkLive());
 
   // ── Helpers ───────────────────────────────────────────────────
-  Widget _hr() => Container(height: 1, color: kRule);
+  Widget _hr() => Container(height: 1, color: Colors.white.withOpacity(0.1)); 
 
   Widget _applyBtn() => GestureDetector(
     onTap: _vm.saving ? null : _apply,
@@ -119,7 +120,6 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _topBar(double hPad) => Padding(
     padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 18),
     child: Row(children: [
-      // Orange circle app icon
       Container(
         width: 26, height: 26,
         decoration: const BoxDecoration(
@@ -135,14 +135,15 @@ class _HomeScreenState extends State<HomeScreen>
       const SizedBox(width: 10),
       const Text('DotZ',
           style: TextStyle(
-              color: kInk, fontSize: 17,
+              color: Colors.white, 
+              fontSize: 17,
               fontStyle: FontStyle.italic, fontWeight: FontWeight.w700,
               letterSpacing: -0.5)),
       const Spacer(),
       Text(
         _vm.live ? 'live' : 'not live',
         style: TextStyle(
-            color: _vm.live ? kOrange : kInk,
+            color: _vm.live ? kOrange : Colors.white70, 
             fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.8),
       ),
     ]),
@@ -159,6 +160,63 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       _hr(),
     ]);
+  }
+
+  // ── Custom Gradient Background ────────────────────────────────
+  Widget _buildFusionBackground(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    
+    return Stack(
+      children: [
+        Container(color: Colors.black),
+        
+        Positioned(
+          top: -150,
+          right: -100,
+          child: Container(
+            width: 400,
+            height: 400,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.deepPurpleAccent.withOpacity(0.6),
+            ),
+          ),
+        ),
+        
+        Positioned(
+          bottom: -150,
+          left: -100,
+          child: Container(
+            width: 450,
+            height: 450,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.blueAccent.withOpacity(0.4),
+            ),
+          ),
+        ),
+
+        Positioned(
+          top: size.height * 0.3,
+          left: size.width * 0.2,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.pinkAccent.withOpacity(0.3),
+            ),
+          ),
+        ),
+
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
+      ],
+    );
   }
 
   // ── Body builders ─────────────────────────────────────────────
@@ -181,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen>
           child: Container(
             width: double.infinity, height: ph,
             foregroundDecoration:
-                BoxDecoration(border: Border.all(color: kRule)),
+                BoxDecoration(border: Border.all(color: Colors.white24)), 
             child: DotGridWallpaper(settings: _vm.settings),
           ),
         ),
@@ -223,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen>
                 child: Container(
                   height: ph,
                   foregroundDecoration:
-                      BoxDecoration(border: Border.all(color: kRule)),
+                      BoxDecoration(border: Border.all(color: Colors.white24)),
                   child: DotGridWallpaper(settings: _vm.settings),
                 ),
               ),
@@ -258,26 +316,33 @@ class _HomeScreenState extends State<HomeScreen>
     final ph     = (pw * 19 / 9).clamp(220.0, sh * 0.50);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: kBg,
-        body: SafeArea(
-          child: Stack(
-            children: [
-              SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.only(bottom: 100),
-                child: isWide
-                    ? _wideBody(hPad, ph)
-                    : _stackBody(hPad, ph),
+        backgroundColor: Colors.transparent, 
+        body: Stack(
+          children: [
+            _buildFusionBackground(context),
+            SafeArea(
+              child: Stack(
+                children: [
+                  SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 120), 
+                    child: isWide
+                        ? _wideBody(hPad, ph)
+                        : _stackBody(hPad, ph),
+                  ),
+                  Positioned(
+                    left: 80, 
+                    right: 80, 
+                    bottom: 20,
+                    child: FloatingNavBar(
+                        mode: _vm.mode, onTap: _switchMode),
+                  ),
+                ],
               ),
-              Positioned(
-                left: 80, right: 80, bottom: 20,
-                child: FloatingNavBar(
-                    mode: _vm.mode, onTap: _switchMode),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
