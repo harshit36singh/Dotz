@@ -25,25 +25,27 @@ class MainActivity : FlutterActivity() {
                         try {
                             val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                             prefs.edit().apply {
-                                // Colors
+                                // ── Dot colours ───────────────────────────────
                                 putInt("bgColor",     (call.argument<Any>("bgColor")     as? Number)?.toInt() ?: Color.BLACK)
                                 putInt("pastColor",   (call.argument<Any>("pastColor")   as? Number)?.toInt() ?: Color.WHITE)
                                 putInt("futureColor", (call.argument<Any>("futureColor") as? Number)?.toInt() ?: Color.parseColor("#2A2A2A"))
                                 putInt("todayColor",  (call.argument<Any>("todayColor")  as? Number)?.toInt() ?: Color.parseColor("#FF4500"))
-                                // Grid
+                                // ── Label colour + size ────────────────────────
+                                putInt("labelColor",    (call.argument<Any>("labelColor")    as? Number)?.toInt() ?: Color.WHITE)
+                                putFloat("labelFontSize", (call.argument<Any>("labelFontSize") as? Number)?.toFloat() ?: 0f)
+                                // ── Grid ──────────────────────────────────────
                                 putInt("columns",    (call.argument<Any>("columns") as? Number)?.toInt() ?: 20)
                                 putBoolean("showLabel", call.argument<Boolean>("showLabel") ?: true)
-                                // Label mode: 0=off, 1=progress, 2=quote
+                                // ── Label mode: 0=off,1=progress,2=quote,3=custom ──
                                 putInt("labelMode",   (call.argument<Any>("labelMode") as? Number)?.toInt() ?: 1)
-                                // Pre-resolved label string (quote or progress text, already formatted by Flutter)
                                 putString("customLabel", call.argument<String>("customLabel") ?: "")
-                                // Calendar mode
+                                // ── Calendar mode ─────────────────────────────
                                 putInt("mode", (call.argument<Any>("mode") as? Number)?.toInt() ?: 0)
-                                // Goal
+                                // ── Goal ──────────────────────────────────────
                                 putInt("goalTotal", (call.argument<Any>("goalTotal") as? Number)?.toInt() ?: 100)
                                 putInt("goalPast",  (call.argument<Any>("goalPast")  as? Number)?.toInt() ?: 0)
                                 putString("goalName", call.argument<String>("goalName") ?: "Goal")
-                                // Life
+                                // ── Life ──────────────────────────────────────
                                 putInt("lifeTotal", (call.argument<Any>("lifeTotal") as? Number)?.toInt() ?: 29200)
                                 putInt("lifeLived", (call.argument<Any>("lifeLived") as? Number)?.toInt() ?: 0)
                                 apply()

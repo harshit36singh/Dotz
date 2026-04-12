@@ -8,7 +8,8 @@ class WallpaperSettings {
   Color pastDotColor;
   Color futureDotColor;
   Color todayDotColor;
-  Color textColor;
+  Color textColor;        // label / quote text colour
+  double labelFontSize;   // 0 = auto; >0 = explicit sp size (8–32)
   int columns;
   bool showProgressLabel;
   bool isDark;
@@ -29,6 +30,7 @@ class WallpaperSettings {
     this.futureDotColor    = const Color(0xFF2A2A2A),
     this.todayDotColor     = const Color(0xFFFF4500),
     this.textColor         = const Color(0xFFFFFFFF),
+    this.labelFontSize     = 0,          // 0 = auto
     this.columns           = 20,
     this.showProgressLabel = true,
     this.isDark            = true,
@@ -42,9 +44,10 @@ class WallpaperSettings {
 
   WallpaperSettings copyWith({
     Color? backgroundColor, Color? pastDotColor, Color? futureDotColor,
-    Color? todayDotColor, Color? textColor, int? columns,
-    bool? showProgressLabel, bool? isDark, WallpaperTarget? target,
-    CalendarMode? mode, String? goalName, DateTime? goalDate,
+    Color? todayDotColor, Color? textColor, double? labelFontSize,
+    int? columns, bool? showProgressLabel, bool? isDark,
+    WallpaperTarget? target, CalendarMode? mode,
+    String? goalName, DateTime? goalDate,
     int? lifeExpectancyYears, DateTime? birthDate,
   }) => WallpaperSettings(
     backgroundColor:     backgroundColor     ?? this.backgroundColor,
@@ -52,6 +55,7 @@ class WallpaperSettings {
     futureDotColor:      futureDotColor      ?? this.futureDotColor,
     todayDotColor:       todayDotColor       ?? this.todayDotColor,
     textColor:           textColor           ?? this.textColor,
+    labelFontSize:       labelFontSize       ?? this.labelFontSize,
     columns:             columns             ?? this.columns,
     showProgressLabel:   showProgressLabel   ?? this.showProgressLabel,
     isDark:              isDark              ?? this.isDark,
@@ -79,16 +83,17 @@ class WallpaperSettings {
   // ── Goal helpers ──────────────────────────────────────────────
   int get goalTotalDays {
     if (goalDate == null) return 100;
-    final now = DateTime.now();
-    // Total days from today to goal date (or if past, days from roughly start)
-    final diff = goalDate!.difference(DateTime(now.year, now.month, now.day)).inDays;
+    final now  = DateTime.now();
+    final diff = goalDate!
+        .difference(DateTime(now.year, now.month, now.day))
+        .inDays;
     if (diff <= 0) return 1;
     return diff + 1;
   }
 
   int get goalDaysLeft {
     if (goalDate == null) return 100;
-    final now = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final now  = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     final diff = goalDate!.difference(now).inDays;
     return diff < 0 ? 0 : diff;
   }
@@ -105,7 +110,8 @@ class WallpaperSettings {
   int get lifeDaysLeft =>
       (lifeTotalDays - lifeDaysLived).clamp(0, lifeTotalDays);
 
-  double get lifeProgress => lifeTotalDays > 0 ? lifeDaysLived / lifeTotalDays : 0;
+  double get lifeProgress =>
+      lifeTotalDays > 0 ? lifeDaysLived / lifeTotalDays : 0;
 
   // ── Computed dot counts ───────────────────────────────────────
   int get totalDots {
@@ -113,7 +119,7 @@ class WallpaperSettings {
       case CalendarMode.year:     return daysInYear;
       case CalendarMode.goal:     return goalTotalDays.clamp(1, 3650);
       case CalendarMode.life:     return lifeTotalDays;
-      case CalendarMode.settings: return daysInYear; // fallback
+      case CalendarMode.settings: return daysInYear;
     }
   }
 
@@ -121,8 +127,8 @@ class WallpaperSettings {
     switch (mode) {
       case CalendarMode.year:     return dayOfYear - 1;
       case CalendarMode.goal:     return (totalDots - goalDaysLeft).clamp(0, totalDots);
-      case CalendarMode.life:     return lifeDaysLived; // FIX: use lifeDaysLived directly
-      case CalendarMode.settings: return dayOfYear - 1; // fallback
+      case CalendarMode.life:     return lifeDaysLived;
+      case CalendarMode.settings: return dayOfYear - 1;
     }
   }
 

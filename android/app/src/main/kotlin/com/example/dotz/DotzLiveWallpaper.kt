@@ -22,16 +22,18 @@ class DotzLiveWallpaper : WallpaperService() {
         private var prefs: SharedPreferences? = null
         private var isVisible = false
 
-        // Settings
-        private var bgColor     = Color.BLACK
-        private var pastColor   = Color.WHITE
-        private var futureColor = Color.parseColor("#2A2A2A")
-        private var todayColor  = Color.parseColor("#FF4500")
-        private var columns     = 20
-        private var showLabel   = true
-        private var labelMode   = 1        // 0=off, 1=progress, 2=quote
-        private var customLabel = ""       // pre-resolved by Flutter (quote or progress text)
-        private var mode        = 0        // 0=year, 1=goal, 2=life
+        // ── Settings ───────────────────────────────────────────
+        private var bgColor       = Color.BLACK
+        private var pastColor     = Color.WHITE
+        private var futureColor   = Color.parseColor("#2A2A2A")
+        private var todayColor    = Color.parseColor("#FF4500")
+        private var labelColor    = Color.WHITE       // ← NEW
+        private var labelFontSizeSp = 0f              // ← NEW: 0 = auto
+        private var columns       = 20
+        private var showLabel     = true
+        private var labelMode     = 1                 // 0=off,1=progress,2=quote,3=custom
+        private var customLabel   = ""
+        private var mode          = 0                 // 0=year,1=goal,2=life
 
         // Goal
         private var goalTotalDays = 100
@@ -42,12 +44,17 @@ class DotzLiveWallpaper : WallpaperService() {
         private var lifeTotalDays = 29200
         private var lifeDaysLived = 0
 
-        // Render state
+        // ── Render state ───────────────────────────────────────
         private var dotRadius  = 0f
         private var dotSpacing = 0f
         private var renderCols = 20
         private var cachedBitmap: Bitmap? = null
         private var lastDrawnDay = -1
+
+        // The Y coordinate of the bottom edge of the dot grid (set in recalc)
+        private var gridBottomY = 0f
+        // The height reserved for the label area (set in recalc)
+        private var labelAreaHeight = 0f
 
         private val paintPast   = Paint(Paint.ANTI_ALIAS_FLAG)
         private val paintFuture = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -104,20 +111,22 @@ class DotzLiveWallpaper : WallpaperService() {
         // ── Load prefs ─────────────────────────────────────────
         private fun loadPrefs() {
             prefs?.let { p ->
-                bgColor       = p.getInt("bgColor",     Color.BLACK)
-                pastColor     = p.getInt("pastColor",   Color.WHITE)
-                futureColor   = p.getInt("futureColor", Color.parseColor("#2A2A2A"))
-                todayColor    = p.getInt("todayColor",  Color.parseColor("#FF4500"))
-                columns       = p.getInt("columns",     20)
-                showLabel     = p.getBoolean("showLabel", true)
-                labelMode     = p.getInt("labelMode",   1)
-                customLabel   = p.getString("customLabel", "") ?: ""
-                mode          = p.getInt("mode",        0)
-                goalTotalDays = p.getInt("goalTotal",   100)
-                goalPastDays  = p.getInt("goalPast",    0)
-                goalName      = p.getString("goalName", "Goal") ?: "Goal"
-                lifeTotalDays = p.getInt("lifeTotal",   29200)
-                lifeDaysLived = p.getInt("lifeLived",   0)
+                bgColor           = p.getInt("bgColor",         Color.BLACK)
+                pastColor         = p.getInt("pastColor",       Color.WHITE)
+                futureColor       = p.getInt("futureColor",     Color.parseColor("#2A2A2A"))
+                todayColor        = p.getInt("todayColor",      Color.parseColor("#FF4500"))
+                labelColor        = p.getInt("labelColor",      Color.WHITE)          // ← NEW
+                labelFontSizeSp   = p.getFloat("labelFontSize", 0f)                   // ← NEW
+                columns           = p.getInt("columns",         20)
+                showLabel         = p.getBoolean("showLabel",   true)
+                labelMode         = p.getInt("labelMode",       1)
+                customLabel       = p.getString("customLabel",  "") ?: ""
+                mode              = p.getInt("mode",            0)
+                goalTotalDays     = p.getInt("goalTotal",       100)
+                goalPastDays      = p.getInt("goalPast",        0)
+                goalName          = p.getString("goalName",     "Goal") ?: "Goal"
+                lifeTotalDays     = p.getInt("lifeTotal",       29200)
+                lifeDaysLived     = p.getInt("lifeLived",       0)
             }
         }
 
@@ -135,36 +144,62 @@ class DotzLiveWallpaper : WallpaperService() {
         }
 
         /**
-         * Resolve what text to draw at the bottom of the wallpaper.
-         *
-         * labelMode 0 = off  → empty string (nothing drawn)
-         * labelMode 1 = progress → compute locally (always fresh at midnight)
-         * labelMode 2 = quote  → use customLabel saved by Flutter (pre-fetched)
+         * Resolve label text.
+         * labelMode: 0=off, 1=progress, 2=quote, 3=custom
+         * For quote/custom, the pre-resolved string is stored in customLabel by Flutter.
          */
         private fun resolvedLabel(): String {
             if (!showLabel || labelMode == 0) return ""
-            if (labelMode == 2) return customLabel  // Flutter already formatted it
-            // Progress mode — compute locally so midnight rollover works without app open
-            return when (mode) {
-                1 -> "${(goalTotalDays - goalPastDays).coerceAtLeast(0)} left · $goalName"
-                2 -> {
-                    val left = (lifeTotalDays - lifeDaysLived).coerceAtLeast(0)
-                    val pct  = if (lifeTotalDays > 0) (lifeDaysLived * 100 / lifeTotalDays) else 0
-                    "$left days left · $pct%"
-                }
-                else -> {
-                    val left = daysInYear() - dayOfYear()
-                    val pct  = (dayOfYear().toFloat() / daysInYear() * 100).toInt()
-                    "$left left · $pct%"
-                }
+            // quote (2) and custom (3) both use the pre-resolved customLabel from Flutter
+            if (labelMode == 2 || labelMode == 3) {
+                return if (customLabel.isNotBlank()) customLabel else computeProgressLabel()
+            }
+            return computeProgressLabel()
+        }
+
+        private fun computeProgressLabel(): String = when (mode) {
+            1 -> "${(goalTotalDays - goalPastDays).coerceAtLeast(0)} left · $goalName"
+            2 -> {
+                val left = (lifeTotalDays - lifeDaysLived).coerceAtLeast(0)
+                val pct  = if (lifeTotalDays > 0) (lifeDaysLived * 100 / lifeTotalDays) else 0
+                "$left days left · $pct%"
+            }
+            else -> {
+                val left = daysInYear() - dayOfYear()
+                val pct  = (dayOfYear().toFloat() / daysInYear() * 100).toInt()
+                "$left left · $pct%"
             }
         }
 
         // ── Geometry ───────────────────────────────────────────
+        /**
+         * Key design change: we reserve a fixed label area at the BOTTOM of the
+         * screen BEFORE computing dot geometry. This guarantees dots never overlap
+         * the label, regardless of how many dots there are.
+         */
         private fun recalc(w: Int, h: Int) {
             val total  = totalDots()
+
+            // ── 1. Decide label font size ──────────────────────
+            //    We need this before layout so we can reserve space.
+            val label = resolvedLabel()
+            val hasLabel = label.isNotEmpty()
+
+            // Temporary text size to measure reserved height.
+            // We'll set the real paintText size later in buildCache.
+            val tempTextSp  = if (labelFontSizeSp > 0f) labelFontSizeSp else 12f
+            val density     = resources.displayMetrics.density
+            val tempTextPx  = tempTextSp * density
+
+            // Reserve label area: text height + padding above + padding below
+            // For quotes (multi-line), reserve more.
+            val labelLines  = if (hasLabel && label.length > 60 && (labelMode == 2 || labelMode == 3)) 3 else 1
+            labelAreaHeight = if (hasLabel) tempTextPx * labelLines * 1.5f + tempTextPx * 2f else 0f
+
+            // ── 2. Available area for dots ─────────────────────
             val availW = w * 0.90f
-            val availH = h * 0.88f
+            // Use full height minus label reservation at bottom
+            val availH = (h - labelAreaHeight) * 0.92f
 
             val effectiveCols = if (mode == 2 && total > 1000) {
                 sqrt(total.toDouble() * w / h).toInt().coerceIn(30, 120)
@@ -188,6 +223,12 @@ class DotzLiveWallpaper : WallpaperService() {
             paintPast.strokeWidth   = d
             paintFuture.strokeWidth = d
             paintToday.strokeWidth  = d
+
+            // ── 3. Compute gridBottomY ─────────────────────────
+            val rows  = ceil(total.toFloat() / renderCols).toInt()
+            val gridH = rows * (dotRadius * 2f + dotSpacing) - dotSpacing
+            val oy    = (h - labelAreaHeight - gridH) / 2f
+            gridBottomY = oy + gridH
 
             lastDrawnDay = dayOfYear()
             buildCache(w, h)
@@ -215,16 +256,23 @@ class DotzLiveWallpaper : WallpaperService() {
             val rows  = ceil(total.toFloat() / renderCols).toInt()
             val gridW = renderCols * cell - dotSpacing
             val gridH = rows       * cell - dotSpacing
-            val ox    = (w - gridW) / 2f
-            val oy    = (h - gridH) / 2f
+
+            // Centre the grid in the dot area (above label reservation)
+            val dotAreaH = h - labelAreaHeight
+            val ox = (w - gridW) / 2f
+            val oy = (dotAreaH - gridH) / 2f
 
             for (i in 0 until total) {
                 val cx = ox + (i % renderCols) * cell + dotRadius
                 val cy = oy + (i / renderCols) * cell + dotRadius
                 when {
-                    i < safePast  -> { if (pIdx + 1 < pastPts.size)   { pastPts[pIdx++]   = cx; pastPts[pIdx++]   = cy } }
+                    i < safePast  -> {
+                        if (pIdx + 1 < pastPts.size) { pastPts[pIdx++] = cx; pastPts[pIdx++] = cy }
+                    }
                     i == safePast -> { todayPt[0] = cx; todayPt[1] = cy; drewToday = true }
-                    else          -> { if (fIdx + 1 < futurePts.size)  { futurePts[fIdx++] = cx; futurePts[fIdx++] = cy } }
+                    else          -> {
+                        if (fIdx + 1 < futurePts.size) { futurePts[fIdx++] = cx; futurePts[fIdx++] = cy }
+                    }
                 }
             }
 
@@ -239,31 +287,48 @@ class DotzLiveWallpaper : WallpaperService() {
             // ── Label ─────────────────────────────────────────
             val label = resolvedLabel()
             if (label.isNotEmpty()) {
-                paintText.color       = Color.argb(140,
-                    Color.red(pastColor), Color.green(pastColor), Color.blue(pastColor))
-                paintText.textSize    = dotRadius * 1.8f
-                paintText.letterSpacing = 0.06f
-
-                // For quotes, wrap long text across multiple lines
-                if (labelMode == 2 && label.length > 60) {
-                    drawWrappedText(canvas, label, w / 2f, oy + gridH + dotRadius * 3.5f,
-                        w * 0.85f, paintText)
+                // ── Font size: explicit or auto ────────────────
+                val density   = resources.displayMetrics.density
+                val textSizePx = if (labelFontSizeSp > 0f) {
+                    labelFontSizeSp * density
                 } else {
-                    canvas.drawText(label, w / 2f, oy + gridH + dotRadius * 3.5f, paintText)
+                    // auto: derive from dot radius, but ensure minimum readability
+                    (dotRadius * 1.8f).coerceAtLeast(10f * density)
+                }
+
+                paintText.color        = labelColor          // ← use user-chosen colour
+                paintText.textSize     = textSizePx
+                paintText.letterSpacing = 0.04f
+
+                // Label baseline: centred in the reserved label area at the bottom.
+                // labelAreaHeight was set in recalc(). We put the first line of text
+                // at the midpoint of that reserved area.
+                val labelAreaTop = h - labelAreaHeight
+                val lineHeight   = textSizePx * 1.45f
+                val startY       = labelAreaTop + textSizePx + (labelAreaHeight - textSizePx) / 2f
+
+                val isLong = label.length > 60 && (labelMode == 2 || labelMode == 3)
+                if (isLong) {
+                    drawWrappedText(canvas, label, w / 2f, startY, w * 0.85f, lineHeight, paintText)
+                } else {
+                    canvas.drawText(label, w / 2f, startY, paintText)
                 }
             }
         }
 
-        /** Draw text wrapping at [maxWidth], advancing [lineHeight] per line. */
+        /**
+         * Draw text wrapping at [maxWidth], advancing [lineHeight] per line.
+         * Centred horizontally at [x], starting at [startY].
+         */
         private fun drawWrappedText(
             canvas: Canvas, text: String,
             x: Float, startY: Float,
-            maxWidth: Float, paint: Paint
+            maxWidth: Float, lineHeight: Float,
+            paint: Paint
         ) {
-            val words     = text.split(" ")
-            val lineH     = paint.textSize * 1.4f
-            var line      = ""
-            var y         = startY
+            val words = text.split(" ")
+            var line  = ""
+            var y     = startY
             for (word in words) {
                 val test = if (line.isEmpty()) word else "$line $word"
                 if (paint.measureText(test) <= maxWidth) {
@@ -271,7 +336,7 @@ class DotzLiveWallpaper : WallpaperService() {
                 } else {
                     if (line.isNotEmpty()) canvas.drawText(line, x, y, paint)
                     line = word
-                    y   += lineH
+                    y   += lineHeight
                 }
             }
             if (line.isNotEmpty()) canvas.drawText(line, x, y, paint)

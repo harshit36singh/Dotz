@@ -7,8 +7,9 @@ import '../core/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 String apiKey = dotenv.env['API_KEY']!;
+
 /// What to show at the bottom of the wallpaper
-enum LabelMode { off, progress, quote }
+enum LabelMode { off, progress, quote, custom }
 
 class HomeViewModel extends ChangeNotifier {
   static const _channel = MethodChannel('com.example.dotz/wallpaper');
@@ -53,6 +54,21 @@ class HomeViewModel extends ChangeNotifier {
   void setTodayColor(Color c)  { _todayColor  = c; notifyListeners(); }
   void setFutureColor(Color c) { _futureColor = c; notifyListeners(); }
   void setBgColor(Color c)     { _bgColor     = c; notifyListeners(); }
+
+  // ── Label colour ──────────────────────────────────────────────
+  Color _labelColor = const Color(0xFFFFFFFF);
+  Color get labelColor => _labelColor;
+  void setLabelColor(Color c) { _labelColor = c; notifyListeners(); }
+
+  // ── Label font size (0 = auto) ────────────────────────────────
+  /// Range: 8–32. 0 means "auto" (derived from dot radius on native side).
+  double _labelFontSize = 0;
+  double get labelFontSize => _labelFontSize;
+  bool get labelFontSizeAuto => _labelFontSize == 0;
+  void setLabelFontSize(double v) {
+    _labelFontSize = v;
+    notifyListeners();
+  }
 
   // ── Grid ──────────────────────────────────────────────────────
   int _columns = 20;
@@ -112,6 +128,14 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
+  // ── Custom label text ─────────────────────────────────────────
+  String _customLabelText = '';
+  String get customLabelText => _customLabelText;
+  void setCustomLabelText(String v) {
+    _customLabelText = v;
+    notifyListeners();
+  }
+
   String get resolvedLabel {
     switch (_labelMode) {
       case LabelMode.quote:
@@ -123,6 +147,8 @@ class HomeViewModel extends ChangeNotifier {
         return settings.progressLabel;
       case LabelMode.progress:
         return settings.progressLabel;
+      case LabelMode.custom:
+        return _customLabelText.trim().isEmpty ? settings.progressLabel : _customLabelText.trim();
       case LabelMode.off:
         return '';
     }
@@ -197,6 +223,8 @@ class HomeViewModel extends ChangeNotifier {
     pastDotColor:        _pastColor,
     todayDotColor:       _todayColor,
     futureDotColor:      _futureColor,
+    textColor:           _labelColor,
+    labelFontSize:       _labelFontSize,
     columns:             _columns,
     showProgressLabel:   showLabel,
     mode:                _mode,
@@ -267,20 +295,22 @@ class HomeViewModel extends ChangeNotifier {
           ? 1
           : _mode == CalendarMode.life ? 2 : 0;
       await _channel.invokeMethod('saveSettings', {
-        'bgColor':     _toArgb(_bgColor),
-        'pastColor':   _toArgb(_pastColor),
-        'futureColor': _toArgb(_futureColor),
-        'todayColor':  _toArgb(_todayColor),
-        'columns':     _columns,
-        'showLabel':   showLabel,
-        'labelMode':   _labelMode.index,  // 0=off,1=progress,2=quote
-        'customLabel': resolvedLabel,      // pre-resolved string
-        'mode':        modeIdx,
-        'goalTotal':   goalTotal,
-        'goalPast':    goalTotal - goalDaysLeft,
-        'goalName':    _goalName,
-        'lifeTotal':   totalDays,
-        'lifeLived':   daysLived,
+        'bgColor':        _toArgb(_bgColor),
+        'pastColor':      _toArgb(_pastColor),
+        'futureColor':    _toArgb(_futureColor),
+        'todayColor':     _toArgb(_todayColor),
+        'labelColor':     _toArgb(_labelColor),   // ← NEW
+        'labelFontSize':  _labelFontSize,           // ← NEW (0 = auto)
+        'columns':        _columns,
+        'showLabel':      showLabel,
+        'labelMode':      _labelMode.index,         // 0=off,1=progress,2=quote,3=custom
+        'customLabel':    resolvedLabel,             // pre-resolved string
+        'mode':           modeIdx,
+        'goalTotal':      goalTotal,
+        'goalPast':       goalTotal - goalDaysLeft,
+        'goalName':       _goalName,
+        'lifeTotal':      totalDays,
+        'lifeLived':      daysLived,
       });
       await _channel.invokeMethod('openWallpaperPicker');
       return true;
