@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum CalendarMode { year, goal, life , settings}
+enum CalendarMode { year, goal, life, settings }
 enum WallpaperTarget { lockscreen, homescreen, both }
 
 class WallpaperSettings {
@@ -79,19 +79,16 @@ class WallpaperSettings {
   // ── Goal helpers ──────────────────────────────────────────────
   int get goalTotalDays {
     if (goalDate == null) return 100;
-    final start = DateTime.now().subtract(const Duration(days: 1));
-    return goalDate!.difference(start).inDays.abs() + 1;
-  }
-
-  int get goalDaysPast {
-    if (goalDate == null) return 0;
     final now = DateTime.now();
-    return now.isAfter(goalDate!) ? goalTotalDays : 0;
+    // Total days from today to goal date (or if past, days from roughly start)
+    final diff = goalDate!.difference(DateTime(now.year, now.month, now.day)).inDays;
+    if (diff <= 0) return 1;
+    return diff + 1;
   }
 
   int get goalDaysLeft {
     if (goalDate == null) return 100;
-    final now = DateTime.now();
+    final now = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     final diff = goalDate!.difference(now).inDays;
     return diff < 0 ? 0 : diff;
   }
@@ -108,29 +105,24 @@ class WallpaperSettings {
   int get lifeDaysLeft =>
       (lifeTotalDays - lifeDaysLived).clamp(0, lifeTotalDays);
 
-  double get lifeProgress => lifeDaysLived / lifeTotalDays;
+  double get lifeProgress => lifeTotalDays > 0 ? lifeDaysLived / lifeTotalDays : 0;
 
   // ── Computed dot counts ───────────────────────────────────────
   int get totalDots {
     switch (mode) {
-      case CalendarMode.year: return daysInYear;
-      case CalendarMode.goal: return goalTotalDays.clamp(1, 500);
-      case CalendarMode.life: return lifeTotalDays;
-      case CalendarMode.settings:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+      case CalendarMode.year:     return daysInYear;
+      case CalendarMode.goal:     return goalTotalDays.clamp(1, 3650);
+      case CalendarMode.life:     return lifeTotalDays;
+      case CalendarMode.settings: return daysInYear; // fallback
     }
   }
 
   int get pastDots {
     switch (mode) {
-      case CalendarMode.year: return dayOfYear - 1;
-      case CalendarMode.goal:
-        return (totalDots - goalDaysLeft).clamp(0, totalDots);
-      case CalendarMode.life: return lifeDaysLived;
-      case CalendarMode.settings:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+      case CalendarMode.year:     return dayOfYear - 1;
+      case CalendarMode.goal:     return (totalDots - goalDaysLeft).clamp(0, totalDots);
+      case CalendarMode.life:     return lifeDaysLived; // FIX: use lifeDaysLived directly
+      case CalendarMode.settings: return dayOfYear - 1; // fallback
     }
   }
 
@@ -143,10 +135,9 @@ class WallpaperSettings {
         return '$goalDaysLeft days left · $goalName';
       case CalendarMode.life:
         return '$lifeDaysLeft days left · '
-            '${(lifeProgress * 100).toStringAsFixed(0)}%';
+            '${(lifeProgress * 100).toStringAsFixed(1)}%';
       case CalendarMode.settings:
-        // TODO: Handle this case.
-        throw UnimplementedError();
+        return '';
     }
   }
 }

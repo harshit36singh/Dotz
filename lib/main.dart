@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'views/home/home_screen.dart';
+import 'views/onboarding/onboarding_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  runApp(const MyApp());
+
+  bool showOnboarding = true;
+  try {
+    showOnboarding = await OnboardingScreen.shouldShow();
+  } catch (_) {
+    // If SharedPreferences fails (first cold start), default to showing onboarding
+    showOnboarding = true;
+  }
+
+  runApp(MyApp(showOnboarding: showOnboarding));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool showOnboarding;
+  const MyApp({super.key, required this.showOnboarding});
 
   @override
   Widget build(BuildContext context) {
@@ -19,13 +30,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         fontFamily: 'serif',
-        scaffoldBackgroundColor: const Color(0xFFF5F0E8),
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFFCC2200),
-          surface: Color(0xFFFAF8F4),
+        scaffoldBackgroundColor: Colors.black,
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.white,
+          surface: Color(0xFF111111),
         ),
       ),
-      home: const HomeScreen(),
+      home: showOnboarding ? const OnboardingScreen() : const HomeScreen(),
     );
   }
 }

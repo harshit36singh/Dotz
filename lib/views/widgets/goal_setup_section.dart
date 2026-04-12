@@ -1,5 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../core/app_theme.dart';
+import 'package:flutter/cupertino.dart';
 import '../../viewmodels/home_view_model.dart';
 
 class GoalSetupSection extends StatefulWidget {
@@ -32,13 +33,17 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
     final vm = widget.vm;
     final picked = await showDatePicker(
       context: context,
-      initialDate:
-          vm.goalDate ?? DateTime.now().add(const Duration(days: 60)),
+      initialDate: vm.goalDate ?? DateTime.now().add(const Duration(days: 60)),
       firstDate: DateTime.now().add(const Duration(days: 1)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
       builder: (ctx, child) => Theme(
-        data: Theme.of(ctx).copyWith(
-          colorScheme: const ColorScheme.light(primary: kRed),
+        data: ThemeData.dark().copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: Colors.white,
+            onPrimary: Colors.black,
+            surface: Color(0xFF1C1C1E),
+          ),
+          dialogBackgroundColor: const Color(0xFF1C1C1E),
         ),
         child: child!,
       ),
@@ -54,80 +59,183 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
         : vm.goalDate!.difference(DateTime.now()).inDays;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const SizedBox(height: 24),
+      const SizedBox(height: 20),
 
-      // ── Goal name ──────────────────────────────────────────────
-      const Text('GOAL NAME',
-          style: TextStyle(
-              color: kMid,
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 3)),
-      const SizedBox(height: 10),
-      Container(
-        decoration: BoxDecoration(
-          color: kSurf,
-          border: Border.all(color: kRule),
-        ),
-        child: TextField(
-          controller: _nameCtrl,
-          style: const TextStyle(
-              color: kInk, fontSize: 15, fontWeight: FontWeight.w500),
-          decoration: const InputDecoration(
-            hintText: 'e.g. New York Marathon',
-            hintStyle: TextStyle(color: kMid),
-            border: InputBorder.none,
-            contentPadding:
-                EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.07),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.12),
+                width: 0.5,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Goal name ──────────────────────────────────────
+                Row(
+                  children: [
+                    Icon(CupertinoIcons.flag, color: Colors.white.withOpacity(0.4), size: 12),
+                    const SizedBox(width: 6),
+                    Text(
+                      'GOAL NAME',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _nameCtrl,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'e.g. New York Marathon',
+                          hintStyle: TextStyle(color: Colors.white.withOpacity(0.25)),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        onChanged: vm.setGoalName,
+                      ),
+                    ),
+                    // Clear button if text is entered
+                    if (_nameCtrl.text.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          _nameCtrl.clear();
+                          vm.setGoalName('');
+                          setState(() {});
+                        },
+                        child: Icon(
+                          CupertinoIcons.xmark_circle_fill,
+                          color: Colors.white.withOpacity(0.3),
+                          size: 18,
+                        ),
+                      ),
+                  ],
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: Container(height: 0.5, color: Colors.white.withOpacity(0.1)),
+                ),
+
+                // ── Target date ───────────────────────────────────
+                Row(
+                  children: [
+                    Icon(CupertinoIcons.calendar, color: Colors.white.withOpacity(0.4), size: 12),
+                    const SizedBox(width: 6),
+                    Text(
+                      'TARGET DATE',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.4),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: _pickDate,
+                  child: Row(children: [
+                    Text(
+                      vm.goalDate == null
+                          ? 'Tap to pick a date'
+                          : '${vm.goalDate!.day} / ${vm.goalDate!.month} / ${vm.goalDate!.year}',
+                      style: TextStyle(
+                        color: vm.goalDate != null
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.25),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (days != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '$days days',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      )
+                    else
+                      Icon(
+                        CupertinoIcons.chevron_right,
+                        color: Colors.white.withOpacity(0.25),
+                        size: 14,
+                      ),
+                  ]),
+                ),
+
+                // ── Reset button ──────────────────────────────────
+                if (vm.goalDate != null || _nameCtrl.text.isNotEmpty) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Container(height: 0.5, color: Colors.white.withOpacity(0.1)),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      vm.clearGoal();
+                      _nameCtrl.clear();
+                      setState(() {});
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          CupertinoIcons.arrow_counterclockwise,
+                          color: Colors.white.withOpacity(0.4),
+                          size: 12,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'RESET GOAL',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.4),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
-          onChanged: vm.setGoalName,
         ),
       ),
 
-      const SizedBox(height: 24),
-
-      // ── Target date ───────────────────────────────────────────
-      const Text('TARGET DATE',
-          style: TextStyle(
-              color: kMid,
-              fontSize: 9,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 3)),
-      const SizedBox(height: 10),
-      GestureDetector(
-        onTap: _pickDate,
-        child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            color: kSurf,
-            border: Border.all(
-              color: vm.goalDate != null ? kRed : kRule,
-              width: vm.goalDate != null ? 1.5 : 1,
-            ),
-          ),
-          child: Row(children: [
-            Text(
-              vm.goalDate == null
-                  ? 'Pick a date'
-                  : '${vm.goalDate!.day} / ${vm.goalDate!.month} / ${vm.goalDate!.year}',
-              style: TextStyle(
-                  color: vm.goalDate != null ? kInk : kMid,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500),
-            ),
-            const Spacer(),
-            if (days != null)
-              Text('$days days away',
-                  style: const TextStyle(
-                      color: kRed,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700)),
-          ]),
-        ),
-      ),
-
-      const SizedBox(height: 24),
+      const SizedBox(height: 16),
     ]);
   }
 }

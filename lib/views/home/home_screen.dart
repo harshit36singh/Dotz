@@ -1,7 +1,7 @@
-import 'dart:ui'; 
+import 'dart:ui';
+import 'package:dotz/views/setting/setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/app_theme.dart'; 
 import '../../models/wallpaper_settings.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../widgets/dot_grid_widget.dart';
@@ -9,7 +9,6 @@ import '../widgets/floating_nav_bar.dart';
 import '../widgets/hero_section.dart';
 import '../widgets/goal_setup_section.dart';
 import '../widgets/life_setup_section.dart';
-import '../widgets/controls_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,15 +32,6 @@ class _HomeScreenState extends State<HomeScreen>
     _af = CurvedAnimation(parent: _ac, curve: Curves.easeOut);
     _ac.forward();
     _vm.checkLive();
-    
-    // ── FORCE MINIMAL B&W GLASS THEME ──
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _vm.setBgColor(Colors.transparent);
-      _vm.setPastColor(Colors.white.withOpacity(0.7)); 
-      _vm.setTodayColor(Colors.white);                 
-      _vm.setFutureColor(Colors.white.withOpacity(0.15)); 
-    });
-
     _vm.addListener(_onVmChange);
   }
 
@@ -69,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── iOS Glass Bottom Sheet ────────────────────────────────────
   void _showApplySheet() => showModalBottomSheet(
     context: context,
-    backgroundColor: Colors.transparent, 
+    backgroundColor: Colors.transparent,
     elevation: 0,
     builder: (_) => ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(45)),
@@ -78,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: Container(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 48),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withOpacity(0.5),
             border: Border(
               top: BorderSide(color: Colors.white.withOpacity(0.15), width: 0.5),
             ),
@@ -92,16 +82,23 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             const SizedBox(height: 32),
-            const Text('Apply to Lock Screen',
-                style: TextStyle(
-                    color: Colors.white, fontSize: 22,
-                    fontWeight: FontWeight.w700, fontStyle: FontStyle.italic,
-                    letterSpacing: -0.5)),
+            const Text(
+              'Apply to Lock Screen',
+              style: TextStyle(
+                color: Colors.white, fontSize: 22,
+                fontWeight: FontWeight.w700, fontStyle: FontStyle.italic,
+                letterSpacing: -0.5,
+              ),
+            ),
             const SizedBox(height: 12),
             Text(
-                'Long-press home → Wallpapers → Live → DotZ → Apply',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13, height: 1.8)),
+              'Long-press home → Wallpapers → Live → DotZ → Apply',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 13, height: 1.8,
+              ),
+            ),
             const SizedBox(height: 32),
             GestureDetector(
               onTap: () => Navigator.pop(context),
@@ -112,10 +109,13 @@ class _HomeScreenState extends State<HomeScreen>
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(100),
                 ),
-                child: const Text('GOT IT',
-                    style: TextStyle(
-                        color: Colors.black, fontSize: 11,
-                        fontWeight: FontWeight.w900, letterSpacing: 2.0)),
+                child: const Text(
+                  'GOT IT',
+                  style: TextStyle(
+                    color: Colors.black, fontSize: 11,
+                    fontWeight: FontWeight.w900, letterSpacing: 2.0,
+                  ),
+                ),
               ),
             ),
           ]),
@@ -124,66 +124,59 @@ class _HomeScreenState extends State<HomeScreen>
     ),
   ).then((_) => _vm.checkLive());
 
-  // ── Helpers ───────────────────────────────────────────────────
   Widget _applyBtn() => GestureDetector(
     onTap: _vm.saving ? null : _apply,
     child: Container(
       width: double.infinity, height: 56,
-      alignment: Alignment.center, 
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(100),
         boxShadow: [
           BoxShadow(
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withOpacity(0.12),
             blurRadius: 20,
             offset: const Offset(0, 4),
-          )
-        ]
+          ),
+        ],
       ),
       child: _vm.saving
           ? const SizedBox(
               width: 20, height: 20,
-              child: CircularProgressIndicator(
-                  strokeWidth: 2, color: Colors.black))
-          : const Text('APPLY TO LOCK SCREEN',
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+            )
+          : const Text(
+              'APPLY TO LOCK SCREEN',
               style: TextStyle(
-                  color: Colors.black, fontSize: 11,
-                  fontWeight: FontWeight.w900, letterSpacing: 2.0)),
+                color: Colors.black, fontSize: 11,
+                fontWeight: FontWeight.w900, letterSpacing: 2.0,
+              ),
+            ),
     ),
   );
 
   Widget _topBar(double hPad) => Padding(
-    padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 0), 
+    padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 0),
     child: ClipRRect(
-      borderRadius: BorderRadius.circular(100), 
+      borderRadius: BorderRadius.circular(100),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0), 
+        filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.25), 
+            color: Colors.black.withOpacity(0.3),
             borderRadius: BorderRadius.circular(100),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.15), 
-              width: 0.5,
-            ),
+            border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
           ),
           child: Row(
             children: [
               Container(
                 width: 24, height: 24,
-                decoration: const BoxDecoration(
-                  color: Colors.white, 
-                  shape: BoxShape.circle,
-                ),
+                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
                 child: Center(
                   child: Container(
                     width: 8, height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.black, 
-                      shape: BoxShape.circle,
-                    ),
+                    decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle),
                   ),
                 ),
               ),
@@ -191,57 +184,13 @@ class _HomeScreenState extends State<HomeScreen>
               const Text(
                 'DotZ',
                 style: TextStyle(
-                  color: Colors.white, 
-                  fontSize: 16,
-                  fontStyle: FontStyle.italic, 
-                  fontWeight: FontWeight.w800,
+                  color: Colors.white, fontSize: 16,
+                  fontStyle: FontStyle.italic, fontWeight: FontWeight.w800,
                   letterSpacing: -0.5,
                 ),
               ),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _vm.live ? Colors.white.withOpacity(0.1) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(_vm.live ? 0.3 : 0.05),
-                    width: 0.5,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6, height: 6,
-                      decoration: BoxDecoration(
-                        color: _vm.live ? Colors.white : Colors.transparent,
-                        shape: BoxShape.circle,
-                        border: _vm.live 
-                            ? null 
-                            : Border.all(color: Colors.white.withOpacity(0.3), width: 1), 
-                        boxShadow: _vm.live ? [
-                          const BoxShadow(
-                            color: Colors.white,
-                            blurRadius: 6, 
-                            spreadRadius: 1,
-                          )
-                        ] : [],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _vm.live ? 'LIVE' : 'IDLE',
-                      style: TextStyle(
-                        color: _vm.live ? Colors.white : Colors.white.withOpacity(0.5), 
-                        fontSize: 9, 
-                        fontWeight: FontWeight.w800, 
-                        letterSpacing: 2.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _LiveBadge(live: _vm.live),
             ],
           ),
         ),
@@ -250,7 +199,9 @@ class _HomeScreenState extends State<HomeScreen>
   );
 
   Widget _modeSetup(double hPad) {
-    if (_vm.mode == CalendarMode.year) return const SizedBox.shrink();
+    if (_vm.mode == CalendarMode.year || _vm.mode == CalendarMode.settings) {
+      return const SizedBox.shrink();
+    }
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: hPad),
       child: _vm.mode == CalendarMode.goal
@@ -259,8 +210,48 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ── Custom Gradient Background ────────────────────────────────
-  Widget _buildFusionBackground(BuildContext context) {
+  // ── DOT PREVIEW with semi-transparent bg so user can see bg color ──
+  Widget _dotPreview(double hPad, double ph) {
+    // Use the actual bg color from settings for the preview container
+    final bgColor = _vm.bgColor;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: hPad),
+      child: FadeTransition(
+        opacity: _af,
+        child: Container(
+          width: double.infinity,
+          height: ph,
+          decoration: BoxDecoration(
+            // Show the actual background color with slight transparency
+            // so user gets a real preview of what the wallpaper looks like
+            color: bgColor.withOpacity(0.85),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.12),
+              width: 0.5,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: Stack(
+              children: [
+                // Actual bg color fill
+                Container(color: bgColor),
+                // Dot grid
+                CustomPaint(
+                  painter: DotGridPainter(_vm.settings),
+                  child: const SizedBox.expand(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackground(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Stack(
       children: [
@@ -270,7 +261,9 @@ class _HomeScreenState extends State<HomeScreen>
           child: Container(
             width: 400, height: 400,
             decoration: BoxDecoration(
-              shape: BoxShape.circle, color: Colors.deepPurpleAccent.withOpacity(0.6)),
+              shape: BoxShape.circle,
+              color: Colors.deepPurpleAccent.withOpacity(0.6),
+            ),
           ),
         ),
         Positioned(
@@ -278,7 +271,9 @@ class _HomeScreenState extends State<HomeScreen>
           child: Container(
             width: 450, height: 450,
             decoration: BoxDecoration(
-              shape: BoxShape.circle, color: Colors.blueAccent.withOpacity(0.4)),
+              shape: BoxShape.circle,
+              color: Colors.blueAccent.withOpacity(0.4),
+            ),
           ),
         ),
         Positioned(
@@ -286,7 +281,9 @@ class _HomeScreenState extends State<HomeScreen>
           child: Container(
             width: 300, height: 300,
             decoration: BoxDecoration(
-              shape: BoxShape.circle, color: Colors.pinkAccent.withOpacity(0.3)),
+              shape: BoxShape.circle,
+              color: Colors.pinkAccent.withOpacity(0.3),
+            ),
           ),
         ),
         Positioned.fill(
@@ -299,8 +296,25 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ── Body builders ─────────────────────────────────────────────
-  Widget _stackBody(double hPad, double ph) => Column(
+  // ── Settings page body ─────────────────────────────────────────
+  Widget _settingsBody(double hPad) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _topBar(hPad),
+      HeroSection(
+        tag: _vm.heroTag, bigNum: '⚙',
+        title: _vm.heroTitle, statA: _vm.heroStatA,
+        statB: _vm.heroStatB, hPad: hPad, fade: _af,
+      ),
+      Transform.translate(
+        offset: const Offset(0, -16),
+        child: SettingsPage(vm: _vm),
+      ),
+    ],
+  );
+
+  // ── Main calendar page body ────────────────────────────────────
+  Widget _calendarBody(double hPad, double ph) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       _topBar(hPad),
@@ -315,35 +329,9 @@ class _HomeScreenState extends State<HomeScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _modeSetup(hPad),
-            if (_vm.mode != CalendarMode.year) const SizedBox(height: 12),
-            
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: FadeTransition(
-                opacity: _af,
-                child: Container(
-                  width: double.infinity, height: ph,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.25),
-                    borderRadius: BorderRadius.circular(32),
-                    border: Border.all(color: Colors.white.withOpacity(0.15), width: 0.5),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(32),
-                    // ── FIX APPLIED HERE ──
-                    child: CustomPaint(
-                      painter: DotGridPainter(_vm.settings),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            if (_vm.mode != CalendarMode.year) const SizedBox(height: 4),
+            _dotPreview(hPad, ph),
             const SizedBox(height: 24),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: hPad),
-              child: ControlsSection(vm: _vm),
-            ),
-            const SizedBox(height: 32),
             Padding(
               padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 0),
               child: _applyBtn(),
@@ -354,110 +342,91 @@ class _HomeScreenState extends State<HomeScreen>
     ],
   );
 
-  Widget _wideBody(double hPad, double ph) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _topBar(hPad),
-      HeroSection(
-        tag: _vm.heroTag, bigNum: _vm.heroBigNum,
-        title: _vm.heroTitle, statA: _vm.heroStatA,
-        statB: _vm.heroStatB, hPad: hPad, fade: _af,
-      ),
-      Transform.translate(
-        offset: const Offset(0, -16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _modeSetup(hPad),
-            if (_vm.mode != CalendarMode.year) const SizedBox(height: 12),
-            
-            Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: FadeTransition(
-                      opacity: _af,
-                      child: Container(
-                        height: ph,
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.25),
-                          borderRadius: BorderRadius.circular(32),
-                          border: Border.all(color: Colors.white.withOpacity(0.15), width: 0.5),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(32),
-                          // ── FIX APPLIED HERE ──
-                          child: CustomPaint(
-                            painter: DotGridPainter(_vm.settings),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 40),
-                  Expanded(
-                    flex: 4,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ControlsSection(vm: _vm),
-                        const SizedBox(height: 32),
-                        _applyBtn(),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      const SizedBox(height: 48),
-    ],
-  );
-
   @override
   Widget build(BuildContext context) {
-    final mq    = MediaQuery.of(context);
-    final sw    = mq.size.width;
-    final sh    = mq.size.height;
-    final isWide = sw >= 900.0;
+    final mq     = MediaQuery.of(context);
+    final sw     = mq.size.width;
+    final sh     = mq.size.height;
     final hPad   = sw >= 600.0 ? 32.0 : 20.0;
     final pw     = sw - hPad * 2;
-    final ph     = (pw * 19 / 9).clamp(220.0, sh * 0.50);
+    final ph     = (pw * 19 / 9).clamp(220.0, sh * 0.48);
+
+    final isSettings = _vm.mode == CalendarMode.settings;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: Colors.transparent, 
+        backgroundColor: Colors.transparent,
         body: Stack(
           children: [
-            _buildFusionBackground(context),
+            _buildBackground(context),
             SafeArea(
               child: Stack(
                 children: [
                   SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(bottom: 120), 
-                    child: isWide
-                        ? _wideBody(hPad, ph)
-                        : _stackBody(hPad, ph),
+                    padding: const EdgeInsets.only(bottom: 120),
+                    child: isSettings
+                        ? _settingsBody(hPad)
+                        : _calendarBody(hPad, ph),
                   ),
                   Positioned(
-                    left: 80, 
-                    right: 89, 
+                    left: 80,
+                    right: 80,
                     bottom: 20,
-                    child: FloatingNavBar(
-                        mode: _vm.mode, onTap: _switchMode),
+                    child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
                   ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _LiveBadge extends StatelessWidget {
+  final bool live;
+  const _LiveBadge({required this.live});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: live ? Colors.white.withOpacity(0.1) : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withOpacity(live ? 0.3 : 0.05),
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6, height: 6,
+            decoration: BoxDecoration(
+              color: live ? Colors.white : Colors.transparent,
+              shape: BoxShape.circle,
+              border: live ? null : Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+              boxShadow: live
+                  ? [const BoxShadow(color: Colors.white, blurRadius: 6, spreadRadius: 1)]
+                  : [],
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            live ? 'LIVE' : 'IDLE',
+            style: TextStyle(
+              color: live ? Colors.white : Colors.white.withOpacity(0.5),
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 2.0,
+            ),
+          ),
+        ],
       ),
     );
   }
