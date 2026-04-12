@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 
-// ════════════════════════════════════════════════════════════════
-//  COLOR STRIP  — four tappable swatches (Past / Today / Future / BG)
-// ════════════════════════════════════════════════════════════════
 class ColorStrip extends StatelessWidget {
   final Color pastColor, todayColor, futureColor, bgColor;
   final void Function(Color) onPastChanged;

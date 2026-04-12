@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum CalendarMode { year, goal, life }
+enum CalendarMode { year, goal, life , settings}
 enum WallpaperTarget { lockscreen, homescreen, both }
 
 class WallpaperSettings {
@@ -116,6 +116,9 @@ class WallpaperSettings {
       case CalendarMode.year: return daysInYear;
       case CalendarMode.goal: return goalTotalDays.clamp(1, 500);
       case CalendarMode.life: return lifeTotalDays;
+      case CalendarMode.settings:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 
@@ -125,6 +128,9 @@ class WallpaperSettings {
       case CalendarMode.goal:
         return (totalDots - goalDaysLeft).clamp(0, totalDots);
       case CalendarMode.life: return lifeDaysLived;
+      case CalendarMode.settings:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 
@@ -138,6 +144,9 @@ class WallpaperSettings {
       case CalendarMode.life:
         return '$lifeDaysLeft days left · '
             '${(lifeProgress * 100).toStringAsFixed(0)}%';
+      case CalendarMode.settings:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 }

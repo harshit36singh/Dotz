@@ -272,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen>
                     : _stackBody(hPad, ph),
               ),
               Positioned(
-                left: 20, right: 20, bottom: 20,
+                left: 80, right: 80, bottom: 20,
                 child: FloatingNavBar(
                     mode: _vm.mode, onTap: _switchMode),
               ),

@@ -126,6 +126,8 @@ class HomeViewModel extends ChangeNotifier {
     CalendarMode.year => 'YEAR CALENDAR',
     CalendarMode.goal => 'GOAL CALENDAR',
     CalendarMode.life => 'LIFE CALENDAR',
+    // TODO: Handle this case.
+    CalendarMode.settings => throw UnimplementedError(),
   };
 
   String get heroBigNum {
@@ -138,6 +140,8 @@ class HomeViewModel extends ChangeNotifier {
       CalendarMode.life => daysLived > 99
           ? '$daysLived'
           : daysLived.toString().padLeft(2, '0'),
+      // TODO: Handle this case.
+      CalendarMode.settings => throw UnimplementedError(),
     };
   }
 
@@ -145,6 +149,8 @@ class HomeViewModel extends ChangeNotifier {
     CalendarMode.year => 'Days\npassed',
     CalendarMode.goal => _goalName,
     CalendarMode.life => 'Days\nlived',
+    // TODO: Handle this case.
+    CalendarMode.settings => throw UnimplementedError(),
   };
 
   String get heroStatA {
@@ -153,6 +159,8 @@ class HomeViewModel extends ChangeNotifier {
       CalendarMode.year => 'Day $doy',
       CalendarMode.goal => '$goalDaysLeft days left',
       CalendarMode.life => '$daysLived of $totalDays days',
+      // TODO: Handle this case.
+      CalendarMode.settings => throw UnimplementedError(),
     };
   }
 
@@ -167,6 +175,8 @@ class HomeViewModel extends ChangeNotifier {
       CalendarMode.life => totalDays > 0
           ? '— ${(daysLived / totalDays * 100).toStringAsFixed(1)}% lived'
           : '',
+      // TODO: Handle this case.
+      CalendarMode.settings => throw UnimplementedError(),
     };
   }
 
