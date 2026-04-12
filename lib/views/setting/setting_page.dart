@@ -4,116 +4,176 @@ import 'package:flutter/cupertino.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../widgets/color_strip.dart';
 
+// ── Layout helpers ─────────────────────────────────────────────────
+double _hPad(BuildContext ctx) {
+  final w = MediaQuery.of(ctx).size.width;
+  if (w >= 900) return 48.0;
+  if (w >= 600) return 32.0;
+  return 20.0;
+}
+
+bool _isWide(BuildContext ctx) => MediaQuery.of(ctx).size.width >= 700;
+
 class SettingsPage extends StatelessWidget {
   final HomeViewModel vm;
   const SettingsPage({super.key, required this.vm});
 
   @override
   Widget build(BuildContext context) {
+    final hp   = _hPad(context);
+    final wide = _isWide(context);
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-      child: Column(
+      padding: EdgeInsets.fromLTRB(hp, 8, hp, 40),
+      child: wide ? _wideLayout(context) : _narrowLayout(context),
+    );
+  }
+
+  Widget _wideLayout(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Dot colours ──────────────────────────────────────
-          _GlassSection(
+          Expanded(child: _DarkSection(
             title: 'DOT COLOURS',
             icon: CupertinoIcons.paintbrush,
             child: ColorStrip(
-              pastColor:       vm.pastColor,
-              todayColor:      vm.todayColor,
-              futureColor:     vm.futureColor,
-              bgColor:         vm.bgColor,
-              onPastChanged:   vm.setPastColor,
-              onTodayChanged:  vm.setTodayColor,
-              onFutureChanged: vm.setFutureColor,
-              onBgChanged:     vm.setBgColor,
+              pastColor: vm.pastColor, todayColor: vm.todayColor,
+              futureColor: vm.futureColor, bgColor: vm.bgColor,
+              onPastChanged: vm.setPastColor, onTodayChanged: vm.setTodayColor,
+              onFutureChanged: vm.setFutureColor, onBgChanged: vm.setBgColor,
             ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // ── Grid density ─────────────────────────────────────
-          _GlassSection(
+          )),
+          const SizedBox(width: 16),
+          Expanded(child: _DarkSection(
             title: 'GRID DENSITY',
             icon: CupertinoIcons.square_grid_3x2,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  '${vm.columns}',
-                  style: const TextStyle(
-                    color: Colors.white, fontSize: 52,
-                    fontStyle: FontStyle.italic, fontWeight: FontWeight.w900,
-                    height: 1, letterSpacing: -2,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('columns',
-                        style: TextStyle(color: Colors.white.withOpacity(0.5),
-                          fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 2)),
-                      const SizedBox(height: 6),
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          activeTrackColor:   Colors.white,
-                          inactiveTrackColor: Colors.white.withOpacity(0.15),
-                          thumbColor:    Colors.white,
-                          overlayColor:  Colors.white.withOpacity(0.08),
-                          trackHeight:   1.5,
-                          thumbShape:    const RoundSliderThumbShape(enabledThumbRadius: 6),
-                        ),
-                        child: Slider(
-                          value: vm.columns.toDouble(),
-                          min: 10, max: 30, divisions: 20,
-                          onChanged: (v) => vm.setColumns(v.round()),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          // ── Label / Quote ─────────────────────────────────────
-          _GlassSection(
+            child: _GridDensityContent(vm: vm),
+          )),
+        ],
+      ),
+      const SizedBox(height: 14),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(flex: 3, child: _DarkSection(
             title: 'WALLPAPER LABEL',
             icon: CupertinoIcons.text_bubble,
             child: _LabelModeSection(vm: vm),
-          ),
-
-          const SizedBox(height: 16),
-
-          // ── About ─────────────────────────────────────────────
-          _GlassSection(
+          )),
+          const SizedBox(width: 16),
+          Expanded(flex: 2, child: _DarkSection(
             title: 'ABOUT',
             icon: CupertinoIcons.info_circle,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _AboutRow(label: 'App',     value: 'DotZ'),
-                _AboutRow(label: 'Version', value: '1.0.0'),
-                _AboutRow(label: 'Purpose', value: 'Live dot wallpapers'),
-                const SizedBox(height: 8),
-                Text(
-                  'Each dot is a day. Watch your year, goals, and life unfold—one dot at a time.',
-                  style: TextStyle(color: Colors.white.withOpacity(0.45),
-                    fontSize: 12, height: 1.7, letterSpacing: 0.2),
-                ),
-              ],
-            ),
-          ),
+            child: _AboutContent(),
+          )),
         ],
       ),
+    ],
+  );
+
+  Widget _narrowLayout(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _DarkSection(
+        title: 'DOT COLOURS',
+        icon: CupertinoIcons.paintbrush,
+        child: ColorStrip(
+          pastColor: vm.pastColor, todayColor: vm.todayColor,
+          futureColor: vm.futureColor, bgColor: vm.bgColor,
+          onPastChanged: vm.setPastColor, onTodayChanged: vm.setTodayColor,
+          onFutureChanged: vm.setFutureColor, onBgChanged: vm.setBgColor,
+        ),
+      ),
+      const SizedBox(height: 12),
+      _DarkSection(
+        title: 'GRID DENSITY',
+        icon: CupertinoIcons.square_grid_3x2,
+        child: _GridDensityContent(vm: vm),
+      ),
+      const SizedBox(height: 12),
+      _DarkSection(
+        title: 'WALLPAPER LABEL',
+        icon: CupertinoIcons.text_bubble,
+        child: _LabelModeSection(vm: vm),
+      ),
+      const SizedBox(height: 12),
+      _DarkSection(
+        title: 'ABOUT',
+        icon: CupertinoIcons.info_circle,
+        child: _AboutContent(),
+      ),
+    ],
+  );
+}
+
+// ── Grid density content ───────────────────────────────────────────
+class _GridDensityContent extends StatelessWidget {
+  final HomeViewModel vm;
+  const _GridDensityContent({required this.vm});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text('${vm.columns}',
+          style: const TextStyle(
+            color: Colors.white, fontSize: 48,
+            fontStyle: FontStyle.italic, fontWeight: FontWeight.w900,
+            height: 1, letterSpacing: -2)),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('columns',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.35),
+                  fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 2)),
+              const SizedBox(height: 6),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor:   Colors.white,
+                  inactiveTrackColor: Colors.white.withOpacity(0.1),
+                  thumbColor:         Colors.white,
+                  overlayColor:       Colors.white.withOpacity(0.06),
+                  trackHeight:        1,
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+                ),
+                child: Slider(
+                  value: vm.columns.toDouble(),
+                  min: 10, max: 30, divisions: 20,
+                  onChanged: (v) => vm.setColumns(v.round()),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
+}
+
+// ── About content ──────────────────────────────────────────────────
+class _AboutContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      _AboutRow(label: 'App',     value: 'DotZ'),
+      _AboutRow(label: 'Version', value: '1.0.0'),
+      _AboutRow(label: 'Purpose', value: 'Live dot wallpapers'),
+      const SizedBox(height: 10),
+      Text(
+        'Each dot is a day. Watch your year, goals, and life unfold—one dot at a time.',
+        style: TextStyle(
+          color: Colors.white.withOpacity(0.3),
+          fontSize: 12, height: 1.7)),
+    ],
+  );
 }
 
 // ── Label mode section ─────────────────────────────────────────────
@@ -126,27 +186,16 @@ class _LabelModeSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Four-way toggle: Off | Progress | Quote | Custom
-        _FourWayToggle(
-          selected: vm.labelMode,
-          onChanged: vm.setLabelMode,
-        ),
-
+        _FourWayToggle(selected: vm.labelMode, onChanged: vm.setLabelMode),
         const SizedBox(height: 16),
 
-        // ── Mode-specific content ──────────────────────────────
         if (vm.labelMode == LabelMode.off)
-          Text(
-            'Nothing will be shown at the bottom of the wallpaper.',
-            style: TextStyle(color: Colors.white.withOpacity(0.45),
-              fontSize: 12, height: 1.6),
-          ),
+          Text('No label will appear on the wallpaper.',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.3), fontSize: 12, height: 1.6)),
 
         if (vm.labelMode == LabelMode.progress)
-          _PreviewChip(
-            icon: CupertinoIcons.chart_bar,
-            text: vm.settings.progressLabel,
-          ),
+          _PreviewRow(icon: CupertinoIcons.chart_bar, text: vm.settings.progressLabel),
 
         if (vm.labelMode == LabelMode.custom) ...[
           _CustomLabelInput(vm: vm),
@@ -156,58 +205,41 @@ class _LabelModeSection extends StatelessWidget {
         if (vm.labelMode == LabelMode.quote) ...[
           if (vm.quoteFetching)
             Row(children: [
-              const SizedBox(
-                width: 14, height: 14,
-                child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.white),
+              SizedBox(
+                width: 13, height: 13,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5, color: Colors.white.withOpacity(0.5)),
               ),
               const SizedBox(width: 10),
-              Text('Fetching today\'s quote…',
-                style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
+              Text('Fetching quote…',
+                style: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 12)),
             ])
           else if (vm.quoteError)
-            Row(
-              children: [
-                Expanded(
-                  child: Text('Could not load quote. Tap to retry.',
-                    style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12)),
-                ),
-                GestureDetector(
-                  onTap: vm.fetchQuote,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.2), width: 0.5),
-                    ),
-                    child: const Text('RETRY',
-                      style: TextStyle(color: Colors.white, fontSize: 9,
-                        fontWeight: FontWeight.w800, letterSpacing: 2)),
-                  ),
-                ),
-              ],
-            )
+            Row(children: [
+              Expanded(child: Text('Could not load quote.',
+                style: TextStyle(color: Colors.white.withOpacity(0.35), fontSize: 12))),
+              _MinimalButton(label: 'RETRY', onTap: vm.fetchQuote),
+            ])
           else if (vm.quoteText.isNotEmpty) ...[
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
+                color: const Color(0xFF0A0A0A),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withOpacity(0.06), width: 1),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '"${vm.quoteText}"',
+                  Text('"${vm.quoteText}"',
                     style: TextStyle(
                       color: vm.labelColor, fontSize: 13,
-                      fontStyle: FontStyle.italic, height: 1.55),
-                  ),
+                      fontStyle: FontStyle.italic, height: 1.6)),
                   if (vm.quoteAuthor.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text('— ${vm.quoteAuthor}',
-                      style: TextStyle(color: vm.labelColor.withOpacity(0.6),
+                      style: TextStyle(
+                        color: vm.labelColor.withOpacity(0.5),
                         fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ],
@@ -216,25 +248,22 @@ class _LabelModeSection extends StatelessWidget {
             const SizedBox(height: 10),
             GestureDetector(
               onTap: vm.fetchQuote,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(CupertinoIcons.arrow_clockwise,
-                    color: Colors.white.withOpacity(0.4), size: 12),
-                  const SizedBox(width: 6),
-                  Text('REFRESH QUOTE',
-                    style: TextStyle(color: Colors.white.withOpacity(0.4),
-                      fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 2)),
-                ],
-              ),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(CupertinoIcons.arrow_clockwise,
+                  color: Colors.white.withOpacity(0.3), size: 11),
+                const SizedBox(width: 6),
+                Text('REFRESH',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.3),
+                    fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 2)),
+              ]),
             ),
             const SizedBox(height: 12),
           ],
         ],
 
-        // ── Shared controls: colour + font size (shown when label is ON) ──
         if (vm.labelMode != LabelMode.off) ...[
-          _Divider(),
+          _HairLine(),
           const SizedBox(height: 14),
           _LabelAppearanceControls(vm: vm),
         ],
@@ -247,74 +276,67 @@ class _LabelModeSection extends StatelessWidget {
 class _CustomLabelInput extends StatefulWidget {
   final HomeViewModel vm;
   const _CustomLabelInput({required this.vm});
-
   @override
   State<_CustomLabelInput> createState() => _CustomLabelInputState();
 }
 
 class _CustomLabelInputState extends State<_CustomLabelInput> {
   late final TextEditingController _ctrl;
-
   @override
   void initState() {
     super.initState();
     _ctrl = TextEditingController(text: widget.vm.customLabelText);
   }
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
 
   @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
-      ),
-      child: Row(
-        children: [
-          Icon(CupertinoIcons.pencil,
-            color: Colors.white.withOpacity(0.4), size: 14),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              controller: _ctrl,
-              style: TextStyle(
-                color: widget.vm.labelColor,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Type your label text…',
-                hintStyle: TextStyle(color: Colors.white.withOpacity(0.25), fontSize: 13),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-              onChanged: widget.vm.setCustomLabelText,
-            ),
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    decoration: BoxDecoration(
+      color: const Color(0xFF0A0A0A),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+    ),
+    child: Row(children: [
+      Icon(CupertinoIcons.pencil,
+        color: Colors.white.withOpacity(0.25), size: 13),
+      const SizedBox(width: 10),
+      Expanded(
+        child: TextField(
+          controller: _ctrl,
+          style: TextStyle(
+            color: widget.vm.labelColor,
+            fontSize: 13, fontWeight: FontWeight.w400),
+          decoration: InputDecoration(
+            hintText: 'Type your label…',
+            hintStyle: TextStyle(
+              color: Colors.white.withOpacity(0.2), fontSize: 13),
+            border: InputBorder.none,
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
           ),
-          if (_ctrl.text.isNotEmpty)
-            GestureDetector(
-              onTap: () {
-                _ctrl.clear();
-                widget.vm.setCustomLabelText('');
-              },
-              child: Icon(CupertinoIcons.xmark_circle_fill,
-                color: Colors.white.withOpacity(0.3), size: 16),
-            ),
-        ],
+          onChanged: (v) {
+            widget.vm.setCustomLabelText(v);
+            setState(() {});
+          },
+        ),
       ),
-    );
-  }
+      if (_ctrl.text.isNotEmpty)
+        GestureDetector(
+          onTap: () {
+            _ctrl.clear();
+            widget.vm.setCustomLabelText('');
+            setState(() {});
+          },
+          child: Icon(CupertinoIcons.xmark_circle_fill,
+            color: Colors.white.withOpacity(0.2), size: 15),
+        ),
+    ]),
+  );
 }
 
-// ── Label appearance controls (colour + size) ──────────────────────
+// ── Label appearance controls ──────────────────────────────────────
 class _LabelAppearanceControls extends StatelessWidget {
   final HomeViewModel vm;
   const _LabelAppearanceControls({required this.vm});
@@ -324,136 +346,103 @@ class _LabelAppearanceControls extends StatelessWidget {
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     builder: (_) => ColorPickerSheet(
-      label: 'Label',
-      current: vm.labelColor,
-      onPick: vm.setLabelColor,
-    ),
+      label: 'Label', current: vm.labelColor, onPick: vm.setLabelColor),
   );
 
   @override
   Widget build(BuildContext context) {
     final isAuto = vm.labelFontSizeAuto;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Row: colour swatch + label ────────────────────────
-        Row(
-          children: [
-            // Colour swatch
-            GestureDetector(
-              onTap: () => _pickColor(context),
-              child: Row(
-                children: [
-                  Container(
-                    width: 28, height: 28,
-                    decoration: BoxDecoration(
-                      color: vm.labelColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: Colors.white.withOpacity(0.3), width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: vm.labelColor.withOpacity(0.4),
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Text('LABEL COLOR',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.55),
-                      fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 2)),
-                  const SizedBox(width: 6),
-                  Icon(CupertinoIcons.chevron_right,
-                    color: Colors.white.withOpacity(0.3), size: 10),
-                ],
-              ),
+        // Colour
+        GestureDetector(
+          onTap: () => _pickColor(context),
+          child: Row(children: [
+            Container(
+              width: 20, height: 20,
+              decoration: BoxDecoration(
+                color: vm.labelColor,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2), width: 1.5)),
             ),
-          ],
+            const SizedBox(width: 10),
+            Text('LABEL COLOUR',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.45),
+                fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 2)),
+            const Spacer(),
+            Icon(CupertinoIcons.chevron_right,
+              color: Colors.white.withOpacity(0.2), size: 10),
+          ]),
         ),
 
         const SizedBox(height: 18),
 
-        // ── Font size ─────────────────────────────────────────
-        Row(
-          children: [
-            Icon(CupertinoIcons.textformat_size,
-              color: Colors.white.withOpacity(0.5), size: 14),
-            const SizedBox(width: 8),
-            Text('LABEL SIZE',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.55),
-                fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 2)),
-            const Spacer(),
-            // Auto toggle
-            GestureDetector(
-              onTap: () => vm.setLabelFontSize(isAuto ? 12.0 : 0.0),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isAuto
-                      ? Colors.white.withOpacity(0.15)
-                      : Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isAuto
-                        ? Colors.white.withOpacity(0.4)
-                        : Colors.white.withOpacity(0.1),
-                    width: 0.5,
-                  ),
+        // Size
+        Row(children: [
+          Icon(CupertinoIcons.textformat_size,
+            color: Colors.white.withOpacity(0.35), size: 13),
+          const SizedBox(width: 8),
+          Text('LABEL SIZE',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.45),
+              fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 2)),
+          const Spacer(),
+          GestureDetector(
+            onTap: () => vm.setLabelFontSize(isAuto ? 12.0 : 0.0),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isAuto ? Colors.white.withOpacity(0.1) : Colors.transparent,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(isAuto ? 0.2 : 0.08), width: 1)),
+              child: Text(
+                isAuto ? 'AUTO' : '${vm.labelFontSize.round()} SP',
+                style: TextStyle(
+                  color: isAuto ? Colors.white : Colors.white.withOpacity(0.45),
+                  fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+            ),
+          ),
+        ]),
+
+        if (!isAuto) ...[
+          const SizedBox(height: 10),
+          Row(children: [
+            Text('A', style: TextStyle(
+              color: Colors.white.withOpacity(0.25), fontSize: 10)),
+            Expanded(
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor:   Colors.white,
+                  inactiveTrackColor: Colors.white.withOpacity(0.1),
+                  thumbColor:         Colors.white,
+                  overlayColor:       Colors.white.withOpacity(0.06),
+                  trackHeight:        1,
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
                 ),
-                child: Text(
-                  isAuto ? 'AUTO' : '${vm.labelFontSize.round()} SP',
-                  style: TextStyle(
-                    color: isAuto ? Colors.white : Colors.white.withOpacity(0.6),
-                    fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1.5,
-                  ),
+                child: Slider(
+                  value: vm.labelFontSize.clamp(8.0, 32.0),
+                  min: 8, max: 32, divisions: 24,
+                  onChanged: vm.setLabelFontSize,
                 ),
               ),
             ),
-          ],
-        ),
-
-        if (!isAuto) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text('A', style: TextStyle(
-                color: Colors.white.withOpacity(0.35), fontSize: 10)),
-              Expanded(
-                child: SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    activeTrackColor:   Colors.white,
-                    inactiveTrackColor: Colors.white.withOpacity(0.15),
-                    thumbColor:    Colors.white,
-                    overlayColor:  Colors.white.withOpacity(0.08),
-                    trackHeight:   1.5,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                  ),
-                  child: Slider(
-                    value: vm.labelFontSize.clamp(8.0, 32.0),
-                    min: 8, max: 32, divisions: 24,
-                    onChanged: vm.setLabelFontSize,
-                  ),
-                ),
-              ),
-              Text('A', style: TextStyle(
-                color: Colors.white.withOpacity(0.35), fontSize: 18,
-                fontWeight: FontWeight.w700)),
-            ],
-          ),
-          // Live preview of the label text at chosen size
+            Text('A', style: TextStyle(
+              color: Colors.white.withOpacity(0.25),
+              fontSize: 18, fontWeight: FontWeight.w700)),
+          ]),
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.04),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.08), width: 0.5),
+              color: const Color(0xFF0A0A0A),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white.withOpacity(0.05), width: 1),
             ),
             child: Text(
               vm.resolvedLabel.isEmpty ? 'Label preview' : vm.resolvedLabel,
@@ -464,9 +453,7 @@ class _LabelAppearanceControls extends StatelessWidget {
                 color: vm.labelColor,
                 fontSize: vm.labelFontSize.clamp(8.0, 32.0),
                 fontStyle: vm.labelMode == LabelMode.quote
-                    ? FontStyle.italic
-                    : FontStyle.normal,
-              ),
+                    ? FontStyle.italic : FontStyle.normal),
             ),
           ),
         ],
@@ -475,16 +462,7 @@ class _LabelAppearanceControls extends StatelessWidget {
   }
 }
 
-// ── Thin divider ───────────────────────────────────────────────────
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Container(
-    height: 0.5,
-    color: Colors.white.withOpacity(0.1),
-  );
-}
-
-// ── Four-way toggle: Off | Progress | Quote | Custom ───────────────
+// ── Four-way toggle ────────────────────────────────────────────────
 class _FourWayToggle extends StatelessWidget {
   final LabelMode selected;
   final void Function(LabelMode) onChanged;
@@ -500,40 +478,43 @@ class _FourWayToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 44,
+      height: 40,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
+        color: const Color(0xFF0D0D0D),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
       ),
       child: Row(
         children: _options.asMap().entries.map((e) {
+          final idx = e.key;
           final (mode, label, icon) = e.value;
-          final active = selected == mode;
+          final active  = selected == mode;
+          final isFirst = idx == 0;
+          final isLast  = idx == _options.length - 1;
 
           return Expanded(
             child: GestureDetector(
               onTap: () => onChanged(mode),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 180),
                 margin: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   color: active ? Colors.white : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.horizontal(
+                    left:  isFirst ? const Radius.circular(7) : Radius.zero,
+                    right: isLast  ? const Radius.circular(7) : Radius.zero,
+                  ),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(icon,
-                      size: 11,
-                      color: active ? Colors.black : Colors.white.withOpacity(0.4)),
+                    Icon(icon, size: 10,
+                      color: active ? Colors.black : Colors.white.withOpacity(0.3)),
                     const SizedBox(height: 2),
                     Text(label,
                       style: TextStyle(
-                        color: active ? Colors.black : Colors.white.withOpacity(0.4),
-                        fontSize: 7, fontWeight: FontWeight.w800, letterSpacing: 1,
-                      ),
-                    ),
+                        color: active ? Colors.black : Colors.white.withOpacity(0.3),
+                        fontSize: 7, fontWeight: FontWeight.w800, letterSpacing: 0.8)),
                   ],
                 ),
               ),
@@ -545,75 +526,90 @@ class _FourWayToggle extends StatelessWidget {
   }
 }
 
-// ── Small preview chip shown for progress mode ─────────────────────
-class _PreviewChip extends StatelessWidget {
+// ── Preview row (progress mode) ────────────────────────────────────
+class _PreviewRow extends StatelessWidget {
   final IconData icon;
   final String text;
-  const _PreviewChip({required this.icon, required this.text});
+  const _PreviewRow({required this.icon, required this.text});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white.withOpacity(0.5), size: 13),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(text,
-              style: TextStyle(color: Colors.white.withOpacity(0.7),
-                fontSize: 12, fontWeight: FontWeight.w500)),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, color: Colors.white.withOpacity(0.3), size: 12),
+      const SizedBox(width: 8),
+      Flexible(child: Text(text,
+        style: TextStyle(color: Colors.white.withOpacity(0.55),
+          fontSize: 12, fontWeight: FontWeight.w400))),
+    ],
+  );
 }
 
-// ── Glass section card ─────────────────────────────────────────────
-class _GlassSection extends StatelessWidget {
+// ── Minimal outline button ─────────────────────────────────────────
+class _MinimalButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _MinimalButton({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(label,
+        style: const TextStyle(
+          color: Colors.white, fontSize: 9,
+          fontWeight: FontWeight.w800, letterSpacing: 2)),
+    ),
+  );
+}
+
+// ── Hairline ───────────────────────────────────────────────────────
+class _HairLine extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) =>
+      Container(height: 0.5, color: Colors.white.withOpacity(0.07));
+}
+
+// ── Minimal dark card — NO glass, NO blur ─────────────────────────
+class _DarkSection extends StatelessWidget {
   final String title;
   final IconData icon;
   final Widget child;
-  const _GlassSection({required this.title, required this.icon, required this.child});
+  const _DarkSection({
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.07),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(children: [
-                Icon(icon, color: Colors.white.withOpacity(0.5), size: 14),
-                const SizedBox(width: 8),
-                Text(title,
-                  style: TextStyle(color: Colors.white.withOpacity(0.45),
-                    fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 3.5)),
-              ]),
-              const SizedBox(height: 16),
-              child,
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(20),
+    decoration: BoxDecoration(
+      color: const Color(0xFF111111),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: Colors.white.withOpacity(0.07), width: 1),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Icon(icon, color: Colors.white.withOpacity(0.3), size: 13),
+          const SizedBox(width: 8),
+          Text(title,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.3),
+              fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 3)),
+        ]),
+        const SizedBox(height: 18),
+        child,
+      ],
+    ),
+  );
 }
 
 class _AboutRow extends StatelessWidget {
@@ -621,18 +617,17 @@ class _AboutRow extends StatelessWidget {
   const _AboutRow({required this.label, required this.value});
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Text(label, style: TextStyle(color: Colors.white.withOpacity(0.4),
-            fontSize: 12, fontWeight: FontWeight.w500)),
-          const Spacer(),
-          Text(value, style: const TextStyle(color: Colors.white,
-            fontSize: 12, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Row(children: [
+      Text(label,
+        style: TextStyle(
+          color: Colors.white.withOpacity(0.3),
+          fontSize: 12, fontWeight: FontWeight.w400)),
+      const Spacer(),
+      Text(value,
+        style: const TextStyle(
+          color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+    ]),
+  );
 }

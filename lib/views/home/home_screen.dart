@@ -12,7 +12,6 @@ import '../widgets/life_setup_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
-
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
@@ -20,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
   final HomeViewModel _vm = HomeViewModel();
-
   late AnimationController _ac;
   late Animation<double>   _af;
 
@@ -56,66 +54,56 @@ class _HomeScreenState extends State<HomeScreen>
     if (mounted) _showApplySheet();
   }
 
-  // ── iOS Glass Bottom Sheet ────────────────────────────────────
+  // ── Apply sheet — keep glass here (it's a modal, feels right) ──
   void _showApplySheet() => showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
     elevation: 0,
     builder: (_) => ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(45)),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 30.0, sigmaY: 30.0),
         child: Container(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 48),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withOpacity(0.55),
             border: Border(
-              top: BorderSide(color: Colors.white.withOpacity(0.15), width: 0.5),
+              top: BorderSide(color: Colors.white.withOpacity(0.12), width: 0.5),
             ),
           ),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Container(
-              width: 50, height: 5,
+              width: 44, height: 5,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.4),
-                borderRadius: BorderRadius.circular(10),
-              ),
+                color: Colors.white.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(10)),
             ),
             const SizedBox(height: 32),
-            const Text(
-              'Apply to Lock Screen',
+            const Text('Apply to Lock Screen',
               style: TextStyle(
                 color: Colors.white, fontSize: 22,
                 fontWeight: FontWeight.w700, fontStyle: FontStyle.italic,
-                letterSpacing: -0.5,
-              ),
-            ),
+                letterSpacing: -0.5)),
             const SizedBox(height: 12),
             Text(
               'Long-press home → Wallpapers → Live → DotZ → Apply',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.6),
-                fontSize: 13, height: 1.8,
-              ),
-            ),
+                color: Colors.white.withOpacity(0.55),
+                fontSize: 13, height: 1.8)),
             const SizedBox(height: 32),
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Container(
-                width: double.infinity, height: 56,
+                width: double.infinity, height: 54,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                child: const Text(
-                  'GOT IT',
+                  borderRadius: BorderRadius.circular(100)),
+                child: const Text('GOT IT',
                   style: TextStyle(
                     color: Colors.black, fontSize: 11,
-                    fontWeight: FontWeight.w900, letterSpacing: 2.0,
-                  ),
-                ),
+                    fontWeight: FontWeight.w900, letterSpacing: 2.0)),
               ),
             ),
           ]),
@@ -124,76 +112,64 @@ class _HomeScreenState extends State<HomeScreen>
     ),
   ).then((_) => _vm.checkLive());
 
-  Widget _applyBtn() => GestureDetector(
-    onTap: _vm.saving ? null : _apply,
-    child: Container(
-      width: double.infinity, height: 56,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withOpacity(0.12),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
+  // ── Apply button — solid white, no glass ──────────────────────
+  Widget _applyBtn(double hPad) => Padding(
+    padding: EdgeInsets.symmetric(horizontal: hPad),
+    child: GestureDetector(
+      onTap: _vm.saving ? null : _apply,
+      child: Container(
+        width: double.infinity, height: 54,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: _vm.saving
+            ? const SizedBox(
+                width: 18, height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2, color: Colors.black))
+            : const Text('APPLY TO LOCK SCREEN',
+                style: TextStyle(
+                  color: Colors.black, fontSize: 11,
+                  fontWeight: FontWeight.w900, letterSpacing: 2.0)),
       ),
-      child: _vm.saving
-          ? const SizedBox(
-              width: 20, height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
-            )
-          : const Text(
-              'APPLY TO LOCK SCREEN',
-              style: TextStyle(
-                color: Colors.black, fontSize: 11,
-                fontWeight: FontWeight.w900, letterSpacing: 2.0,
-              ),
-            ),
     ),
   );
 
+  // ── Top bar — solid dark, no glass ───────────────────────────
   Widget _topBar(double hPad) => Padding(
     padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 0),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(100),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(100),
-            border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 24, height: 24,
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                child: Center(
-                  child: Container(
-                    width: 8, height: 8,
-                    decoration: const BoxDecoration(color: Colors.black, shape: BoxShape.circle),
-                  ),
-                ),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF111111),
+        borderRadius: BorderRadius.circular(100),
+        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 24, height: 24,
+            decoration: const BoxDecoration(
+              color: Colors.white, shape: BoxShape.circle),
+            child: Center(
+              child: Container(
+                width: 8, height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.black, shape: BoxShape.circle),
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'DotZ',
-                style: TextStyle(
-                  color: Colors.white, fontSize: 16,
-                  fontStyle: FontStyle.italic, fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const Spacer(),
-              _LiveBadge(live: _vm.live),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(width: 12),
+          const Text('DotZ',
+            style: TextStyle(
+              color: Colors.white, fontSize: 16,
+              fontStyle: FontStyle.italic, fontWeight: FontWeight.w800,
+              letterSpacing: -0.5)),
+          const Spacer(),
+          _LiveBadge(live: _vm.live),
+        ],
       ),
     ),
   );
@@ -210,11 +186,8 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ── DOT PREVIEW with semi-transparent bg so user can see bg color ──
   Widget _dotPreview(double hPad, double ph) {
-    // Use the actual bg color from settings for the preview container
     final bgColor = _vm.bgColor;
-
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: hPad),
       child: FadeTransition(
@@ -223,28 +196,19 @@ class _HomeScreenState extends State<HomeScreen>
           width: double.infinity,
           height: ph,
           decoration: BoxDecoration(
-            // Show the actual background color with slight transparency
-            // so user gets a real preview of what the wallpaper looks like
-            color: bgColor.withOpacity(0.85),
-            borderRadius: BorderRadius.circular(32),
+            color: bgColor,
+            borderRadius: BorderRadius.circular(28),
             border: Border.all(
-              color: Colors.white.withOpacity(0.12),
-              width: 0.5,
-            ),
+              color: Colors.white.withOpacity(0.08), width: 1),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(32),
-            child: Stack(
-              children: [
-                // Actual bg color fill
-                Container(color: bgColor),
-                // Dot grid
-                CustomPaint(
-                  painter: DotGridPainter(_vm.settings),
-                  child: const SizedBox.expand(),
-                ),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(28),
+            child: Stack(children: [
+              Container(color: bgColor),
+              CustomPaint(
+                painter: DotGridPainter(_vm.settings),
+                child: const SizedBox.expand()),
+            ]),
           ),
         ),
       ),
@@ -253,50 +217,44 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildBackground(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return Stack(
-      children: [
-        Container(color: Colors.black),
-        Positioned(
-          top: -150, right: -100,
-          child: Container(
-            width: 400, height: 400,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.deepPurpleAccent.withOpacity(0.6),
-            ),
-          ),
+    return Stack(children: [
+      Container(color: Colors.black),
+      Positioned(
+        top: -150, right: -100,
+        child: Container(
+          width: 400, height: 400,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.deepPurpleAccent.withOpacity(0.5)),
         ),
-        Positioned(
-          bottom: -150, left: -100,
-          child: Container(
-            width: 450, height: 450,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.blueAccent.withOpacity(0.4),
-            ),
-          ),
+      ),
+      Positioned(
+        bottom: -150, left: -100,
+        child: Container(
+          width: 450, height: 450,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.blueAccent.withOpacity(0.35)),
         ),
-        Positioned(
-          top: size.height * 0.3, left: size.width * 0.2,
-          child: Container(
-            width: 300, height: 300,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.pinkAccent.withOpacity(0.3),
-            ),
-          ),
+      ),
+      Positioned(
+        top: size.height * 0.3, left: size.width * 0.2,
+        child: Container(
+          width: 300, height: 300,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.pinkAccent.withOpacity(0.25)),
         ),
-        Positioned.fill(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
-            child: Container(color: Colors.transparent),
-          ),
-        ),
-      ],
-    );
+      ),
+      Positioned.fill(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+          child: Container(color: Colors.transparent)),
+      ),
+    ]);
   }
 
-  // ── Settings page body ─────────────────────────────────────────
+  // ── Settings body ──────────────────────────────────────────────
   Widget _settingsBody(double hPad) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -313,7 +271,7 @@ class _HomeScreenState extends State<HomeScreen>
     ],
   );
 
-  // ── Main calendar page body ────────────────────────────────────
+  // ── Calendar body ──────────────────────────────────────────────
   Widget _calendarBody(double hPad, double ph) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -331,11 +289,8 @@ class _HomeScreenState extends State<HomeScreen>
             _modeSetup(hPad),
             if (_vm.mode != CalendarMode.year) const SizedBox(height: 4),
             _dotPreview(hPad, ph),
-            const SizedBox(height: 24),
-            Padding(
-              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 0),
-              child: _applyBtn(),
-            ),
+            const SizedBox(height: 20),
+            _applyBtn(hPad),
           ],
         ),
       ),
@@ -344,48 +299,59 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   Widget build(BuildContext context) {
-    final mq     = MediaQuery.of(context);
-    final sw     = mq.size.width;
-    final sh     = mq.size.height;
-    final hPad   = sw >= 600.0 ? 32.0 : 20.0;
-    final pw     = sw - hPad * 2;
-    final ph     = (pw * 19 / 9).clamp(220.0, sh * 0.48);
+    final mq   = MediaQuery.of(context);
+    final sw   = mq.size.width;
+    final sh   = mq.size.height;
+
+    // Responsive padding
+    final hPad = sw >= 900
+        ? 48.0
+        : sw >= 600
+            ? 32.0
+            : 20.0;
+
+    final pw = sw - hPad * 2;
+    // Tablet: cap preview height so it doesn't dominate
+    final ph = sw >= 700
+        ? (pw * 0.55).clamp(240.0, sh * 0.45)
+        : (pw * 19 / 9).clamp(220.0, sh * 0.48);
 
     final isSettings = _vm.mode == CalendarMode.settings;
+
+    // Responsive navbar position
+    final navSideInset = sw >= 900 ? sw * 0.3 : sw >= 600 ? sw * 0.2 : 80.0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            _buildBackground(context),
-            SafeArea(
-              child: Stack(
-                children: [
-                  SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(bottom: 120),
-                    child: isSettings
-                        ? _settingsBody(hPad)
-                        : _calendarBody(hPad, ph),
-                  ),
-                  Positioned(
-                    left: 80,
-                    right: 100,
-                    bottom: 20,
-                    child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
-                  ),
-                ],
+        body: Stack(children: [
+          _buildBackground(context),
+          SafeArea(
+            child: Stack(children: [
+              SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.only(bottom: 120),
+                child: isSettings
+                    ? _settingsBody(hPad)
+                    : _calendarBody(hPad, ph),
               ),
-            ),
-          ],
-        ),
+              // Glass navbar — kept glass intentionally
+              Positioned(
+                left: navSideInset,
+                right: navSideInset,
+                bottom: 20,
+                child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
+              ),
+            ]),
+          ),
+        ]),
       ),
     );
   }
 }
 
+// ── Live badge — solid dark ────────────────────────────────────────
 class _LiveBadge extends StatelessWidget {
   final bool live;
   const _LiveBadge({required this.live});
@@ -395,12 +361,10 @@ class _LiveBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: live ? Colors.white.withOpacity(0.1) : Colors.transparent,
+        color: live ? Colors.white.withOpacity(0.08) : Colors.transparent,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withOpacity(live ? 0.3 : 0.05),
-          width: 0.5,
-        ),
+          color: Colors.white.withOpacity(live ? 0.2 : 0.06), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -410,22 +374,18 @@ class _LiveBadge extends StatelessWidget {
             decoration: BoxDecoration(
               color: live ? Colors.white : Colors.transparent,
               shape: BoxShape.circle,
-              border: live ? null : Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+              border: live ? null : Border.all(
+                color: Colors.white.withOpacity(0.25), width: 1),
               boxShadow: live
-                  ? [const BoxShadow(color: Colors.white, blurRadius: 6, spreadRadius: 1)]
+                  ? [const BoxShadow(color: Colors.white, blurRadius: 5, spreadRadius: 0.5)]
                   : [],
             ),
           ),
           const SizedBox(width: 6),
-          Text(
-            live ? 'LIVE' : 'IDLE',
+          Text(live ? 'LIVE' : 'IDLE',
             style: TextStyle(
-              color: live ? Colors.white : Colors.white.withOpacity(0.5),
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2.0,
-            ),
-          ),
+              color: live ? Colors.white : Colors.white.withOpacity(0.4),
+              fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 2.0)),
         ],
       ),
     );
