@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; // 👈 ADD THIS
-
+import 'package:flutter_dotenv/flutter_dotenv.dart'; 
 import 'views/home/home_screen.dart';
 import 'views/onboarding/onboarding_screen.dart';
-
+import 'package:device_preview/device_preview.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -16,11 +15,15 @@ void main() async {
   try {
     showOnboarding = await OnboardingScreen.shouldShow();
   } catch (_) {
-    // If SharedPreferences fails (first cold start), default to showing onboarding
     showOnboarding = true;
   }
 
-  runApp(MyApp(showOnboarding: showOnboarding));
+  runApp(
+    DevicePreview(
+      enabled: true, // 👈 turn off in production
+      builder: (context) => MyApp(showOnboarding: showOnboarding),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
