@@ -51,10 +51,8 @@ class DotzLiveWallpaper : WallpaperService() {
         private var cachedBitmap: Bitmap? = null
         private var lastDrawnDay = -1
 
-        // The Y coordinate of the bottom edge of the dot grid (set in recalc)
+        // The Y coordinate of the bottom edge of the dot grid (set in recalc/buildCache)
         private var gridBottomY = 0f
-        // The height reserved for the label area (set in recalc)
-        private var labelAreaHeight = 0f
 
         private val paintPast   = Paint(Paint.ANTI_ALIAS_FLAG)
         private val paintFuture = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -173,33 +171,15 @@ class DotzLiveWallpaper : WallpaperService() {
 
         // ── Geometry ───────────────────────────────────────────
         /**
-         * Key design change: we reserve a fixed label area at the BOTTOM of the
-         * screen BEFORE computing dot geometry. This guarantees dots never overlap
-         * the label, regardless of how many dots there are.
+         * Dots use the full canvas height (with a small vertical margin).
+         * The label is drawn AFTER the grid, just [gap] pixels below the
+         * last row of dots — no pre-reserved area needed, so dots are
+         * never pushed up by the label size.
          */
         private fun recalc(w: Int, h: Int) {
             val total  = totalDots()
-
-            // ── 1. Decide label font size ──────────────────────
-            //    We need this before layout so we can reserve space.
-            val label = resolvedLabel()
-            val hasLabel = label.isNotEmpty()
-
-            // Temporary text size to measure reserved height.
-            // We'll set the real paintText size later in buildCache.
-            val tempTextSp  = if (labelFontSizeSp > 0f) labelFontSizeSp else 12f
-            val density     = resources.displayMetrics.density
-            val tempTextPx  = tempTextSp * density
-
-            // Reserve label area: text height + padding above + padding below
-            // For quotes (multi-line), reserve more.
-            val labelLines  = if (hasLabel && label.length > 60 && (labelMode == 2 || labelMode == 3)) 3 else 1
-            labelAreaHeight = if (hasLabel) tempTextPx * labelLines * 1.5f + tempTextPx * 2f else 0f
-
-            // ── 2. Available area for dots ─────────────────────
             val availW = w * 0.90f
-            // Use full height minus label reservation at bottom
-            val availH = (h - labelAreaHeight) * 0.92f
+            val availH = h * 0.88f          // same as original — full height
 
             val effectiveCols = if (mode == 2 && total > 1000) {
                 sqrt(total.toDouble() * w / h).toInt().coerceIn(30, 120)
@@ -224,10 +204,10 @@ class DotzLiveWallpaper : WallpaperService() {
             paintFuture.strokeWidth = d
             paintToday.strokeWidth  = d
 
-            // ── 3. Compute gridBottomY ─────────────────────────
+            // Compute where the bottom of the grid lands (centred vertically)
             val rows  = ceil(total.toFloat() / renderCols).toInt()
             val gridH = rows * (dotRadius * 2f + dotSpacing) - dotSpacing
-            val oy    = (h - labelAreaHeight - gridH) / 2f
+            val oy    = (h - gridH) / 2f
             gridBottomY = oy + gridH
 
             lastDrawnDay = dayOfYear()
@@ -257,10 +237,10 @@ class DotzLiveWallpaper : WallpaperService() {
             val gridW = renderCols * cell - dotSpacing
             val gridH = rows       * cell - dotSpacing
 
-            // Centre the grid in the dot area (above label reservation)
-            val dotAreaH = h - labelAreaHeight
+            // Centre the grid on the full canvas height
             val ox = (w - gridW) / 2f
-            val oy = (dotAreaH - gridH) / 2f
+            val oy = (h - gridH) / 2f
+            gridBottomY = oy + gridH
 
             for (i in 0 until total) {
                 val cx = ox + (i % renderCols) * cell + dotRadius
@@ -287,29 +267,27 @@ class DotzLiveWallpaper : WallpaperService() {
             // ── Label ─────────────────────────────────────────
             val label = resolvedLabel()
             if (label.isNotEmpty()) {
-                // ── Font size: explicit or auto ────────────────
-                val density   = resources.displayMetrics.density
+                val density    = resources.displayMetrics.density
                 val textSizePx = if (labelFontSizeSp > 0f) {
                     labelFontSizeSp * density
                 } else {
-                    // auto: derive from dot radius, but ensure minimum readability
+                    // auto: match dot radius, floor at 10sp for readability
                     (dotRadius * 1.8f).coerceAtLeast(10f * density)
                 }
 
-                paintText.color        = labelColor          // ← use user-chosen colour
-                paintText.textSize     = textSizePx
+                paintText.color         = labelColor
+                paintText.textSize      = textSizePx
                 paintText.letterSpacing = 0.04f
 
-                // Label baseline: centred in the reserved label area at the bottom.
-                // labelAreaHeight was set in recalc(). We put the first line of text
-                // at the midpoint of that reserved area.
-                val labelAreaTop = h - labelAreaHeight
-                val lineHeight   = textSizePx * 1.45f
-                val startY       = labelAreaTop + textSizePx + (labelAreaHeight - textSizePx) / 2f
+                // Place label exactly [gap] below the last dot row.
+                // gap = 3 × dotRadius, so it feels tight but never overlaps.
+                val gap    = dotRadius * 3f
+                val startY = gridBottomY + gap + textSizePx   // +textSizePx for baseline offset
 
                 val isLong = label.length > 60 && (labelMode == 2 || labelMode == 3)
+                val lineH  = textSizePx * 1.45f
                 if (isLong) {
-                    drawWrappedText(canvas, label, w / 2f, startY, w * 0.85f, lineHeight, paintText)
+                    drawWrappedText(canvas, label, w / 2f, startY, w * 0.85f, lineH, paintText)
                 } else {
                     canvas.drawText(label, w / 2f, startY, paintText)
                 }

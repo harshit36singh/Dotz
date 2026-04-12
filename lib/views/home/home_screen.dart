@@ -372,7 +372,7 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                   Positioned(
                     left: 80,
-                    right: 80,
+                    right: 100,
                     bottom: 20,
                     child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
                   ),
