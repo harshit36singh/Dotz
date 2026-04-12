@@ -11,7 +11,8 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
 
-    private val CHANNEL = "com.example.dotz/wallpaper"
+    private val CHANNEL    = "com.example.dotz/wallpaper"
+    private val PREFS_NAME = "dotz_prefs"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -22,28 +23,29 @@ class MainActivity : FlutterActivity() {
 
                     "saveSettings" -> {
                         try {
-                            val prefs = getSharedPreferences("dotz_prefs", Context.MODE_PRIVATE)
+                            val prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                             prefs.edit().apply {
-                                // Colors — Long→Int safe cast
-                                putInt("bg_color",     (call.argument<Any>("bgColor")     as? Number)?.toInt() ?: Color.BLACK)
-                                putInt("past_color",   (call.argument<Any>("pastColor")   as? Number)?.toInt() ?: Color.WHITE)
-                                putInt("future_color", (call.argument<Any>("futureColor") as? Number)?.toInt() ?: Color.parseColor("#2A2A2A"))
-                                putInt("today_color",  (call.argument<Any>("todayColor")  as? Number)?.toInt() ?: Color.parseColor("#FF4500"))
-                                putInt("columns",      (call.argument<Any>("columns")     as? Number)?.toInt() ?: 20)
-                                putBoolean("show_label", call.argument<Boolean>("showLabel") ?: true)
-
-                                // Mode: 0=year, 1=goal, 2=life
+                                // Colors
+                                putInt("bgColor",     (call.argument<Any>("bgColor")     as? Number)?.toInt() ?: Color.BLACK)
+                                putInt("pastColor",   (call.argument<Any>("pastColor")   as? Number)?.toInt() ?: Color.WHITE)
+                                putInt("futureColor", (call.argument<Any>("futureColor") as? Number)?.toInt() ?: Color.parseColor("#2A2A2A"))
+                                putInt("todayColor",  (call.argument<Any>("todayColor")  as? Number)?.toInt() ?: Color.parseColor("#FF4500"))
+                                // Grid
+                                putInt("columns",    (call.argument<Any>("columns") as? Number)?.toInt() ?: 20)
+                                putBoolean("showLabel", call.argument<Boolean>("showLabel") ?: true)
+                                // Label mode: 0=off, 1=progress, 2=quote
+                                putInt("labelMode",   (call.argument<Any>("labelMode") as? Number)?.toInt() ?: 1)
+                                // Pre-resolved label string (quote or progress text, already formatted by Flutter)
+                                putString("customLabel", call.argument<String>("customLabel") ?: "")
+                                // Calendar mode
                                 putInt("mode", (call.argument<Any>("mode") as? Number)?.toInt() ?: 0)
-
                                 // Goal
-                                putInt("goal_total",  (call.argument<Any>("goalTotal")  as? Number)?.toInt() ?: 100)
-                                putInt("goal_past",   (call.argument<Any>("goalPast")   as? Number)?.toInt() ?: 0)
-                                putString("goal_name", call.argument<String>("goalName") ?: "Goal")
-
+                                putInt("goalTotal", (call.argument<Any>("goalTotal") as? Number)?.toInt() ?: 100)
+                                putInt("goalPast",  (call.argument<Any>("goalPast")  as? Number)?.toInt() ?: 0)
+                                putString("goalName", call.argument<String>("goalName") ?: "Goal")
                                 // Life
-                                putInt("life_total",  (call.argument<Any>("lifeTotal")  as? Number)?.toInt() ?: 29200)
-                                putInt("life_lived",  (call.argument<Any>("lifeLived")  as? Number)?.toInt() ?: 0)
-
+                                putInt("lifeTotal", (call.argument<Any>("lifeTotal") as? Number)?.toInt() ?: 29200)
+                                putInt("lifeLived", (call.argument<Any>("lifeLived") as? Number)?.toInt() ?: 0)
                                 apply()
                             }
                             result.success("saved")
@@ -54,7 +56,6 @@ class MainActivity : FlutterActivity() {
 
                     "openWallpaperPicker" -> {
                         var opened = false
-                        // Method 1: direct to Dotz
                         if (!opened) try {
                             val i = Intent(WallpaperManager.ACTION_CHANGE_LIVE_WALLPAPER).apply {
                                 putExtra(WallpaperManager.EXTRA_LIVE_WALLPAPER_COMPONENT,
@@ -63,20 +64,18 @@ class MainActivity : FlutterActivity() {
                             }
                             startActivity(i); opened = true
                         } catch (_: Exception) {}
-                        // Method 2: live chooser
                         if (!opened) try {
                             val i = Intent("android.service.wallpaper.LIVE_WALLPAPER_CHOOSER")
                             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             startActivity(i); opened = true
                         } catch (_: Exception) {}
-                        // Method 3: generic
                         if (!opened) try {
                             val i = Intent(Intent.ACTION_SET_WALLPAPER)
                             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             startActivity(i); opened = true
                         } catch (_: Exception) {}
                         if (opened) result.success("opened")
-                        else result.error("FAILED", "Cannot open picker", null)
+                        else result.error("FAILED", "Cannot open wallpaper picker", null)
                     }
 
                     "isLiveWallpaperActive" -> {

@@ -1,7 +1,14 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/wallpaper_settings.dart';
 import '../core/app_theme.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+String apiKey = dotenv.env['API_KEY']!;
+/// What to show at the bottom of the wallpaper
+enum LabelMode { off, progress, quote }
 
 class HomeViewModel extends ChangeNotifier {
   static const _channel = MethodChannel('com.example.dotz/wallpaper');
@@ -52,10 +59,74 @@ class HomeViewModel extends ChangeNotifier {
   int get columns => _columns;
   void setColumns(int v) { _columns = v; notifyListeners(); }
 
-  // ── Label ─────────────────────────────────────────────────────
-  bool _showLabel = true;
-  bool get showLabel => _showLabel;
-  void setShowLabel(bool v) { _showLabel = v; notifyListeners(); }
+  // ── Label mode ────────────────────────────────────────────────
+  LabelMode _labelMode = LabelMode.progress;
+  LabelMode get labelMode => _labelMode;
+
+  bool get showLabel => _labelMode != LabelMode.off;
+
+  void setLabelMode(LabelMode m) {
+    _labelMode = m;
+    if (m == LabelMode.quote && _quoteText.isEmpty && !_quoteFetching) {
+      fetchQuote();
+    }
+    notifyListeners();
+  }
+
+  void setShowLabel(bool v) => setLabelMode(v ? LabelMode.progress : LabelMode.off);
+
+  // ── Quote ─────────────────────────────────────────────────────
+  String _quoteText    = '';
+  String _quoteAuthor  = '';
+  bool   _quoteFetching = false;
+  bool   _quoteError    = false;
+
+  String get quoteText      => _quoteText;
+  String get quoteAuthor    => _quoteAuthor;
+  bool   get quoteFetching  => _quoteFetching;
+  bool   get quoteError     => _quoteError;
+
+  Future<void> fetchQuote() async {
+    _quoteFetching = true;
+    _quoteError    = false;
+    notifyListeners();
+    try {
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 8);
+      final req  = await client.getUrl(Uri.parse(apiKey));
+      req.headers.set('Accept', 'application/json');
+      final res  = await req.close();
+      final body = await res.transform(utf8.decoder).join();
+      client.close();
+      final list = jsonDecode(body) as List<dynamic>;
+      if (list.isNotEmpty) {
+        final item   = list.first as Map<String, dynamic>;
+        _quoteText   = (item['q'] as String? ?? '').trim();
+        _quoteAuthor = (item['a'] as String? ?? '').trim();
+      }
+    } catch (_) {
+      _quoteError = true;
+    } finally {
+      _quoteFetching = false;
+      notifyListeners();
+    }
+  }
+
+  String get resolvedLabel {
+    switch (_labelMode) {
+      case LabelMode.quote:
+        if (_quoteText.isNotEmpty) {
+          return _quoteAuthor.isNotEmpty
+              ? '"$_quoteText" — $_quoteAuthor'
+              : '"$_quoteText"';
+        }
+        return settings.progressLabel;
+      case LabelMode.progress:
+        return settings.progressLabel;
+      case LabelMode.off:
+        return '';
+    }
+  }
 
   // ── Goal ─────────────────────────────────────────────────────
   String    _goalName = 'My Goal';
@@ -69,10 +140,7 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setGoalDate(DateTime d) {
-    _goalDate = d;
-    notifyListeners();
-  }
+  void setGoalDate(DateTime d) { _goalDate = d; notifyListeners(); }
 
   void clearGoal() {
     _goalName = 'My Goal';
@@ -97,13 +165,12 @@ class HomeViewModel extends ChangeNotifier {
   DateTime? _birthDate;
   int       _lifeExp = 80;
 
-  DateTime? get birthDate  => _birthDate;
-  int       get lifeExp    => _lifeExp;
+  DateTime? get birthDate => _birthDate;
+  int       get lifeExp   => _lifeExp;
 
   void setBirthDate(DateTime d) { _birthDate = d; notifyListeners(); }
   void setLifeExp(int v)        { _lifeExp   = v; notifyListeners(); }
 
-  // FIX: daysLived uses floor division from birth date to today
   int get daysLived {
     if (_birthDate == null) return 0;
     final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
@@ -111,7 +178,7 @@ class HomeViewModel extends ChangeNotifier {
     return today.difference(birth).inDays.clamp(0, totalDays);
   }
 
-  int get totalDays  => _lifeExp * 365;
+  int get totalDays => _lifeExp * 365;
 
   int get age {
     if (_birthDate == null) return 0;
@@ -124,14 +191,14 @@ class HomeViewModel extends ChangeNotifier {
     return years.clamp(0, 999);
   }
 
-  // ── Assembled WallpaperSettings for the preview widget ───────
+  // ── Assembled WallpaperSettings ───────────────────────────────
   WallpaperSettings get settings => WallpaperSettings(
     backgroundColor:     _bgColor,
     pastDotColor:        _pastColor,
     todayDotColor:       _todayColor,
     futureDotColor:      _futureColor,
     columns:             _columns,
-    showProgressLabel:   _showLabel,
+    showProgressLabel:   showLabel,
     mode:                _mode,
     goalName:            _goalName,
     goalDate:            _goalDate,
@@ -198,16 +265,16 @@ class HomeViewModel extends ChangeNotifier {
     try {
       final modeIdx = _mode == CalendarMode.goal
           ? 1
-          : _mode == CalendarMode.life
-              ? 2
-              : 0;
+          : _mode == CalendarMode.life ? 2 : 0;
       await _channel.invokeMethod('saveSettings', {
         'bgColor':     _toArgb(_bgColor),
         'pastColor':   _toArgb(_pastColor),
         'futureColor': _toArgb(_futureColor),
         'todayColor':  _toArgb(_todayColor),
         'columns':     _columns,
-        'showLabel':   _showLabel,
+        'showLabel':   showLabel,
+        'labelMode':   _labelMode.index,  // 0=off,1=progress,2=quote
+        'customLabel': resolvedLabel,      // pre-resolved string
         'mode':        modeIdx,
         'goalTotal':   goalTotal,
         'goalPast':    goalTotal - goalDaysLeft,
