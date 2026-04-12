@@ -1,5 +1,5 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../core/app_theme.dart';
 
 class HeroSection extends StatelessWidget {
   final String tag;
@@ -22,70 +22,120 @@ class HeroSection extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 24),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(tag,
-            style: const TextStyle(
-                color: kMid,
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 3.5)),
-        const SizedBox(height: 4),
-        FadeTransition(
-          opacity: fade,
-          child: Text(bigNum,
-              style: const TextStyle(
-                color: kRed,
-                fontSize: 108,
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w900,
-                height: 0.85,
-                letterSpacing: -6,
-              )),
-        ),
-        const SizedBox(height: 6),
-        FadeTransition(
-          opacity: fade,
-          child: Text(title,
-              style: const TextStyle(
-                color: kRed,
-                fontSize: 26,
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w800,
-                height: 1.15,
-                letterSpacing: -0.5,
-              )),
-        ),
-        const SizedBox(height: 18),
-        const Text('PROGRESS:',
-            style: TextStyle(
-                color: kMid,
-                fontSize: 8,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 3.5)),
-        const SizedBox(height: 5),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.baseline,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Text(statA,
-                style: const TextStyle(
-                    color: kInk,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3)),
-            const SizedBox(width: 10),
-            Flexible(
-              child: Text(statB,
-                  style: const TextStyle(
-                      color: kMid, fontSize: 12, letterSpacing: 0.3)),
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 24),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32), 
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24.0, sigmaY: 24.0), 
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.25), 
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.15), 
+                width: 0.5, // Hairline border for minimal aesthetic
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                )
+              ],
             ),
-          ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. TINY EYEBROW TAG
+                Text(
+                  tag.toUpperCase(),
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.4), 
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 2.0,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // 2. MASSIVE NUMBER & TITLE
+                FadeTransition(
+                  opacity: fade,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        bigNum, // e.g., "102"
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 84, // Massive size
+                          fontWeight: FontWeight.w300, // Thin, elegant font weight
+                          letterSpacing: -4,
+                          height: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        title.toUpperCase(), // e.g., "DAYS PASSED"
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800, // Heavy weight for contrast
+                          letterSpacing: 4.0, // Wide spacing to look premium
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 32),
+                
+                // 3. HAIRLINE DIVIDER
+                Container(
+                  height: 0.5,
+                  width: double.infinity,
+                  color: Colors.white.withOpacity(0.15),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // 4. CLEAN TEXT STATS (No background pill)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      statA,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        statB.toUpperCase(),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }

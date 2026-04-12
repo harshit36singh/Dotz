@@ -49,7 +49,7 @@ class HomeViewModel extends ChangeNotifier {
   void setBgColor(Color c)     { _bgColor     = c; notifyListeners(); }
 
   // ── Grid ──────────────────────────────────────────────────────
-  int _columns = 18;
+  int _columns = 20;
   int get columns => _columns;
   void setColumns(int v) { _columns = v; notifyListeners(); }
 
