@@ -1,6 +1,8 @@
 import 'dart:math' as Math;
-import 'package:dotz/models/wallpaper_settings.dart';
+import 'dart:typed_data';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../models/wallpaper_settings.dart';
 
 class DotGridPainter extends CustomPainter {
   final WallpaperSettings settings;
@@ -15,9 +17,6 @@ class DotGridPainter extends CustomPainter {
     final availW = size.width  * 0.90;
     final availH = size.height * 0.88;
 
-    // For life calendar in days (~29,200 dots): auto-pick columns
-    // so dots are small & dense, filling the space like the reference image.
-    // Formula: ideal cols = sqrt(total * screenW/screenH) → proportional grid
     final int effectiveCols;
     if (settings.mode == CalendarMode.life && total > 1000) {
       final ideal = Math.sqrt(total * size.width / size.height).truncate();
@@ -26,10 +25,8 @@ class DotGridPainter extends CustomPainter {
       effectiveCols = cols;
     }
 
-    // Solve r from width
     double r = availW / (effectiveCols * 2.5 - 0.5);
 
-    // Also solve from height — take the smaller so grid fits both axes
     final rows0  = (total / effectiveCols).ceil();
     final gridH0 = rows0 * (r * 2.5) - r * 0.5;
     if (gridH0 > availH) {
@@ -44,9 +41,19 @@ class DotGridPainter extends CustomPainter {
     final gridW = effectiveCols * cell - gap;
     final gridH = rows * cell - gap;
 
-    // Center on canvas
     final ox = (size.width  - gridW) / 2;
     final oy = (size.height - gridH) / 2;
+
+    // ── FIX: ARRAY BOUNDS SAFETY ──
+    final safePast = past.clamp(0, total);
+    final safeFutureCount = (total - safePast - 1).clamp(0, total);
+
+    final pastPts = Float32List(safePast * 2);
+    final todayPts = Float32List(2);
+    final futurePts = Float32List(safeFutureCount * 2);
+
+    int pIdx = 0, fIdx = 0;
+    bool drewToday = false;
 
     for (int i = 0; i < total; i++) {
       final col = i % effectiveCols;
@@ -54,60 +61,49 @@ class DotGridPainter extends CustomPainter {
       final cx  = ox + col * cell + r;
       final cy  = oy + row * cell + r;
 
-      final Color dotColor;
-      if (i == past) {
-        dotColor = settings.todayDotColor;
-      } else if (i < past) {
-        dotColor = settings.pastDotColor;
+      if (i < safePast) {
+        pastPts[pIdx++] = cx;
+        pastPts[pIdx++] = cy;
+      } else if (i == safePast) {
+        todayPts[0] = cx;
+        todayPts[1] = cy;
+        drewToday = true; // Marks if we actually hit the "today" dot
       } else {
-        dotColor = settings.futureDotColor;
+        futurePts[fIdx++] = cx;
+        futurePts[fIdx++] = cy;
       }
+    }
 
-      canvas.drawCircle(Offset(cx, cy), r,
-          Paint()..color = dotColor..isAntiAlias = true);
+    final strokeWidth = r * 2;
+    final paintPast = Paint()
+      ..color = settings.pastDotColor
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true;
+      
+    final paintToday = Paint()
+      ..color = settings.todayDotColor
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true;
+
+    final paintFuture = Paint()
+      ..color = settings.futureDotColor
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true;
+
+    if (pastPts.isNotEmpty) {
+      canvas.drawRawPoints(PointMode.points, pastPts, paintPast);
+    }
+    if (drewToday) {
+      canvas.drawRawPoints(PointMode.points, todayPts, paintToday);
+    }
+    if (futurePts.isNotEmpty) {
+      canvas.drawRawPoints(PointMode.points, futurePts, paintFuture);
     }
   }
 
   @override
   bool shouldRepaint(DotGridPainter old) => old.settings != settings;
-}
-
-class DotGridWallpaper extends StatelessWidget {
-  final WallpaperSettings settings;
-  const DotGridWallpaper({super.key, required this.settings});
-
-  @override
-  Widget build(BuildContext context) {
-    // final daysLeft = settings.totalDots - settings.pastDots;
-    final pct = settings.mode == CalendarMode.life
-        ? settings.lifeProgress
-        : settings.mode == CalendarMode.goal
-            ? (settings.pastDots / settings.totalDots)
-            : WallpaperSettings.yearProgress;
-
-    return Container(
-      color: settings.backgroundColor,
-      child: Stack(children: [
-        Positioned.fill(
-          child: CustomPaint(painter: DotGridPainter(settings)),
-        ),
-        if (settings.showProgressLabel)
-          Positioned(
-            bottom: 20, left: 0, right: 0,
-            child: Text(
-              settings.progressLabel,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: settings.pastDotColor.withOpacity(0.45),
-                fontSize: 10,
-                letterSpacing: 1.2,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-
-            
-          ),
-      ]),
-    );
-  }
 }

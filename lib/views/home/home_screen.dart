@@ -1,7 +1,6 @@
 import 'dart:ui'; 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-// Note: You can remove app_theme.dart if you no longer use kRed, kSurf, etc.
 import '../../core/app_theme.dart'; 
 import '../../models/wallpaper_settings.dart';
 import '../../viewmodels/home_view_model.dart';
@@ -34,6 +33,15 @@ class _HomeScreenState extends State<HomeScreen>
     _af = CurvedAnimation(parent: _ac, curve: Curves.easeOut);
     _ac.forward();
     _vm.checkLive();
+    
+    // ── FORCE MINIMAL B&W GLASS THEME ──
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _vm.setBgColor(Colors.transparent);
+      _vm.setPastColor(Colors.white.withOpacity(0.7)); 
+      _vm.setTodayColor(Colors.white);                 
+      _vm.setFutureColor(Colors.white.withOpacity(0.15)); 
+    });
+
     _vm.addListener(_onVmChange);
   }
 
@@ -61,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen>
   // ── iOS Glass Bottom Sheet ────────────────────────────────────
   void _showApplySheet() => showModalBottomSheet(
     context: context,
-    backgroundColor: Colors.transparent, // Ensures the glass blur shows through
+    backgroundColor: Colors.transparent, 
     elevation: 0,
     builder: (_) => ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(45)),
@@ -76,7 +84,6 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            // iOS Drag Handle
             Container(
               width: 50, height: 5,
               decoration: BoxDecoration(
@@ -103,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen>
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(100), // Pill button
+                  borderRadius: BorderRadius.circular(100),
                 ),
                 child: const Text('GOT IT',
                     style: TextStyle(
@@ -118,15 +125,13 @@ class _HomeScreenState extends State<HomeScreen>
   ).then((_) => _vm.checkLive());
 
   // ── Helpers ───────────────────────────────────────────────────
-  // Note: Removed _hr() entirely to reduce gaps and keep the UI clean and floating.
-
   Widget _applyBtn() => GestureDetector(
     onTap: _vm.saving ? null : _apply,
     child: Container(
       width: double.infinity, height: 56,
       alignment: Alignment.center, 
       decoration: BoxDecoration(
-        color: Colors.white, // Minimal B&W pill
+        color: Colors.white,
         borderRadius: BorderRadius.circular(100),
         boxShadow: [
           BoxShadow(
@@ -149,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen>
   );
 
   Widget _topBar(double hPad) => Padding(
-    padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 0), // Reduced bottom padding here to close the gap
+    padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 0), 
     child: ClipRRect(
       borderRadius: BorderRadius.circular(100), 
       child: BackdropFilter(
@@ -166,7 +171,6 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           child: Row(
             children: [
-              // Minimal B&W App Icon
               Container(
                 width: 24, height: 24,
                 decoration: const BoxDecoration(
@@ -184,7 +188,6 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              
               const Text(
                 'DotZ',
                 style: TextStyle(
@@ -196,8 +199,6 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               const Spacer(),
-              
-              // Creative "Live" Status Widget
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
@@ -308,37 +309,47 @@ class _HomeScreenState extends State<HomeScreen>
         title: _vm.heroTitle, statA: _vm.heroStatA,
         statB: _vm.heroStatB, hPad: hPad, fade: _af,
       ),
-      // GAP REDUCTION: Removed all _hr() dividers here.
-      _modeSetup(hPad),
-      const SizedBox(height: 8), // Small buffer instead of lines
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: hPad),
-        child: FadeTransition(
-          opacity: _af,
-          child: Container(
-            width: double.infinity, height: ph,
-            // Match the Calendar perfectly to the Hero card
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(color: Colors.white.withOpacity(0.15), width: 0.5),
+      Transform.translate(
+        offset: const Offset(0, -16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _modeSetup(hPad),
+            if (_vm.mode != CalendarMode.year) const SizedBox(height: 12),
+            
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: FadeTransition(
+                opacity: _af,
+                child: Container(
+                  width: double.infinity, height: ph,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.25),
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(color: Colors.white.withOpacity(0.15), width: 0.5),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(32),
+                    // ── FIX APPLIED HERE ──
+                    child: CustomPaint(
+                      painter: DotGridPainter(_vm.settings),
+                    ),
+                  ),
+                ),
+              ),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(32),
-              child: DotGridWallpaper(settings: _vm.settings),
+            const SizedBox(height: 24),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: hPad),
+              child: ControlsSection(vm: _vm),
             ),
-          ),
+            const SizedBox(height: 32),
+            Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 0),
+              child: _applyBtn(),
+            ),
+          ],
         ),
-      ),
-      const SizedBox(height: 24),
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: hPad),
-        child: ControlsSection(vm: _vm),
-      ),
-      const SizedBox(height: 32),
-      Padding(
-        padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 0),
-        child: _applyBtn(),
       ),
     ],
   );
@@ -352,40 +363,52 @@ class _HomeScreenState extends State<HomeScreen>
         title: _vm.heroTitle, statA: _vm.heroStatA,
         statB: _vm.heroStatB, hPad: hPad, fade: _af,
       ),
-      _modeSetup(hPad),
-      const SizedBox(height: 8),
-      Padding(
-        padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 0),
-        child: Row(
+      Transform.translate(
+        offset: const Offset(0, -16),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              flex: 5,
-              child: FadeTransition(
-                opacity: _af,
-                child: Container(
-                  height: ph,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.25),
-                    borderRadius: BorderRadius.circular(32),
-                    border: Border.all(color: Colors.white.withOpacity(0.15), width: 0.5),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(32),
-                    child: DotGridWallpaper(settings: _vm.settings),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 40),
-            Expanded(
-              flex: 4,
-              child: Column(
+            _modeSetup(hPad),
+            if (_vm.mode != CalendarMode.year) const SizedBox(height: 12),
+            
+            Padding(
+              padding: EdgeInsets.fromLTRB(hPad, 0, hPad, 0),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ControlsSection(vm: _vm),
-                  const SizedBox(height: 32),
-                  _applyBtn(),
+                  Expanded(
+                    flex: 5,
+                    child: FadeTransition(
+                      opacity: _af,
+                      child: Container(
+                        height: ph,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.25),
+                          borderRadius: BorderRadius.circular(32),
+                          border: Border.all(color: Colors.white.withOpacity(0.15), width: 0.5),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(32),
+                          // ── FIX APPLIED HERE ──
+                          child: CustomPaint(
+                            painter: DotGridPainter(_vm.settings),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 40),
+                  Expanded(
+                    flex: 4,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ControlsSection(vm: _vm),
+                        const SizedBox(height: 32),
+                        _applyBtn(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
