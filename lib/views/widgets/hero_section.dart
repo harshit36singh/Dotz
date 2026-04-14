@@ -27,102 +27,118 @@ class HeroSection extends StatelessWidget {
     final bigNumSize = sw >= 700 ? 72.0 : 84.0;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(hPad, 24, hPad, 24),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
-        decoration: BoxDecoration(
-          color: const Color(0xFF111111),   // solid dark — no glass
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.07), width: 1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Eyebrow tag
-            Text(
-              tag.toUpperCase(),
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.35),
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 2.0,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Big number + title
-            FadeTransition(
-              opacity: fade,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    bigNum,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: bigNumSize,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: -4,
-                      height: 1.0,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    title.toUpperCase(),
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.65),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 4.0,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 28),
-
-            // Hairline divider
-            Container(
-              height: 0.5,
-              width: double.infinity,
-              color: Colors.white.withOpacity(0.08),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Stats row
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
+      padding: EdgeInsets.fromLTRB(hPad, 32, hPad, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Large typographic header replacing the old box
+          FadeTransition(
+            opacity: fade,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (tag.isNotEmpty) ...[
+                        Text(
+                          tag.toUpperCase(),
+                          style: TextStyle(
+                            fontFamily: 'Glass Antiqua', // Font applied
+                            color: Colors.white.withOpacity(0.5),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 2.0,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      Text(
+                        title.replaceAll(' ', '\n'), // Wraps cleanly
+                        style: const TextStyle(
+                          fontFamily: 'Glass Antiqua', // Font applied
+                          color: Colors.white,
+                          fontSize: 48,
+                          fontWeight: FontWeight.w400,
+                          height: 1.1,
+                          letterSpacing: -1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        bigNum,
+                        style: TextStyle(
+                          fontFamily: 'Glass Antiqua', // Font applied
+                          color: Colors.white,
+                          fontSize: bigNumSize,
+                          fontWeight: FontWeight.w400,
+                          height: 1.0,
+                          letterSpacing: -2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Decorative floating circular button from the UI reference
+                Container(
+                  width: 54, height: 54,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                  ),
+                  child: const Icon(Icons.add, color: Colors.white, size: 28),
+                )
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Stats row turned into a card to match the grid UI
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2C2936), // Updated image card color
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Yellow-green accent checkmark
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFE4F087),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.check, color: Colors.black, size: 16),
+                ),
+                const SizedBox(width: 14),
                 Text(
                   statA,
                   style: const TextStyle(
+                    fontFamily: 'Glass Antiqua', // Font applied
                     color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    statB.toUpperCase(),
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.4),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.5,
-                    ),
+                const Spacer(),
+                Text(
+                  statB.toUpperCase(),
+                  style: TextStyle(
+                    fontFamily: 'Glass Antiqua', // Font applied
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.0,
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

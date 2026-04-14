@@ -65,7 +65,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: Container(
           padding: const EdgeInsets.fromLTRB(24, 12, 24, 48),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.55),
+            color: const Color(0xFF2C2936), // Updated to match settings UI card
             border: Border(
               top: BorderSide(color: Colors.white.withOpacity(0.12), width: 0.5),
             ),
@@ -80,6 +80,7 @@ class _HomeScreenState extends State<HomeScreen>
             const SizedBox(height: 32),
             const Text('Apply to Lock Screen',
               style: TextStyle(
+                fontFamily: 'Glass Antiqua', // Font applied
                 color: Colors.white, fontSize: 22,
                 fontWeight: FontWeight.w700, fontStyle: FontStyle.italic,
                 letterSpacing: -0.5)),
@@ -88,6 +89,7 @@ class _HomeScreenState extends State<HomeScreen>
               'Long-press home → Wallpapers → Live → DotZ → Apply',
               textAlign: TextAlign.center,
               style: TextStyle(
+                fontFamily: 'Glass Antiqua', // Font applied
                 color: Colors.white.withOpacity(0.55),
                 fontSize: 13, height: 1.8)),
             const SizedBox(height: 32),
@@ -101,7 +103,8 @@ class _HomeScreenState extends State<HomeScreen>
                   borderRadius: BorderRadius.circular(100)),
                 child: const Text('GOT IT',
                   style: TextStyle(
-                    color: Colors.black, fontSize: 11,
+                    fontFamily: 'Glass Antiqua', // Font applied
+                    color: Colors.black, fontSize: 14, // Adjusted slightly for font
                     fontWeight: FontWeight.w900, letterSpacing: 2.0)),
               ),
             ),
@@ -130,7 +133,8 @@ class _HomeScreenState extends State<HomeScreen>
                   strokeWidth: 2, color: Colors.black))
             : const Text('APPLY TO LOCK SCREEN',
                 style: TextStyle(
-                  color: Colors.black, fontSize: 11,
+                  fontFamily: 'Glass Antiqua', // Font applied
+                  color: Colors.black, fontSize: 13, // Adjusted slightly for font
                   fontWeight: FontWeight.w900, letterSpacing: 2.0)),
       ),
     ),
@@ -151,7 +155,8 @@ class _HomeScreenState extends State<HomeScreen>
           const SizedBox(width: 12),
           const Text('DotZ',
             style: TextStyle(
-              color: Colors.white, fontSize: 16,
+              fontFamily: 'Glass Antiqua', // Font applied
+              color: Colors.white, fontSize: 18, // Adjusted slightly for font
               fontStyle: FontStyle.italic, fontWeight: FontWeight.w800,
               letterSpacing: -0.5)),
           const Spacer(),
@@ -245,6 +250,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _settingsBody(double hPad) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
+      const SizedBox(height: 24), // Topbar removed completely
       SettingsPage(vm: _vm),
     ],
   );
@@ -253,7 +259,10 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _calendarBody(double hPad, double ph) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      _topBar(hPad),
+      // Top bar ONLY shows on the main Year page now
+      if (_vm.mode == CalendarMode.year) _topBar(hPad),
+      if (_vm.mode != CalendarMode.year) const SizedBox(height: 24), 
+
       HeroSection(
         tag: _vm.heroTag, bigNum: _vm.heroBigNum,
         title: _vm.heroTitle, statA: _vm.heroStatA,
@@ -319,10 +328,10 @@ class _HomeScreenState extends State<HomeScreen>
                       ? _settingsBody(hPad)
                       : _calendarBody(hPad, ph),
                 ),
-                // Glass navbar
+                // Glass navbar - Positioning absolutely untouched
                 Positioned(
                   left: navSideInset,
-                  right: (navSideInset+18), // Removed the +18 so it stays perfectly centered
+                  right: (navSideInset+18),
                   bottom: 20,
                   child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
                 ),
@@ -368,8 +377,9 @@ class _LiveBadge extends StatelessWidget {
           const SizedBox(width: 6),
           Text(live ? 'LIVE' : 'IDLE',
             style: TextStyle(
+              fontFamily: 'Glass Antiqua', // Font applied
               color: live ? Colors.white : Colors.white.withOpacity(0.4),
-              fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 2.0)),
+              fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 2.0)),
         ],
       ),
     );

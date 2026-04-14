@@ -34,9 +34,9 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
           colorScheme: const ColorScheme.dark(
             primary: Colors.white,
             onPrimary: Colors.black,
-            surface: Color(0xFF1C1C1E),
+            surface: Color(0xFF2C2936), // Match new UI
           ),
-          dialogBackgroundColor: const Color(0xFF1C1C1E),
+          dialogBackgroundColor: const Color(0xFF2C2936),
         ),
         child: child!,
       ),
@@ -54,11 +54,10 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const SizedBox(height: 20),
       Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF111111),
+          color: const Color(0xFF2C2936), // Applied Settings Card UI
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.07), width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,10 +70,12 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
                 child: TextField(
                   controller: _nameCtrl,
                   style: const TextStyle(
-                    color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
+                    fontFamily: 'Glass Antiqua', // Font applied
+                    color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     hintText: 'e.g. New York Marathon',
                     hintStyle: TextStyle(
+                      fontFamily: 'Glass Antiqua',
                       color: Colors.white.withOpacity(0.2)),
                     border: InputBorder.none,
                     isDense: true,
@@ -111,17 +112,18 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
                       ? 'Tap to pick a date'
                       : '${vm.goalDate!.day} / ${vm.goalDate!.month} / ${vm.goalDate!.year}',
                   style: TextStyle(
+                    fontFamily: 'Glass Antiqua', // Font applied
                     color: vm.goalDate != null
                         ? Colors.white
                         : Colors.white.withOpacity(0.2),
-                    fontSize: 15, fontWeight: FontWeight.w500),
+                    fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 const Spacer(),
                 if (days != null)
                   _Chip('$days days')
                 else
                   Icon(CupertinoIcons.chevron_right,
-                    color: Colors.white.withOpacity(0.2), size: 14),
+                    color: Colors.white.withOpacity(0.2), size: 16),
               ]),
             ),
 
@@ -139,8 +141,9 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
                   const SizedBox(width: 6),
                   Text('RESET GOAL',
                     style: TextStyle(
+                      fontFamily: 'Glass Antiqua', // Font applied
                       color: Colors.white.withOpacity(0.3),
-                      fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 2)),
+                      fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 2)),
                 ]),
               ),
             ],
@@ -159,12 +162,13 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(children: [
-    Icon(icon, color: Colors.white.withOpacity(0.3), size: 12),
-    const SizedBox(width: 6),
+    Icon(icon, color: Colors.white.withOpacity(0.3), size: 14),
+    const SizedBox(width: 8),
     Text(label,
       style: TextStyle(
-        color: Colors.white.withOpacity(0.3),
-        fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 3)),
+        fontFamily: 'Glass Antiqua', // Font applied
+        color: Colors.white.withOpacity(0.4),
+        fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 2)),
   ]);
 }
 
@@ -172,7 +176,7 @@ class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 14),
-    child: Container(height: 0.5, color: Colors.white.withOpacity(0.07)),
+    child: Container(height: 1, color: Colors.white.withOpacity(0.05)),
   );
 }
 
@@ -190,6 +194,7 @@ class _Chip extends StatelessWidget {
     ),
     child: Text(text,
       style: const TextStyle(
-        color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+        fontFamily: 'Glass Antiqua', // Font applied
+        color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
   );
 }

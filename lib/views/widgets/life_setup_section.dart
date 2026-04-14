@@ -17,9 +17,9 @@ class LifeSetupSection extends StatelessWidget {
           colorScheme: const ColorScheme.dark(
             primary: Colors.white,
             onPrimary: Colors.black,
-            surface: Color(0xFF1C1C1E),
+            surface: Color(0xFF2C2936), // Match new UI
           ),
-          dialogBackgroundColor: const Color(0xFF1C1C1E),
+          dialogBackgroundColor: const Color(0xFF2C2936),
         ),
         child: child!,
       ),
@@ -34,11 +34,10 @@ class LifeSetupSection extends StatelessWidget {
       const SizedBox(height: 20),
 
       Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF111111),
+          color: const Color(0xFF2C2936), // Applied Settings Card UI
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.07), width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -54,17 +53,18 @@ class LifeSetupSection extends StatelessWidget {
                       ? 'Tap to pick your birth date'
                       : '${vm.birthDate!.day} / ${vm.birthDate!.month} / ${vm.birthDate!.year}',
                   style: TextStyle(
+                    fontFamily: 'Glass Antiqua', // Font applied
                     color: vm.birthDate != null
                         ? Colors.white
                         : Colors.white.withOpacity(0.2),
-                    fontSize: 15, fontWeight: FontWeight.w500),
+                    fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 const Spacer(),
                 if (vm.birthDate != null)
                   _Chip('Age ${vm.age}')
                 else
                   Icon(CupertinoIcons.chevron_right,
-                    color: Colors.white.withOpacity(0.2), size: 14),
+                    color: Colors.white.withOpacity(0.2), size: 16),
               ]),
             ),
 
@@ -76,6 +76,7 @@ class LifeSetupSection extends StatelessWidget {
             Row(children: [
               Text('${vm.lifeExp}',
                 style: const TextStyle(
+                  fontFamily: 'Glass Antiqua', // Font applied
                   color: Colors.white, fontSize: 42,
                   fontStyle: FontStyle.italic, fontWeight: FontWeight.w900,
                   height: 0.9, letterSpacing: -2)),
@@ -83,12 +84,14 @@ class LifeSetupSection extends StatelessWidget {
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('years',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.35),
-                    fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 1.5)),
+                    fontFamily: 'Glass Antiqua',
+                    color: Colors.white.withOpacity(0.4),
+                    fontSize: 11, fontWeight: FontWeight.w500, letterSpacing: 1.5)),
                 Text('${vm.totalDays} days total',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.5),
-                    fontSize: 11, fontWeight: FontWeight.w600)),
+                    fontFamily: 'Glass Antiqua',
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: 12, fontWeight: FontWeight.w600)),
               ]),
               const SizedBox(width: 14),
               Expanded(
@@ -98,8 +101,8 @@ class LifeSetupSection extends StatelessWidget {
                     inactiveTrackColor: Colors.white.withOpacity(0.1),
                     thumbColor:         Colors.white,
                     overlayColor:       Colors.white.withOpacity(0.06),
-                    trackHeight:        1,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+                    trackHeight:        2,
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                   ),
                   child: Slider(
                     value: vm.lifeExp.toDouble(),
@@ -145,12 +148,13 @@ class _FieldLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(children: [
-    Icon(icon, color: Colors.white.withOpacity(0.3), size: 12),
-    const SizedBox(width: 6),
+    Icon(icon, color: Colors.white.withOpacity(0.3), size: 14),
+    const SizedBox(width: 8),
     Text(label,
       style: TextStyle(
-        color: Colors.white.withOpacity(0.3),
-        fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 3)),
+        fontFamily: 'Glass Antiqua', // Font applied
+        color: Colors.white.withOpacity(0.4),
+        fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 2)),
   ]);
 }
 
@@ -158,7 +162,7 @@ class _Divider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 14),
-    child: Container(height: 0.5, color: Colors.white.withOpacity(0.07)),
+    child: Container(height: 1, color: Colors.white.withOpacity(0.05)),
   );
 }
 
@@ -176,7 +180,8 @@ class _Chip extends StatelessWidget {
     ),
     child: Text(text,
       style: const TextStyle(
-        color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+        fontFamily: 'Glass Antiqua', // Font applied
+        color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
   );
 }
 
@@ -189,7 +194,7 @@ class _StatChip extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF0D0D0D),
+        color: Colors.black.withOpacity(0.2), // Adjusted to blend with new UI
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white.withOpacity(0.06), width: 1),
       ),
@@ -198,14 +203,16 @@ class _StatChip extends StatelessWidget {
         children: [
           Text(value,
             style: const TextStyle(
-              color: Colors.white, fontSize: 15,
+              fontFamily: 'Glass Antiqua', // Font applied
+              color: Colors.white, fontSize: 16,
               fontWeight: FontWeight.w800, fontStyle: FontStyle.italic,
               letterSpacing: -0.5)),
           const SizedBox(height: 2),
           Text(label,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.35),
-              fontSize: 8, fontWeight: FontWeight.w600, letterSpacing: 1.5)),
+              fontFamily: 'Glass Antiqua', // Font applied
+              color: Colors.white.withOpacity(0.4),
+              fontSize: 9, fontWeight: FontWeight.w600, letterSpacing: 1.0)),
         ],
       ),
     ),
