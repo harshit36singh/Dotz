@@ -16,7 +16,7 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
   void initState() {
     super.initState();
     _nameCtrl = TextEditingController(
-      text: widget.vm.goalName == 'My Goal' ? '' : widget.vm.goalName);
+      text: widget.vm.goalName == 'Goal' ? '' : widget.vm.goalName);
   }
 
   @override

@@ -141,26 +141,27 @@ class _HomeScreenState extends State<HomeScreen>
   );
 
   // ── Top bar — solid dark, no glass ───────────────────────────
-  Widget _topBar(double hPad) => Padding(
+Widget _topBar(double hPad) => Padding(
     padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 0),
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), // Slightly roomier padding
       decoration: BoxDecoration(
-        color: const Color(0xFF111111),
+        color: const Color(0xFF2C2936), // Updated to match the new dark card theme
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+        border: Border.all(color: Colors.white.withOpacity(0.05), width: 1), // Softer border
       ),
       child: Row(
         children: [      
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           const Text('DotZ',
             style: TextStyle(
               fontFamily: 'Glass Antiqua', // Font applied
-              color: Colors.white, fontSize: 18, // Adjusted slightly for font
-              fontStyle: FontStyle.italic, fontWeight: FontWeight.w800,
+              color: Colors.white, 
+              fontSize: 20, // Bumped slightly for the custom font
+              fontStyle: FontStyle.italic, 
+              fontWeight: FontWeight.w800,
               letterSpacing: -0.5)),
-          const Spacer(),
-          _LiveBadge(live: _vm.live),
+        
         ],
       ),
     ),
@@ -339,48 +340,6 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
         ]),
-      ),
-    );
-  }
-}
-
-// ── Live badge — solid dark ────────────────────────────────────────
-class _LiveBadge extends StatelessWidget {
-  final bool live;
-  const _LiveBadge({required this.live});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: live ? Colors.white.withOpacity(0.08) : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(live ? 0.2 : 0.06), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6, height: 6,
-            decoration: BoxDecoration(
-              color: live ? Colors.white : Colors.transparent,
-              shape: BoxShape.circle,
-              border: live ? null : Border.all(
-                color: Colors.white.withOpacity(0.25), width: 1),
-              boxShadow: live
-                  ? [const BoxShadow(color: Colors.white, blurRadius: 5, spreadRadius: 0.5)]
-                  : [],
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(live ? 'LIVE' : 'IDLE',
-            style: TextStyle(
-              fontFamily: 'Glass Antiqua', // Font applied
-              color: live ? Colors.white : Colors.white.withOpacity(0.4),
-              fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 2.0)),
-        ],
       ),
     );
   }

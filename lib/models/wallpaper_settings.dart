@@ -36,7 +36,7 @@ class WallpaperSettings {
     this.isDark            = true,
     this.target            = WallpaperTarget.lockscreen,
     this.mode              = CalendarMode.year,
-    this.goalName          = 'My Goal',
+    this.goalName          = 'Goal',
     this.goalDate,
     this.lifeExpectancyYears = 80,
     this.birthDate,
