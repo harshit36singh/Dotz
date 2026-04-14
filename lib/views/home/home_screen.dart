@@ -153,14 +153,16 @@ Widget _topBar(double hPad) => Padding(
       child: Row(
         children: [      
           const SizedBox(width: 8),
-          const Text('DotZ',
-            style: TextStyle(
-              fontFamily: 'Glass Antiqua', // Font applied
-              color: Colors.white, 
-              fontSize: 20, // Bumped slightly for the custom font
-              fontStyle: FontStyle.italic, 
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5)),
+          Center(
+            child: const Text('DotZ',
+              style: TextStyle(
+                fontFamily: 'Glass Antiqua', // Font applied
+                color: Colors.white, 
+                fontSize: 20, // Bumped slightly for the custom font
+                fontStyle: FontStyle.italic, 
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.5)),
+          ),
         
         ],
       ),

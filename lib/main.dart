@@ -1,8 +1,7 @@
+import 'package:dotz/splashscreen/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; // 👈 ADD THIS
-
-import 'views/home/home_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart'; 
 import 'views/onboarding/onboarding_screen.dart';
 
 void main() async {
@@ -41,7 +40,7 @@ class MyApp extends StatelessWidget {
           surface: Color(0xFF111111),
         ),
       ),
-      home: showOnboarding ? const OnboardingScreen() : const HomeScreen(),
+      home:SplashScreen(showOnboarding: showOnboarding),
     );
   }
 }
