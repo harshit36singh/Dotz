@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// ── App UI palette (light theme) ─────────────────────────────────
 const kBg    = Color(0xFFF5F0E8); // warm cream page background
 const kSurf  = Color(0xFFFAF8F4); // elevated surface (cards, sheets)
 const kSurf2 = Color(0xFFEEE9DF); // subtle surface
@@ -10,13 +9,11 @@ const kRule  = Color(0xFFE0DAD0); // dividers & borders
 const kRed   = Color(0xFFCC2200); // accent / CTA
 const kOrange= Color(0xFFE8640A); // app icon & live indicator
 
-// ── Wallpaper dot defaults (dark wallpaper) ───────────────────────
 const kDotPast   = Color(0xFF1C1814); // near-black — days gone
 const kDotToday  = Color(0xFFCC2200); // red — today marker
 const kDotFuture = Color(0xFFE0DAD0); // light — days ahead
 const kDotBg     = Color(0xFF0D0C0A); // near-black wallpaper bg
 
-// ── Swatches shown in the colour picker ──────────────────────────
 const kSwatches = [
   Color(0xFFFAF8F4), Color(0xFF1C1814), Color(0xFFF5F0E8),
   Color(0xFFCC2200), Color(0xFF0D0C0A), Color(0xFF252220),
