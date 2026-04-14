@@ -54,7 +54,6 @@ class _HomeScreenState extends State<HomeScreen>
     if (mounted) _showApplySheet();
   }
 
-  // ── Apply sheet — keep glass here (it's a modal, feels right) ──
   void _showApplySheet() => showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
@@ -148,8 +147,7 @@ class _HomeScreenState extends State<HomeScreen>
         border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
       ),
       child: Row(
-        children: [
-      
+        children: [      
           const SizedBox(width: 12),
           const Text('DotZ',
             style: TextStyle(
@@ -247,8 +245,6 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _settingsBody(double hPad) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      _topBar(hPad),
-      const SizedBox(height: 24), // Added a clean gap instead of the Hero card
       SettingsPage(vm: _vm),
     ],
   );

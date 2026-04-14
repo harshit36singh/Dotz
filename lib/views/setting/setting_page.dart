@@ -4,101 +4,172 @@ import 'package:flutter/cupertino.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../widgets/color_strip.dart';
 
-// ── Layout helpers ─────────────────────────────────────────────────
-double _hPad(BuildContext ctx) {
-  final w = MediaQuery.of(ctx).size.width;
-  if (w >= 900) return 48.0;
-  if (w >= 600) return 32.0;
-  return 20.0;
-}
-
-bool _isWide(BuildContext ctx) => MediaQuery.of(ctx).size.width >= 700;
-
+// ── Main Settings Page ─────────────────────────────────────────────
 class SettingsPage extends StatelessWidget {
   final HomeViewModel vm;
   const SettingsPage({super.key, required this.vm});
 
   @override
   Widget build(BuildContext context) {
-    final hp   = _hPad(context);
-    final wide = _isWide(context);
+    // Determine responsive padding
+    final w = MediaQuery.of(context).size.width;
+    final hp = w >= 900 ? 48.0 : w >= 600 ? 32.0 : 20.0;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.fromLTRB(hp, 8, hp, 40),
-      child: wide ? _wideLayout(context) : _narrowLayout(context),
+      padding: EdgeInsets.fromLTRB(hp, 20, hp, 60),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          
+          // List-wise Card Container matching the image
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFF2C2936), // Deep purple/grey from image
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              children: [
+                const Padding(
+              padding: EdgeInsets.fromLTRB(20, 24, 20, 8),
+              child: Text(
+                'Settings',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ),
+                _ExpandableSettingsTile(
+                  icon: CupertinoIcons.paintbrush,
+                  title: 'Dot Colours',
+                  vm: vm,
+                  child: ColorStrip(
+                    pastColor: vm.pastColor, todayColor: vm.todayColor,
+                    futureColor: vm.futureColor, bgColor: vm.bgColor,
+                    onPastChanged: vm.setPastColor, onTodayChanged: vm.setTodayColor,
+                    onFutureChanged: vm.setFutureColor, onBgChanged: vm.setBgColor,
+                  ),
+                ),
+                _Divider(),
+                _ExpandableSettingsTile(
+                  icon: CupertinoIcons.square_grid_3x2,
+                  title: 'Grid Density',
+                  vm: vm,
+                  child: _GridDensityContent(vm: vm),
+                ),
+                _Divider(),
+                _ExpandableSettingsTile(
+                  icon: CupertinoIcons.text_bubble,
+                  title: 'Wallpaper Label',
+                  vm: vm,
+                  isLast: true,
+                  child: _LabelModeSection(vm: vm),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
-
-  Widget _wideLayout(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: _DarkSection(
-            title: 'DOT COLOURS',
-            icon: CupertinoIcons.paintbrush,
-            child: ColorStrip(
-              pastColor: vm.pastColor, todayColor: vm.todayColor,
-              futureColor: vm.futureColor, bgColor: vm.bgColor,
-              onPastChanged: vm.setPastColor, onTodayChanged: vm.setTodayColor,
-              onFutureChanged: vm.setFutureColor, onBgChanged: vm.setBgColor,
-            ),
-          )),
-          const SizedBox(width: 16),
-          Expanded(child: _DarkSection(
-            title: 'GRID DENSITY',
-            icon: CupertinoIcons.square_grid_3x2,
-            child: _GridDensityContent(vm: vm),
-          )),
-        ],
-      ),
-      const SizedBox(height: 14),
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(flex: 3, child: _DarkSection(
-            title: 'WALLPAPER LABEL',
-            icon: CupertinoIcons.text_bubble,
-            child: _LabelModeSection(vm: vm),
-          )),
-      
-       
-        ],
-      ),
-    ],
-  );
-
-  Widget _narrowLayout(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      _DarkSection(
-        title: 'DOT COLOURS',
-        icon: CupertinoIcons.paintbrush,
-        child: ColorStrip(
-          pastColor: vm.pastColor, todayColor: vm.todayColor,
-          futureColor: vm.futureColor, bgColor: vm.bgColor,
-          onPastChanged: vm.setPastColor, onTodayChanged: vm.setTodayColor,
-          onFutureChanged: vm.setFutureColor, onBgChanged: vm.setBgColor,
-        ),
-      ),
-      const SizedBox(height: 12),
-      _DarkSection(
-        title: 'GRID DENSITY',
-        icon: CupertinoIcons.square_grid_3x2,
-        child: _GridDensityContent(vm: vm),
-      ),
-      const SizedBox(height: 12),
-      _DarkSection(
-        title: 'WALLPAPER LABEL',
-        icon: CupertinoIcons.text_bubble,
-        child: _LabelModeSection(vm: vm),
-      ),
-     
-    ],
-  );
 }
+
+// ── Expandable UI Component ────────────────────────────────────────
+
+class _ExpandableSettingsTile extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final Widget child;
+  final HomeViewModel vm;
+  final bool isLast;
+
+  const _ExpandableSettingsTile({
+    required this.icon,
+    required this.title,
+    required this.child,
+    required this.vm,
+    this.isLast = false,
+  });
+
+  @override
+  State<_ExpandableSettingsTile> createState() => _ExpandableSettingsTileState();
+}
+
+class _ExpandableSettingsTileState extends State<_ExpandableSettingsTile> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: () {
+            setState(() {
+              _isExpanded = !_isExpanded;
+            });
+          },
+          borderRadius: BorderRadius.vertical(
+            top: widget.isLast && !_isExpanded ? Radius.zero : const Radius.circular(20),
+            bottom: widget.isLast && !_isExpanded ? const Radius.circular(20) : Radius.zero,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            child: Row(
+              children: [
+                Icon(widget.icon, color: Colors.white, size: 20),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Icon(
+                  _isExpanded ? CupertinoIcons.chevron_up : CupertinoIcons.chevron_down,
+                  color: Colors.white.withOpacity(0.4),
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        // This handles smooth inline expansion
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          child: !_isExpanded 
+              ? const SizedBox(width: double.infinity)
+              : // AnimatedBuilder ensures the UI reacts instantly to changes (fixes the tab bug)
+                AnimatedBuilder(
+                  animation: widget.vm,
+                  builder: (context, _) => Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                    child: widget.child,
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Divider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(height: 1, color: Colors.white.withOpacity(0.05)),
+      );
+}
+
+// ── Below are the exact unedited logic components from your code ──
 
 // ── Grid density content ───────────────────────────────────────────
 class _GridDensityContent extends StatelessWidget {
@@ -148,8 +219,6 @@ class _GridDensityContent extends StatelessWidget {
   }
 }
 
-
-
 // ── Label mode section ─────────────────────────────────────────────
 class _LabelModeSection extends StatelessWidget {
   final HomeViewModel vm;
@@ -198,7 +267,7 @@ class _LabelModeSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFF0A0A0A),
+                color: Colors.black.withOpacity(0.2), // Adjusted to blend with new UI
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white.withOpacity(0.06), width: 1),
               ),
@@ -268,7 +337,7 @@ class _CustomLabelInputState extends State<_CustomLabelInput> {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
     decoration: BoxDecoration(
-      color: const Color(0xFF0A0A0A),
+      color: Colors.black.withOpacity(0.2), // Adjusted to blend with new UI
       borderRadius: BorderRadius.circular(12),
       border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
     ),
@@ -414,7 +483,7 @@ class _LabelAppearanceControls extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: const Color(0xFF0A0A0A),
+              color: Colors.black.withOpacity(0.2), // Adjusted to blend with new UI
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: Colors.white.withOpacity(0.05), width: 1),
             ),
@@ -454,7 +523,7 @@ class _FourWayToggle extends StatelessWidget {
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: const Color(0xFF0D0D0D),
+        color: Colors.black.withOpacity(0.2), // Adjusted to blend with new UI
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
       ),
@@ -547,61 +616,4 @@ class _HairLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       Container(height: 0.5, color: Colors.white.withOpacity(0.07));
-}
-
-// ── Minimal dark card — NO glass, NO blur ─────────────────────────
-class _DarkSection extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final Widget child;
-  const _DarkSection({
-    required this.title,
-    required this.icon,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: const Color(0xFF111111),
-      borderRadius: BorderRadius.circular(18),
-      border: Border.all(color: Colors.white.withOpacity(0.07), width: 1),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(children: [
-          Icon(icon, color: Colors.white.withOpacity(0.3), size: 13),
-          const SizedBox(width: 8),
-          Text(title,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.3),
-              fontSize: 9, fontWeight: FontWeight.w700, letterSpacing: 3)),
-        ]),
-        const SizedBox(height: 18),
-        child,
-      ],
-    ),
-  );
-}
-
-class _AboutRow extends StatelessWidget {
-  final String label, value;
-  const _AboutRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
-    child: Row(children: [
-      Text(label,
-        style: TextStyle(
-          color: Colors.white.withOpacity(0.3),
-          fontSize: 12, fontWeight: FontWeight.w400)),
-      const Spacer(),
-      Text(value,
-        style: const TextStyle(
-          color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
-    ]),
-  );
 }
