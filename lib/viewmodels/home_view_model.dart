@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart'; // ← ADDED THIS IMPORT
 import '../models/wallpaper_settings.dart';
 import '../core/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -18,8 +21,45 @@ class HomeViewModel extends ChangeNotifier {
   CalendarMode _mode = CalendarMode.year;
   CalendarMode get mode => _mode;
 
+  String _bgImagePath = '';
+  String get bgImagePath => _bgImagePath;
+
   void setMode(CalendarMode m) {
     _mode = m;
+    notifyListeners();
+  }
+
+  // ── Background Image Logic ────────────────────────────────────
+  Future<void> pickBackgroundImage() async {
+    try {
+      final picker = ImagePicker();
+      // Opens the gallery for the user to select a photo
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      
+      if (pickedFile != null) {
+        // 1. Get the app's safe document directory
+        final directory = await getApplicationDocumentsDirectory();
+        
+        // 2. Extract the file name
+        final fileName = p.basename(pickedFile.path);
+        
+        // 3. Create a permanent file path
+        final savedImage = File('${directory.path}/$fileName');
+        
+        // 4. Copy the image there
+        await File(pickedFile.path).copy(savedImage.path);
+        
+        // 5. Save the path to state
+        _bgImagePath = savedImage.path;
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint("Error picking image: $e");
+    }
+  }
+
+  void clearBackgroundImage() {
+    _bgImagePath = '';
     notifyListeners();
   }
 
@@ -299,19 +339,20 @@ class HomeViewModel extends ChangeNotifier {
         'pastColor':      _toArgb(_pastColor),
         'futureColor':    _toArgb(_futureColor),
         'todayColor':     _toArgb(_todayColor),
-        'labelColor':     _toArgb(_labelColor),   // ← NEW
-        'labelFontSize':  _labelFontSize,           // ← NEW (0 = auto)
+        'labelColor':     _toArgb(_labelColor),
+        'labelFontSize':  _labelFontSize,
         'columns':        _columns,
         'showLabel':      showLabel,
-        'labelMode':      _labelMode.index,         // 0=off,1=progress,2=quote,3=custom
-        'customLabel':    resolvedLabel,             // pre-resolved string
+        'labelMode':      _labelMode.index,
+        'customLabel':    resolvedLabel,
         'mode':           modeIdx,
         'goalTotal':      goalTotal,
         'goalPast':       goalTotal - goalDaysLeft,
         'goalName':       _goalName,
         'lifeTotal':      totalDays,
         'lifeLived':      daysLived,
-        'apiUrl': apiKey,
+        'apiUrl':         apiKey,
+        'bgImagePath':    _bgImagePath,
       });
       await _channel.invokeMethod('openWallpaperPicker');
       return true;

@@ -65,8 +65,17 @@ class SettingsPage extends StatelessWidget {
                   icon: CupertinoIcons.text_bubble,
                   title: 'Wallpaper Label',
                   vm: vm,
-                  isLast: true,
+                  isLast: false, // Updated so corners don't round here anymore
                   child: _LabelModeSection(vm: vm),
+                ),
+                _Divider(),
+                // 👇 NEW BACKGROUND IMAGE TILE 👇
+                _ExpandableSettingsTile(
+                  icon: CupertinoIcons.photo,
+                  title: 'Background Image',
+                  vm: vm,
+                  isLast: true, // Now this is the last tile
+                  child: _BackgroundImageSection(vm: vm),
                 ),
               ],
             ),
@@ -616,4 +625,83 @@ class _HairLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) =>
       Container(height: 0.5, color: Colors.white.withOpacity(0.07));
+}
+
+// 👇 NEW BACKGROUND IMAGE SECTION 👇
+
+// ── Background Image Section ───────────────────────────────────────
+class _BackgroundImageSection extends StatelessWidget {
+  final HomeViewModel vm;
+  const _BackgroundImageSection({required this.vm});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasImage = vm.bgImagePath.isNotEmpty;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasImage) ...[
+          // Show a little text indicating an image is selected
+          Text('Custom image selected',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.45),
+              fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+          const SizedBox(height: 12),
+        ],
+        
+        Row(
+          children: [
+            // Pick Image Button
+            Expanded(
+              child: GestureDetector(
+                onTap: vm.pickBackgroundImage,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        hasImage ? CupertinoIcons.arrow_2_circlepath : CupertinoIcons.photo_on_rectangle, 
+                        color: Colors.white, size: 16
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        hasImage ? 'CHANGE IMAGE' : 'CHOOSE FROM GALLERY',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            
+            // Clear Image Button (Only shows if an image is selected)
+            if (hasImage) ...[
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: vm.clearBackgroundImage,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.red.withOpacity(0.4), width: 1),
+                  ),
+                  child: const Icon(CupertinoIcons.trash, color: Colors.redAccent, size: 16),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
 }

@@ -36,6 +36,7 @@ class DotzLiveWallpaper : WallpaperService() {
         // These are now only declared ONCE right here
         private var customLabel   = ""
         private var quoteApiUrl   = ""
+        private var bgImagePath   = ""
         private var mode          = 0
 
         // Goal
@@ -165,6 +166,7 @@ class DotzLiveWallpaper : WallpaperService() {
                 // These are now only loaded ONCE right here
                 customLabel       = p.getString("customLabel",  "") ?: ""
                 quoteApiUrl       = p.getString("apiUrl",       "") ?: "" 
+                bgImagePath       = p.getString("bgImagePath",  "") ?: ""
                 mode              = p.getInt("mode",            0)
                 
                 goalTotalDays     = p.getInt("goalTotal",       100)
@@ -255,7 +257,40 @@ class DotzLiveWallpaper : WallpaperService() {
             cachedBitmap?.recycle()
             cachedBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
             val canvas   = Canvas(cachedBitmap!!)
-            canvas.drawColor(bgColor)
+               // --- NEW BACKGROUND IMAGE LOGIC ---
+            if (bgImagePath.isNotEmpty()) {
+                try {
+                    val bgImg = BitmapFactory.decodeFile(bgImagePath)
+                    if (bgImg != null) {
+                        // 1. Calculate how much to scale the image to fill the screen (Center Crop)
+                        val scale = maxOf(w.toFloat() / bgImg.width, h.toFloat() / bgImg.height)
+                        val dx = (w - bgImg.width * scale) / 2f
+                        val dy = (h - bgImg.height * scale) / 2f
+
+                        // 2. Apply scale and position
+                        val matrix = Matrix().apply {
+                            postScale(scale, scale)
+                            postTranslate(dx, dy)
+                        }
+                        
+                        // 3. Draw the image
+                        canvas.drawBitmap(bgImg, matrix, Paint(Paint.FILTER_BITMAP_FLAG))
+                        
+                        // 4. (Optional but recommended) Draw a semi-transparent dark tint over the image 
+                        // so your white/colored dots and text are still readable!
+                        canvas.drawColor(Color.argb(120, 0, 0, 0)) 
+                        
+                        bgImg.recycle() // Free up memory immediately
+                    } else {
+                        canvas.drawColor(bgColor) // Fallback if image is corrupt
+                    }
+                } catch (e: Exception) {
+                    canvas.drawColor(bgColor) // Fallback if file not found
+                }
+            } else {
+                canvas.drawColor(bgColor) // Standard solid color
+            }
+            // ----------------------------------
 
             val total    = totalDots()
             val safePast = pastDots().coerceIn(0, total)
