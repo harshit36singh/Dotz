@@ -39,6 +39,7 @@ class MainActivity : FlutterActivity() {
                                 // ── Label mode: 0=off,1=progress,2=quote,3=custom ──
                                 putInt("labelMode",   (call.argument<Any>("labelMode") as? Number)?.toInt() ?: 1)
                                 putString("customLabel", call.argument<String>("customLabel") ?: "")
+                                putString("apiUrl", call.argument<String>("apiUrl") ?: "")
                                 // ── Calendar mode ─────────────────────────────
                                 putInt("mode", (call.argument<Any>("mode") as? Number)?.toInt() ?: 0)
                                 // ── Goal ──────────────────────────────────────

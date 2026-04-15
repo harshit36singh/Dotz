@@ -15,7 +15,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
 
   void _navigate() {
-    if (!mounted) return; // ✅ prevents crash
+    if (!mounted) return; 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(

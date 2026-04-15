@@ -311,6 +311,7 @@ class HomeViewModel extends ChangeNotifier {
         'goalName':       _goalName,
         'lifeTotal':      totalDays,
         'lifeLived':      daysLived,
+        'apiUrl': apiKey,
       });
       await _channel.invokeMethod('openWallpaperPicker');
       return true;

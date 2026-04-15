@@ -27,13 +27,16 @@ class DotzLiveWallpaper : WallpaperService() {
         private var pastColor     = Color.WHITE
         private var futureColor   = Color.parseColor("#2A2A2A")
         private var todayColor    = Color.parseColor("#FF4500")
-        private var labelColor    = Color.WHITE       // ← NEW
-        private var labelFontSizeSp = 0f              // ← NEW: 0 = auto
+        private var labelColor    = Color.WHITE
+        private var labelFontSizeSp = 0f
         private var columns       = 20
         private var showLabel     = true
-        private var labelMode     = 1                 // 0=off,1=progress,2=quote,3=custom
+        private var labelMode     = 1
+
+        // These are now only declared ONCE right here
         private var customLabel   = ""
-        private var mode          = 0                 // 0=year,1=goal,2=life
+        private var quoteApiUrl   = ""
+        private var mode          = 0
 
         // Goal
         private var goalTotalDays = 100
@@ -51,7 +54,6 @@ class DotzLiveWallpaper : WallpaperService() {
         private var cachedBitmap: Bitmap? = null
         private var lastDrawnDay = -1
 
-        // The Y coordinate of the bottom edge of the dot grid (set in recalc/buildCache)
         private var gridBottomY = 0f
 
         private val paintPast   = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -66,17 +68,58 @@ class DotzLiveWallpaper : WallpaperService() {
             if (f.width() > 0 && f.height() > 0) recalc(f.width(), f.height())
         }
 
+        private fun fetchNewQuoteAsync() {
+            Thread {
+                try {
+                    val url = java.net.URL(quoteApiUrl)
+                    val connection = url.openConnection() as java.net.HttpURLConnection
+                    connection.requestMethod = "GET"
+                    connection.setRequestProperty("Accept", "application/json")
+                    connection.connectTimeout = 8000
+                    connection.readTimeout = 8000
+
+                    if (connection.responseCode == 200) {
+                        val response = connection.inputStream.bufferedReader().use { it.readText() }
+                        val jsonArray = org.json.JSONArray(response)
+                        
+                        if (jsonArray.length() > 0) {
+                            val item = jsonArray.getJSONObject(0)
+                            val q = item.optString("q", "").trim()
+                            val a = item.optString("a", "").trim()
+                            
+                            val newQuote = if (a.isNotEmpty()) "\"$q\" — $a" else "\"$q\""
+                            
+                            handler.post {
+                                prefs?.edit()?.putString("customLabel", newQuote)?.apply()
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    handler.post {
+                        val f = surfaceHolder.surfaceFrame
+                        if (f.width() > 0 && f.height() > 0) buildCache(f.width(), f.height())
+                    }
+                }
+            }.start()
+        }
+
         private val drawRunnable = object : Runnable {
             override fun run() {
                 if (!isVisible) return
                 val today = dayOfYear()
                 if (today != lastDrawnDay) {
                     lastDrawnDay = today
-                    val f = surfaceHolder.surfaceFrame
-                    if (f.width() > 0 && f.height() > 0) buildCache(f.width(), f.height())
+                    
+                    if (labelMode == 2 && quoteApiUrl.isNotEmpty()) {
+                        fetchNewQuoteAsync()
+                    } else {
+                        val f = surfaceHolder.surfaceFrame
+                        if (f.width() > 0 && f.height() > 0) buildCache(f.width(), f.height())
+                    }
                 }
                 drawFrame()
-                handler.postDelayed(this, 60_000L)
+                handler.postDelayed(this, 60_000L) // Checks every minute
             }
         }
 
@@ -113,13 +156,17 @@ class DotzLiveWallpaper : WallpaperService() {
                 pastColor         = p.getInt("pastColor",       Color.WHITE)
                 futureColor       = p.getInt("futureColor",     Color.parseColor("#2A2A2A"))
                 todayColor        = p.getInt("todayColor",      Color.parseColor("#FF4500"))
-                labelColor        = p.getInt("labelColor",      Color.WHITE)          // ← NEW
-                labelFontSizeSp   = p.getFloat("labelFontSize", 0f)                   // ← NEW
+                labelColor        = p.getInt("labelColor",      Color.WHITE) 
+                labelFontSizeSp   = p.getFloat("labelFontSize", 0f) 
                 columns           = p.getInt("columns",         20)
                 showLabel         = p.getBoolean("showLabel",   true)
                 labelMode         = p.getInt("labelMode",       1)
+                
+                // These are now only loaded ONCE right here
                 customLabel       = p.getString("customLabel",  "") ?: ""
+                quoteApiUrl       = p.getString("apiUrl",       "") ?: "" 
                 mode              = p.getInt("mode",            0)
+                
                 goalTotalDays     = p.getInt("goalTotal",       100)
                 goalPastDays      = p.getInt("goalPast",        0)
                 goalName          = p.getString("goalName",     "Goal") ?: "Goal"
@@ -141,14 +188,8 @@ class DotzLiveWallpaper : WallpaperService() {
             else -> (dayOfYear() - 1).coerceIn(0, totalDots())
         }
 
-        /**
-         * Resolve label text.
-         * labelMode: 0=off, 1=progress, 2=quote, 3=custom
-         * For quote/custom, the pre-resolved string is stored in customLabel by Flutter.
-         */
         private fun resolvedLabel(): String {
             if (!showLabel || labelMode == 0) return ""
-            // quote (2) and custom (3) both use the pre-resolved customLabel from Flutter
             if (labelMode == 2 || labelMode == 3) {
                 return if (customLabel.isNotBlank()) customLabel else computeProgressLabel()
             }
@@ -170,16 +211,10 @@ class DotzLiveWallpaper : WallpaperService() {
         }
 
         // ── Geometry ───────────────────────────────────────────
-        /**
-         * Dots use the full canvas height (with a small vertical margin).
-         * The label is drawn AFTER the grid, just [gap] pixels below the
-         * last row of dots — no pre-reserved area needed, so dots are
-         * never pushed up by the label size.
-         */
         private fun recalc(w: Int, h: Int) {
             val total  = totalDots()
             val availW = w * 0.90f
-            val availH = h * 0.88f          // same as original — full height
+            val availH = h * 0.88f
 
             val effectiveCols = if (mode == 2 && total > 1000) {
                 sqrt(total.toDouble() * w / h).toInt().coerceIn(30, 120)
@@ -204,7 +239,6 @@ class DotzLiveWallpaper : WallpaperService() {
             paintFuture.strokeWidth = d
             paintToday.strokeWidth  = d
 
-            // Compute where the bottom of the grid lands (centred vertically)
             val rows  = ceil(total.toFloat() / renderCols).toInt()
             val gridH = rows * (dotRadius * 2f + dotSpacing) - dotSpacing
             val oy    = (h - gridH) / 2f
@@ -237,7 +271,6 @@ class DotzLiveWallpaper : WallpaperService() {
             val gridW = renderCols * cell - dotSpacing
             val gridH = rows       * cell - dotSpacing
 
-            // Centre the grid on the full canvas height
             val ox = (w - gridW) / 2f
             val oy = (h - gridH) / 2f
             gridBottomY = oy + gridH
@@ -271,7 +304,6 @@ class DotzLiveWallpaper : WallpaperService() {
                 val textSizePx = if (labelFontSizeSp > 0f) {
                     labelFontSizeSp * density
                 } else {
-                    // auto: match dot radius, floor at 10sp for readability
                     (dotRadius * 1.8f).coerceAtLeast(10f * density)
                 }
 
@@ -279,10 +311,8 @@ class DotzLiveWallpaper : WallpaperService() {
                 paintText.textSize      = textSizePx
                 paintText.letterSpacing = 0.04f
 
-                // Place label exactly [gap] below the last dot row.
-                // gap = 3 × dotRadius, so it feels tight but never overlaps.
                 val gap    = dotRadius * 3f
-                val startY = gridBottomY + gap + textSizePx   // +textSizePx for baseline offset
+                val startY = gridBottomY + gap + textSizePx
 
                 val isLong = label.length > 60 && (labelMode == 2 || labelMode == 3)
                 val lineH  = textSizePx * 1.45f
@@ -294,10 +324,6 @@ class DotzLiveWallpaper : WallpaperService() {
             }
         }
 
-        /**
-         * Draw text wrapping at [maxWidth], advancing [lineHeight] per line.
-         * Centred horizontally at [x], starting at [startY].
-         */
         private fun drawWrappedText(
             canvas: Canvas, text: String,
             x: Float, startY: Float,
@@ -335,8 +361,14 @@ class DotzLiveWallpaper : WallpaperService() {
 
         override fun onVisibilityChanged(visible: Boolean) {
             isVisible = visible
-            if (visible) handler.post(drawRunnable)
-            else handler.removeCallbacks(drawRunnable)
+            if (visible){
+             
+                
+                handler.post(drawRunnable)
+            }
+            else {
+                handler.removeCallbacks(drawRunnable)
+            }
         }
 
         private fun drawFrame() {
