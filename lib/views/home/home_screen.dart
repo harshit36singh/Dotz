@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:dotz/views/setting/setting_page.dart';
 import 'package:flutter/material.dart';
@@ -228,6 +229,8 @@ class _HomeScreenState extends State<HomeScreen>
   // ── Dot preview — Clean container (No blur for crisp dots) ────────
   Widget _dotPreview(double hPad, double ph) {
     final bgColor = _vm.bgColor;
+    final bgImage = _vm.bgImagePath; // Get the image path from your ViewModel
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: hPad),
       child: FadeTransition(
@@ -242,13 +245,25 @@ class _HomeScreenState extends State<HomeScreen>
             height: ph,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(28),
-              child: Stack(children: [
-                Container(color: bgColor),
-                CustomPaint(
-                  // ── FIX: Passed repaint: _vm to trigger redraws! ──
-                  painter: DotGridPainter(_vm.settings, repaint: _vm),
-                  child: const SizedBox.expand()),
-              ]),
+              child: Stack(
+                fit: StackFit.expand, // Ensures the image fills the container
+                children: [
+                  // 1. Show the Image if it exists, otherwise show the solid Color
+                  if (bgImage.isNotEmpty)
+                    Image.file(
+                      File(bgImage),
+                      fit: BoxFit.cover, // Crops the image to fit the preview box beautifully
+                    )
+                  else
+                    Container(color: bgColor),
+
+                  // 2. Draw the Dots on top
+                  CustomPaint(
+                    painter: DotGridPainter(_vm.settings, repaint: _vm),
+                    child: const SizedBox.expand(),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -365,7 +380,7 @@ class _HomeScreenState extends State<HomeScreen>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // ── FIX: Separated the scroll views to prevent the layout crash! ──
+                // ── Separated the scroll views to prevent the layout crash ──
                 if (isSettings)
                   _settingsBody(hPad)
                 else

@@ -93,7 +93,13 @@ class HomeViewModel extends ChangeNotifier {
   void setPastColor(Color c)   { _pastColor   = c; notifyListeners(); }
   void setTodayColor(Color c)  { _todayColor  = c; notifyListeners(); }
   void setFutureColor(Color c) { _futureColor = c; notifyListeners(); }
-  void setBgColor(Color c)     { _bgColor     = c; notifyListeners(); }
+  
+  // ── FIX: Clear background image when a solid color is picked ──
+  void setBgColor(Color c) { 
+    _bgColor = c; 
+    _bgImagePath = ''; // Clear image to let the solid color show
+    notifyListeners(); 
+  }
 
   // ── Label colour ──────────────────────────────────────────────
   Color _labelColor = const Color(0xFFFFFFFF);
@@ -272,6 +278,7 @@ class HomeViewModel extends ChangeNotifier {
     goalDate:            _goalDate,
     birthDate:           _birthDate,
     lifeExpectancyYears: _lifeExp,
+    bgImagePath:         _bgImagePath, 
   );
 
   // ── Hero display values ───────────────────────────────────────

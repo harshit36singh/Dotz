@@ -24,6 +24,9 @@ class WallpaperSettings {
   int lifeExpectancyYears;
   DateTime? birthDate;
 
+  // ── Background Image ──
+  String bgImagePath;
+
   WallpaperSettings({
     this.backgroundColor   = const Color(0xFF000000),
     this.pastDotColor      = const Color(0xFFFFFFFF),
@@ -40,6 +43,7 @@ class WallpaperSettings {
     this.goalDate,
     this.lifeExpectancyYears = 80,
     this.birthDate,
+    this.bgImagePath       = '', // Default to empty string
   });
 
   WallpaperSettings copyWith({
@@ -49,6 +53,7 @@ class WallpaperSettings {
     WallpaperTarget? target, CalendarMode? mode,
     String? goalName, DateTime? goalDate,
     int? lifeExpectancyYears, DateTime? birthDate,
+    String? bgImagePath,
   }) => WallpaperSettings(
     backgroundColor:     backgroundColor     ?? this.backgroundColor,
     pastDotColor:        pastDotColor        ?? this.pastDotColor,
@@ -65,6 +70,7 @@ class WallpaperSettings {
     goalDate:            goalDate            ?? this.goalDate,
     lifeExpectancyYears: lifeExpectancyYears ?? this.lifeExpectancyYears,
     birthDate:           birthDate           ?? this.birthDate,
+    bgImagePath:         bgImagePath         ?? this.bgImagePath,
   );
 
   // ── Year helpers ──────────────────────────────────────────────
