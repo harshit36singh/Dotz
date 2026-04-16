@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:dotz/views/setting/setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart'; // Add to pubspec for the date formatting
 import '../../models/wallpaper_settings.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../widgets/dot_grid_widget.dart';
@@ -102,14 +103,13 @@ class _HomeScreenState extends State<HomeScreen>
                       height: 1.8),
                 ),
                 const SizedBox(height: 32),
-                // ── Native glass "GOT IT" button ──
                 ClipRRect(
                   borderRadius: BorderRadius.circular(100),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xCCFFFFFF), // near-white tint
+                        color: const Color(0xCCFFFFFF),
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: GestureDetector(
@@ -139,7 +139,6 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ).then((_) => _vm.checkLive());
 
-  // ── Apply button — native glass white ────────────────────────
   Widget _applyBtn(double hPad) => Padding(
         padding: EdgeInsets.symmetric(horizontal: hPad),
         child: ClipRRect(
@@ -180,7 +179,6 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       );
 
-  // ── Top bar — native glass dark ───────────────────────────────
   Widget _topBar(double hPad) => Padding(
         padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 0),
         child: ClipRRect(
@@ -188,8 +186,7 @@ class _HomeScreenState extends State<HomeScreen>
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               decoration: BoxDecoration(
                 color: const Color(0x66000000),
                 borderRadius: BorderRadius.circular(100),
@@ -226,41 +223,105 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ── Dot preview — Clean container (No blur for crisp dots) ────────
+  // ── Simulated Lockscreen Preview ────────────────────────────────
   Widget _dotPreview(double hPad, double ph) {
     final bgColor = _vm.bgColor;
-    final bgImage = _vm.bgImagePath; // Get the image path from your ViewModel
+    final bgImage = _vm.bgImagePath;
+    final now = DateTime.now();
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: hPad),
       child: FadeTransition(
         opacity: _af,
         child: Container(
+          // Glass card spacing: The card itself
+          padding: const EdgeInsets.all(8), 
           decoration: BoxDecoration(
             color: const Color(0x22FFFFFF),
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
           ),
-          child: SizedBox(
-            width: double.infinity,
-            height: ph,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(28),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: SizedBox(
+              width: double.infinity,
+              height: ph,
               child: Stack(
-                fit: StackFit.expand, // Ensures the image fills the container
+                fit: StackFit.expand,
                 children: [
-                  // 1. Show the Image if it exists, otherwise show the solid Color
+                  // 1. Background (Image or Solid)
                   if (bgImage.isNotEmpty)
-                    Image.file(
-                      File(bgImage),
-                      fit: BoxFit.cover, // Crops the image to fit the preview box beautifully
-                    )
+                    Image.file(File(bgImage), fit: BoxFit.cover)
                   else
                     Container(color: bgColor),
 
-                  // 2. Draw the Dots on top
+                  // 2. Dots Painter Layer
                   CustomPaint(
                     painter: DotGridPainter(_vm.settings, repaint: _vm),
                     child: const SizedBox.expand(),
+                  ),
+
+                  // 3. Status Bar Simulation
+                  Positioned(
+                    top: 12, left: 16, right: 16,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(DateFormat('HH:mm').format(now), 
+                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                        Row(
+                          children: [
+                            const Icon(Icons.signal_cellular_4_bar, color: Colors.white, size: 12),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.wifi, color: Colors.white, size: 12),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.battery_full, color: Colors.white, size: 12),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+
+                  // 4. Center Clock Simulation
+                  Align(
+                    alignment: const Alignment(0, -0.65),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(DateFormat('EEEE').format(now),
+                            style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 16, fontFamily: 'Glass Antiqua')),
+                        Text(DateFormat('H:mm').format(now),
+                            style: const TextStyle(color: Colors.white, fontSize: 64, fontWeight: FontWeight.w300, letterSpacing: -2)),
+                      ],
+                    ),
+                  ),
+
+                  // 5. Progress Label / Quote Simulation (Positioned above bottom icons)
+                  if (_vm.showLabel)
+                    Positioned(
+                      bottom: 80, left: 20, right: 20,
+                      child: Text(
+                        _vm.resolvedLabel,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _vm.labelColor,
+                          fontSize: _vm.labelFontSize == 0 ? 13 : _vm.labelFontSize * 0.8,
+                          fontFamily: 'Glass Antiqua',
+                          shadows: const [Shadow(blurRadius: 4, color: Colors.black45)],
+                        ),
+                      ),
+                    ),
+
+                  // 6. Bottom Lockscreen Icons
+                  Positioned(
+                    bottom: 20, left: 20, right: 20,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _lockScreenIcon(Icons.assistant),
+                        _lockScreenIcon(Icons.camera_alt),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -270,6 +331,12 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
+
+  Widget _lockScreenIcon(IconData icon) => Container(
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.black.withOpacity(0.3)),
+    child: Icon(icon, color: Colors.white, size: 20),
+  );
 
   Widget _buildBackground(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -314,8 +381,7 @@ class _HomeScreenState extends State<HomeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 24),
-          // Expanded forces the SettingsPage to fill the available height
-          Expanded(child: SettingsPage(vm: _vm)), 
+          Expanded(child: SettingsPage(vm: _vm)),
         ],
       );
 
@@ -355,20 +421,14 @@ class _HomeScreenState extends State<HomeScreen>
     final sw = mq.size.width;
     final sh = mq.size.height;
 
-    final hPad = sw >= 900
-        ? 48.0
-        : sw >= 600
-            ? 32.0
-            : 20.0;
-
+    final hPad = sw >= 900 ? 48.0 : sw >= 600 ? 32.0 : 20.0;
     final pw = sw - hPad * 2;
     final ph = sw >= 700
         ? (pw * 0.55).clamp(240.0, sh * 0.45)
         : (pw * 19 / 9).clamp(220.0, sh * 0.48);
 
     final isSettings = _vm.mode == CalendarMode.settings;
-    final navSideInset =
-        sw >= 900 ? sw * 0.3 : sw >= 600 ? sw * 0.2 : 80.0;
+    final navSideInset = sw >= 900 ? sw * 0.3 : sw >= 600 ? sw * 0.2 : 80.0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -380,7 +440,6 @@ class _HomeScreenState extends State<HomeScreen>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // ── Separated the scroll views to prevent the layout crash ──
                 if (isSettings)
                   _settingsBody(hPad)
                 else
@@ -389,13 +448,11 @@ class _HomeScreenState extends State<HomeScreen>
                     padding: const EdgeInsets.only(bottom: 120),
                     child: _calendarBody(hPad, ph),
                   ),
-
                 Positioned(
                   left: navSideInset,
                   right: (navSideInset + 18),
                   bottom: 20,
-                  child:
-                      FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
+                  child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
                 ),
               ],
             ),
