@@ -37,10 +37,7 @@ class FloatingNavBar extends StatelessWidget {
                 ),
                 foregroundDecoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(100),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 1.5,
-                  ),
+                
                 ),
                 child: Row(
                   // 2. Use MainAxisSize.max here within the ConstrainedBox

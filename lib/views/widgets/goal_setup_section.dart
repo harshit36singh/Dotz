@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../../viewmodels/home_view_model.dart';
@@ -53,101 +54,109 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const SizedBox(height: 20),
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color(0xFF2C2936), // Applied Settings Card UI
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Goal name
-            _FieldLabel(icon: CupertinoIcons.flag, label: 'GOAL NAME'),
-            const SizedBox(height: 10),
-            Row(children: [
-              Expanded(
-                child: TextField(
-                  controller: _nameCtrl,
-                  style: const TextStyle(
-                    fontFamily: 'Glass Antiqua', // Font applied
-                    color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
-                  decoration: InputDecoration(
-                    hintText: 'e.g. New York Marathon',
-                    hintStyle: TextStyle(
-                      fontFamily: 'Glass Antiqua',
-                      color: Colors.white.withOpacity(0.2)),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  onChanged: (v) {
-                    vm.setGoalName(v);
-                    setState(() {});
-                  },
-                ),
-              ),
-              if (_nameCtrl.text.isNotEmpty)
-                GestureDetector(
-                  onTap: () {
-                    _nameCtrl.clear();
-                    vm.setGoalName('');
-                    setState(() {});
-                  },
-                  child: Icon(CupertinoIcons.xmark_circle_fill,
-                    color: Colors.white.withOpacity(0.2), size: 18),
-                ),
-            ]),
-
-            _Divider(),
-
-            // Target date
-            _FieldLabel(icon: CupertinoIcons.calendar, label: 'TARGET DATE'),
-            const SizedBox(height: 10),
-            GestureDetector(
-              onTap: _pickDate,
-              child: Row(children: [
-                Text(
-                  vm.goalDate == null
-                      ? 'Tap to pick a date'
-                      : '${vm.goalDate!.day} / ${vm.goalDate!.month} / ${vm.goalDate!.year}',
-                  style: TextStyle(
-                    fontFamily: 'Glass Antiqua', // Font applied
-                    color: vm.goalDate != null
-                        ? Colors.white
-                        : Colors.white.withOpacity(0.2),
-                    fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                const Spacer(),
-                if (days != null)
-                  _Chip('$days days')
-                else
-                  Icon(CupertinoIcons.chevron_right,
-                    color: Colors.white.withOpacity(0.2), size: 16),
-              ]),
+      
+      // ── Native Glass Container ──
+      ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0x55000000), // Semi-transparent for glass effect
+              borderRadius: BorderRadius.circular(20),
             ),
-
-            if (vm.goalDate != null || _nameCtrl.text.isNotEmpty) ...[
-              _Divider(),
-              GestureDetector(
-                onTap: () {
-                  vm.clearGoal();
-                  _nameCtrl.clear();
-                  setState(() {});
-                },
-                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(CupertinoIcons.arrow_counterclockwise,
-                    color: Colors.white.withOpacity(0.3), size: 12),
-                  const SizedBox(width: 6),
-                  Text('RESET GOAL',
-                    style: TextStyle(
-                      fontFamily: 'Glass Antiqua', // Font applied
-                      color: Colors.white.withOpacity(0.3),
-                      fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 2)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Goal name
+                _FieldLabel(icon: CupertinoIcons.flag, label: 'GOAL NAME'),
+                const SizedBox(height: 10),
+                Row(children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _nameCtrl,
+                      style: const TextStyle(
+                        fontFamily: 'Glass Antiqua', // Font applied
+                        color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                      decoration: InputDecoration(
+                        hintText: 'e.g. New York Marathon',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Glass Antiqua',
+                          color: Colors.white.withOpacity(0.2)),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      onChanged: (v) {
+                        vm.setGoalName(v);
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                  if (_nameCtrl.text.isNotEmpty)
+                    GestureDetector(
+                      onTap: () {
+                        _nameCtrl.clear();
+                        vm.setGoalName('');
+                        setState(() {});
+                      },
+                      child: Icon(CupertinoIcons.xmark_circle_fill,
+                        color: Colors.white.withOpacity(0.2), size: 18),
+                    ),
                 ]),
-              ),
-            ],
-          ],
+
+                _Divider(),
+
+                // Target date
+                _FieldLabel(icon: CupertinoIcons.calendar, label: 'TARGET DATE'),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: _pickDate,
+                  child: Row(children: [
+                    Text(
+                      vm.goalDate == null
+                          ? 'Tap to pick a date'
+                          : '${vm.goalDate!.day} / ${vm.goalDate!.month} / ${vm.goalDate!.year}',
+                      style: TextStyle(
+                        fontFamily: 'Glass Antiqua', // Font applied
+                        color: vm.goalDate != null
+                            ? Colors.white
+                            : Colors.white.withOpacity(0.2),
+                        fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    const Spacer(),
+                    if (days != null)
+                      _Chip('$days days')
+                    else
+                      Icon(CupertinoIcons.chevron_right,
+                        color: Colors.white.withOpacity(0.2), size: 16),
+                  ]),
+                ),
+
+                if (vm.goalDate != null || _nameCtrl.text.isNotEmpty) ...[
+                  _Divider(),
+                  GestureDetector(
+                    onTap: () {
+                      vm.clearGoal();
+                      _nameCtrl.clear();
+                      setState(() {});
+                    },
+                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Icon(CupertinoIcons.arrow_counterclockwise,
+                        color: Colors.white.withOpacity(0.3), size: 12),
+                      const SizedBox(width: 6),
+                      Text('RESET GOAL',
+                        style: TextStyle(
+                          fontFamily: 'Glass Antiqua', // Font applied
+                          color: Colors.white.withOpacity(0.3),
+                          fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 2)),
+                    ]),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
       const SizedBox(height: 16),
