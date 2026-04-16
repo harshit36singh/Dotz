@@ -6,7 +6,9 @@ import '../../models/wallpaper_settings.dart';
 
 class DotGridPainter extends CustomPainter {
   final WallpaperSettings settings;
-  DotGridPainter(this.settings);
+  
+  // ── FIX: Added repaint listener ──
+  DotGridPainter(this.settings, {Listenable? repaint}) : super(repaint: repaint);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -44,7 +46,7 @@ class DotGridPainter extends CustomPainter {
     final ox = (size.width  - gridW) / 2;
     final oy = (size.height - gridH) / 2;
 
-    // ── FIX: ARRAY BOUNDS SAFETY ──
+    // ── ARRAY BOUNDS SAFETY ──
     final safePast = past.clamp(0, total);
     final safeFutureCount = (total - safePast - 1).clamp(0, total);
 
@@ -105,5 +107,6 @@ class DotGridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(DotGridPainter old) => old.settings != settings;
+  // ── FIX: Always return true so it repaints when the listener fires ──
+  bool shouldRepaint(DotGridPainter old) => true; 
 }

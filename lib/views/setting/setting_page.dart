@@ -11,94 +11,105 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
+    final mq = MediaQuery.of(context);
+    final w = mq.size.width;
+    final h = mq.size.height;
     final hp = w >= 900 ? 48.0 : w >= 600 ? 32.0 : 20.0;
 
-    return Column(
-      children: [
-        // ── Fixed Top Card (Matches DotZ Home Bar) ──
-        Padding(
-          padding: EdgeInsets.fromLTRB(hp, 20, hp, 0),
-          child: _GlassContainer(
-            blur: 14,
-            color: const Color(0x66000000),
-            borderRadius: 100,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              child: Row(
-                children: [
-                  const SizedBox(width: 8),
-                  Icon(CupertinoIcons.gear_alt_fill, color: Colors.white.withOpacity(0.8), size: 18),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontFamily: 'Glass Antiqua', // Font applied
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontStyle: FontStyle.italic,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        
-        const SizedBox(height: 24),
+    // Calculate exact height to perfectly fit inside HomeScreen's SafeArea and 120px bottom padding.
+    // This stops the parent from scrolling and hands scroll control to this widget.
+    final availableHeight = h - mq.padding.top - mq.padding.bottom - 120;
 
-        // ── Scrollable Settings Body ──
-        Expanded(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(hp, 0, hp, 120), // Bottom padding for navbar
+    return SizedBox(
+      height: availableHeight,
+      child: Column(
+        children: [
+          // ── Fixed Top Card ──
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: hp),
             child: _GlassContainer(
-              blur: 18,
-              color: const Color(0x55000000),
-              borderRadius: 20,
-              child: Column(
-                children: [
-                  _StaticSettingsSection(
-                    icon: CupertinoIcons.paintbrush,
-                    title: 'Dot Colours',
-                    child: ColorStrip(
-                      pastColor: vm.pastColor,
-                      todayColor: vm.todayColor,
-                      futureColor: vm.futureColor,
-                      bgColor: vm.bgColor,
-                      onPastChanged: vm.setPastColor,
-                      onTodayChanged: vm.setTodayColor,
-                      onFutureChanged: vm.setFutureColor,
-                      onBgChanged: vm.setBgColor,
+              blur: 14,
+              color: const Color(0x66000000),
+              borderRadius: 100,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 8),
+                    Icon(CupertinoIcons.gear_alt_fill, color: Colors.white.withOpacity(0.8), size: 18),
+                    const SizedBox(width: 10),
+                    const Text(
+                      'Settings',
+                      style: TextStyle(
+                        fontFamily: 'Glass Antiqua', // Font applied
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
                     ),
-                  ),
-                  _Divider(),
-                  _StaticSettingsSection(
-                    icon: CupertinoIcons.square_grid_3x2,
-                    title: 'Grid Density',
-                    child: _GridDensityContent(vm: vm),
-                  ),
-                  _Divider(),
-                  _StaticSettingsSection(
-                    icon: CupertinoIcons.text_bubble,
-                    title: 'Wallpaper Label',
-                    child: _LabelModeSection(vm: vm),
-                  ),
-                  _Divider(),
-                  _StaticSettingsSection(
-                    icon: CupertinoIcons.photo,
-                    title: 'Background Image',
-                    isLast: true,
-                    child: _BackgroundImageSection(vm: vm),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
+          
+          const SizedBox(height: 24),
+
+          // ── Scrollable Settings Body ──
+          Expanded(
+            child: SingleChildScrollView(
+              // ClampingScrollPhysics ensures it sits completely fixed if there is enough height,
+              // but allows standard scrolling if the screen is too small.
+              physics: const ClampingScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(hp, 0, hp, 40), 
+              child: _GlassContainer(
+                blur: 18,
+                color: const Color(0x55000000),
+                borderRadius: 20,
+                child: Column(
+                  children: [
+                    _StaticSettingsSection(
+                      icon: CupertinoIcons.paintbrush,
+                      title: 'Dot Colours',
+                      child: ColorStrip(
+                        pastColor: vm.pastColor,
+                        todayColor: vm.todayColor,
+                        futureColor: vm.futureColor,
+                        bgColor: vm.bgColor,
+                        onPastChanged: vm.setPastColor,
+                        onTodayChanged: vm.setTodayColor,
+                        onFutureChanged: vm.setFutureColor,
+                        onBgChanged: vm.setBgColor,
+                      ),
+                    ),
+                    _Divider(),
+                    _StaticSettingsSection(
+                      icon: CupertinoIcons.square_grid_3x2,
+                      title: 'Grid Density',
+                      child: _GridDensityContent(vm: vm),
+                    ),
+                    _Divider(),
+                    _StaticSettingsSection(
+                      icon: CupertinoIcons.text_bubble,
+                      title: 'Wallpaper Label',
+                      child: _LabelModeSection(vm: vm),
+                    ),
+                    _Divider(),
+                    _StaticSettingsSection(
+                      icon: CupertinoIcons.photo,
+                      title: 'Background Image',
+                      isLast: true,
+                      child: _BackgroundImageSection(vm: vm),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

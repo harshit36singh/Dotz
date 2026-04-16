@@ -245,7 +245,8 @@ class _HomeScreenState extends State<HomeScreen>
               child: Stack(children: [
                 Container(color: bgColor),
                 CustomPaint(
-                  painter: DotGridPainter(_vm.settings),
+                  // ── FIX: Passed repaint: _vm to trigger redraws! ──
+                  painter: DotGridPainter(_vm.settings, repaint: _vm),
                   child: const SizedBox.expand()),
               ]),
             ),
@@ -298,7 +299,8 @@ class _HomeScreenState extends State<HomeScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 24),
-          SettingsPage(vm: _vm),
+          // Expanded forces the SettingsPage to fill the available height
+          Expanded(child: SettingsPage(vm: _vm)), 
         ],
       );
 
@@ -363,13 +365,16 @@ class _HomeScreenState extends State<HomeScreen>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.only(bottom: 120),
-                  child: isSettings
-                      ? _settingsBody(hPad)
-                      : _calendarBody(hPad, ph),
-                ),
+                // ── FIX: Separated the scroll views to prevent the layout crash! ──
+                if (isSettings)
+                  _settingsBody(hPad)
+                else
+                  SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 120),
+                    child: _calendarBody(hPad, ph),
+                  ),
+
                 Positioned(
                   left: navSideInset,
                   right: (navSideInset + 18),
