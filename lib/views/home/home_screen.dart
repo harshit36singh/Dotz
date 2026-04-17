@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:dotz/views/setting/setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart'; // Add to pubspec for the date formatting
+import 'package:intl/intl.dart'; 
 import '../../models/wallpaper_settings.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../widgets/dot_grid_widget.dart';
@@ -242,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen>
             border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(24), // Inner screen radius
             child: SizedBox(
               width: double.infinity,
               height: ph,
@@ -296,7 +296,7 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
 
-                  // 5. Progress Label / Quote Simulation (Positioned above bottom icons)
+                  // 5. Progress Label / Quote Simulation
                   if (_vm.showLabel)
                     Positioned(
                       bottom: 80, left: 20, right: 20,
@@ -314,13 +314,28 @@ class _HomeScreenState extends State<HomeScreen>
 
                   // 6. Bottom Lockscreen Icons
                   Positioned(
-                    bottom: 20, left: 20, right: 20,
+                    bottom: 30, left: 20, right: 20,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _lockScreenIcon(Icons.assistant),
                         _lockScreenIcon(Icons.camera_alt),
                       ],
+                    ),
+                  ),
+
+                  // 7. Modern Android Gesture Navigation Pill
+                  Positioned(
+                    bottom: 8, left: 0, right: 0,
+                    child: Center(
+                      child: Container(
+                        width: 100,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -335,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _lockScreenIcon(IconData icon) => Container(
     padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.black.withOpacity(0.3)),
-    child: Icon(icon, color: Colors.white, size: 20),
+    child: Icon(icon, color: Colors.white, size: 18),
   );
 
   Widget _buildBackground(BuildContext context) {
@@ -423,9 +438,13 @@ class _HomeScreenState extends State<HomeScreen>
 
     final hPad = sw >= 900 ? 48.0 : sw >= 600 ? 32.0 : 20.0;
     final pw = sw - hPad * 2;
+    
+    // ── UPDATED PREVIEW HEIGHT CALCULATION ──
+    // Uses a tall 20:9 ratio to simulate a modern Android screen.
+    // Clamped higher (up to 65% of screen height) so it actually looks like a phone.
     final ph = sw >= 700
-        ? (pw * 0.55).clamp(240.0, sh * 0.45)
-        : (pw * 19 / 9).clamp(220.0, sh * 0.48);
+        ? (pw * 0.55).clamp(240.0, sh * 0.5) 
+        : (pw * (20 / 9)).clamp(300.0, sh * 0.65); 
 
     final isSettings = _vm.mode == CalendarMode.settings;
     final navSideInset = sw >= 900 ? sw * 0.3 : sw >= 600 ? sw * 0.2 : 80.0;

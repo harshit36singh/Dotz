@@ -7,22 +7,34 @@ import '../../models/wallpaper_settings.dart';
 class DotGridPainter extends CustomPainter {
   final WallpaperSettings settings;
   
-  // ── FIX: Added repaint listener ──
   DotGridPainter(this.settings, {Listenable? repaint}) : super(repaint: repaint);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final total = settings.totalDots;
-    final past  = settings.pastDots;
-    final cols  = settings.columns;
+    int total = settings.totalDots;
+    int past  = settings.pastDots;
+    int cols  = settings.columns;
+
+    // ── PREVIEW OPTIMIZATION ──
+    // 30,000 dots turn into microscopic mush in a small preview.
+    // We scale the total down to a maximum limit while keeping the exact same
+    // completion percentage, so the preview looks beautiful and distinct!
+    const int maxPreviewDots = 1200; 
+    if (total > maxPreviewDots) {
+      final double ratio = maxPreviewDots / total;
+      total = maxPreviewDots;
+      past = (past * ratio).round();
+    }
 
     final availW = size.width  * 0.90;
     final availH = size.height * 0.88;
 
     final int effectiveCols;
-    if (settings.mode == CalendarMode.life && total > 1000) {
+    // For Life mode (or any highly dense grid), let the math decide the perfect 
+    // column count to fill the tall 20:9 aspect ratio evenly.
+    if (settings.mode == CalendarMode.life || total > 1000) {
       final ideal = Math.sqrt(total * size.width / size.height).truncate();
-      effectiveCols = ideal.clamp(30, 150);
+      effectiveCols = ideal.clamp(15, 60); 
     } else {
       effectiveCols = cols;
     }
@@ -31,10 +43,13 @@ class DotGridPainter extends CustomPainter {
 
     final rows0  = (total / effectiveCols).ceil();
     final gridH0 = rows0 * (r * 2.5) - r * 0.5;
+    
+    // If the grid is taller than the available height, scale the radius down
     if (gridH0 > availH) {
       final rH = availH / (rows0 * 2.5 - 0.5);
       if (rH < r) r = rH;
     }
+    
     r = r.clamp(1.5, 28.0);
 
     final gap  = r * 0.5;
@@ -43,6 +58,7 @@ class DotGridPainter extends CustomPainter {
     final gridW = effectiveCols * cell - gap;
     final gridH = rows * cell - gap;
 
+    // Center the grid
     final ox = (size.width  - gridW) / 2;
     final oy = (size.height - gridH) / 2;
 
@@ -95,6 +111,7 @@ class DotGridPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..isAntiAlias = true;
 
+    // Draw the points in batches for high performance
     if (pastPts.isNotEmpty) {
       canvas.drawRawPoints(PointMode.points, pastPts, paintPast);
     }
@@ -107,6 +124,5 @@ class DotGridPainter extends CustomPainter {
   }
 
   @override
-  // ── FIX: Always return true so it repaints when the listener fires ──
   bool shouldRepaint(DotGridPainter old) => true; 
 }
