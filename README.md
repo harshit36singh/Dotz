@@ -1,55 +1,64 @@
-# 🔵 Dotz — Year in Dots
+# Dotz — Live Wallpaper
 
-A beautiful Flutter app that generates a **365-dot grid wallpaper** showing your year progress — one dot per day.
+A beautiful Flutter & Native Android app that generates dynamic, live wallpapers visualizing your time. Track your year, your life, or your specific goals using highly customizable dot grids and glass aesthetics.
 
 ---
 
 ## 📱 Features
 
-- **365-dot grid** — one square per day of the year
-- **Live year progress** — past days filled, today highlighted, future days dimmed
-- **Today's dot** glows in gold with a pulse ring
-- **Progress bar** showing day number, % complete, days remaining
-- **Full customization** (unlockable later):
-  - 🎨 Dot colors (past / today / future)
-  - 🌅 Background gradient colors
-  - 📐 Grid columns (5–25)
-  - 📏 Dot size & spacing
-  - 🔲 Corner radius (square → circle)
-  - ✨ Glow effects toggle
-  - 📅 Date label toggle
-  - 🎯 Target: Lock Screen / Home Screen / Both
-  - 🎨 6 color presets (Space, Green, Sunset, Ocean, Mono, Rose)
-- **Export to PNG** — save at 2× resolution for crisp wallpapers
-- Works on **Android & iOS**
+- **True Live Wallpaper Engine** — Runs natively on Android using Kotlin `WallpaperService` for zero battery drain and instant updates.
+- **Multiple Time Perspectives**:
+  - **Year Mode:** A 365-dot continuous grid showing your progress through the current year.
+  - **Weekly/Monthly Mode:** A clean 12-month layout broken down by weeks and days (Standard Calendar view).
+  - **Life Mode:** Enter your birthdate and life expectancy to see your entire life visualized in dots.
+  - **Goal Mode:** Set a custom target date and watch the dots count down.
+- **Rich Dot Shapes**: Choose between solid **Circles**, rounded **Squares**, **Stars**, or beautiful translucent **Glass Bubbles**.
+- **Advanced Customization**:
+  - 🖼️ Custom Background Images (from Gallery) with auto-scaling and center-cropping.
+  - 🎨 Dot colors (Past / Today / Future).
+  - 🌅 Background solid colors.
+  - 📐 Dynamic grid density (automatically scales for dense Life modes).
+- **Dynamic Labels & Quotes**:
+  - Display progress percentages and days remaining.
+  - Fetch daily inspirational quotes via API.
+  - Write your own custom lockscreen text.
+- **Lockscreen Simulation** — The Flutter app features a true-to-life Lockscreen preview (complete with status bar, gesture pill, and clock) so you know exactly how it looks before applying.
+- **Native Glass UI** — The app interface is built with stunning blur, translucency, and frosted glass components.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Flutter 3.10+ SDK
 - Dart 3.0+
-- Android Studio or Xcode
+- Android Studio (Required for compiling the native Kotlin Live Wallpaper service)
 
-### Run the app
+### Environment Setup
+
+You will need to set up a `.env` file in the root directory for the Quote API to work:
+
+1. Create a file named `.env` in the root of your project.
+2. Add your API key/URL:
+
+```env
+API_KEY=your_quote_api_url_here
+```
+
+### Run the App
 
 ```bash
-cd dotz
 flutter pub get
 flutter run
 ```
 
-### Build release APK
+### Build Release APK (Android Only)
+
+> **Note:** Dotz currently uses Android's native `WallpaperService`. iOS does not support third-party live wallpapers in the same way.
 
 ```bash
 flutter build apk --release
-```
-
-### Build for iOS
-
-```bash
-flutter build ios --release
 ```
 
 ---
@@ -58,56 +67,46 @@ flutter build ios --release
 
 ```
 lib/
-├── main.dart                    # App entry point
+├── main.dart                  # App entry point
+├── core/
+│   └── app_theme.dart         # Global colors and glass styles
 ├── models/
-│   └── wallpaper_settings.dart  # Settings model + day calculations
-├── screens/
-│   ├── home_screen.dart         # Main screen with preview + actions
-│   └── customize_screen.dart    # Full customization UI
-├── widgets/
-│   └── dot_grid_widget.dart     # Core dot grid painter + widget
-└── services/
-    └── wallpaper_export_service.dart  # PNG export logic
+│   └── wallpaper_settings.dart# Settings model + day calculations + shapes
+├── viewmodels/
+│   └── home_view_model.dart   # State management & Native MethodChannels
+├── views/
+│   ├── home_screen.dart       # Main UI with simulated lockscreen preview
+│   └── setting_page.dart      # Glass control panels for shapes/colors
+└── widgets/
+    ├── dot_grid_widget.dart   # Complex shape/grid rendering logic
+    └── floating_nav_bar.dart  # Custom bottom navigation
+
+android/app/src/main/kotlin/com/example/dotz/
+├── MainActivity.kt            # Flutter engine & SharedPreferences bridge
+└── DotzLiveWallpaper.kt       # High-performance Native Android Canvas rendering
 ```
 
 ---
 
 ## 🔧 How to Set as Wallpaper
 
-### Android
-1. Tap **Save Wallpaper** in the app
-2. Go to **Settings → Wallpaper** (or long-press home screen)
-3. Choose from Gallery → find `dotz_wallpaper_*.png`
-4. Set as Lock Screen / Home Screen / Both
-
-### iOS
-1. Tap **Save Wallpaper** in the app
-2. Go to **Settings → Wallpaper → Add New Wallpaper**
-3. Select **Photos** → find the saved Dotz image
-4. Set as Lock Screen / Home Screen / Both
+1. Open the Dotz app and customize your grid, colors, shape, and background image.
+2. Tap the **APPLY TO LOCK SCREEN** glass button.
+3. The app will securely send your settings to the Android system and open the native wallpaper picker.
+4. Tap **Set Wallpaper** and choose **Home Screen** or **Home and Lock Screen**.
+5. Your dots will now update automatically in the background every day!
 
 ---
 
-## 🎨 Color Presets
-
-| Preset | Past Dots | Today | Background |
-|--------|-----------|-------|------------|
-| Space | Purple | Gold | Deep navy |
-| Forest | Green | Red | Dark green |
-| Sunset | Coral | Gold | Dark rose |
-| Ocean | Sky blue | Pink | Deep blue |
-| Mono | White | Gray | Black |
-| Rose Gold | Pink | Gold | Dark maroon |
-
----
-
-## 📄 Dependencies
+## 📄 Core Dependencies
 
 ```yaml
-flutter_colorpicker: ^1.0.3     # Color picker UI
-shared_preferences: ^2.2.2      # Settings persistence
-gallery_saver: ^2.3.2           # Save to gallery
-path_provider: ^2.1.1           # File system paths
-permission_handler: ^11.1.0     # Storage permissions
-image: ^4.1.3                   # Image processing
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_dotenv: ^5.1.0         # Secure API key management
+  image_picker: ^1.0.4           # Background image selection
+  path_provider: ^2.1.1          # Secure file saving for backgrounds
+  shared_preferences: ^2.2.2     # Data persistence between Flutter and Android
+  intl: ^0.18.1                  # Date and time formatting for the preview
 ```
