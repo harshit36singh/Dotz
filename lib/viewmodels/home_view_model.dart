@@ -4,7 +4,7 @@ import 'package:path/path.dart' as p;
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart'; // ← ADDED THIS IMPORT
+import 'package:image_picker/image_picker.dart';
 import '../models/wallpaper_settings.dart';
 import '../core/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -17,6 +17,12 @@ enum LabelMode { off, progress, quote, custom }
 class HomeViewModel extends ChangeNotifier {
   static const _channel = MethodChannel('com.example.dotz/wallpaper');
 
+DotShape _dotShape = DotShape.circle;
+  DotShape get dotShape => _dotShape;
+  void setDotShape(DotShape s) {
+    _dotShape = s;
+    notifyListeners(); // Updates the UI instantly
+  }
   // ── Mode ──────────────────────────────────────────────────────
   CalendarMode _mode = CalendarMode.year;
   CalendarMode get mode => _mode;
@@ -33,23 +39,15 @@ class HomeViewModel extends ChangeNotifier {
   Future<void> pickBackgroundImage() async {
     try {
       final picker = ImagePicker();
-      // Opens the gallery for the user to select a photo
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
       
       if (pickedFile != null) {
-        // 1. Get the app's safe document directory
         final directory = await getApplicationDocumentsDirectory();
-        
-        // 2. Extract the file name
         final fileName = p.basename(pickedFile.path);
-        
-        // 3. Create a permanent file path
         final savedImage = File('${directory.path}/$fileName');
         
-        // 4. Copy the image there
         await File(pickedFile.path).copy(savedImage.path);
         
-        // 5. Save the path to state
         _bgImagePath = savedImage.path;
         notifyListeners();
       }
@@ -94,10 +92,9 @@ class HomeViewModel extends ChangeNotifier {
   void setTodayColor(Color c)  { _todayColor  = c; notifyListeners(); }
   void setFutureColor(Color c) { _futureColor = c; notifyListeners(); }
   
-  // ── FIX: Clear background image when a solid color is picked ──
   void setBgColor(Color c) { 
     _bgColor = c; 
-    _bgImagePath = ''; // Clear image to let the solid color show
+    _bgImagePath = ''; 
     notifyListeners(); 
   }
 
@@ -107,7 +104,6 @@ class HomeViewModel extends ChangeNotifier {
   void setLabelColor(Color c) { _labelColor = c; notifyListeners(); }
 
   // ── Label font size (0 = auto) ────────────────────────────────
-  /// Range: 8–32. 0 means "auto" (derived from dot radius on native side).
   double _labelFontSize = 0;
   double get labelFontSize => _labelFontSize;
   bool get labelFontSizeAuto => _labelFontSize == 0;
@@ -263,6 +259,9 @@ class HomeViewModel extends ChangeNotifier {
     return years.clamp(0, 999);
   }
 
+  // ── Helper for Weekly Mode ────────────────────────────────────
+  int get currentWeek => (WallpaperSettings.dayOfYear / 7).ceil().clamp(1, 52);
+
   // ── Assembled WallpaperSettings ───────────────────────────────
   WallpaperSettings get settings => WallpaperSettings(
     backgroundColor:     _bgColor,
@@ -279,6 +278,7 @@ class HomeViewModel extends ChangeNotifier {
     birthDate:           _birthDate,
     lifeExpectancyYears: _lifeExp,
     bgImagePath:         _bgImagePath, 
+    shape:               _dotShape
   );
 
   // ── Hero display values ───────────────────────────────────────
@@ -286,6 +286,7 @@ class HomeViewModel extends ChangeNotifier {
     CalendarMode.year     => 'YEAR CALENDAR',
     CalendarMode.goal     => 'GOAL CALENDAR',
     CalendarMode.life     => 'LIFE CALENDAR',
+    CalendarMode.weekly   => 'WEEKLY CALENDAR', // Added Weekly
     CalendarMode.settings => 'SETTINGS',
   };
 
@@ -295,6 +296,7 @@ class HomeViewModel extends ChangeNotifier {
       CalendarMode.year     => doy.toString().padLeft(2, '0'),
       CalendarMode.goal     => goalDaysLeft > 99 ? '$goalDaysLeft' : goalDaysLeft.toString().padLeft(2, '0'),
       CalendarMode.life     => daysLived > 99 ? '$daysLived' : daysLived.toString().padLeft(2, '0'),
+      CalendarMode.weekly   => currentWeek.toString().padLeft(2, '0'), // Added Weekly
       CalendarMode.settings => '⚙',
     };
   }
@@ -303,6 +305,7 @@ class HomeViewModel extends ChangeNotifier {
     CalendarMode.year     => 'Days\npassed',
     CalendarMode.goal     => _goalName,
     CalendarMode.life     => 'Days\nlived',
+    CalendarMode.weekly   => 'Weeks\npassed', // Added Weekly
     CalendarMode.settings => 'Customize',
   };
 
@@ -312,6 +315,7 @@ class HomeViewModel extends ChangeNotifier {
       CalendarMode.year     => 'Day $doy',
       CalendarMode.goal     => '$goalDaysLeft days left',
       CalendarMode.life     => '$daysLived of $totalDays days',
+      CalendarMode.weekly   => 'Week $currentWeek of 52', // Added Weekly
       CalendarMode.settings => 'Colors & Grid',
     };
   }
@@ -326,6 +330,7 @@ class HomeViewModel extends ChangeNotifier {
       CalendarMode.life     => totalDays > 0
           ? '— ${(daysLived / totalDays * 100).toStringAsFixed(1)}% lived'
           : '',
+      CalendarMode.weekly   => '— ${(yp * 100).toStringAsFixed(0)}% of the year', // Added Weekly
       CalendarMode.settings => '— wallpaper appearance',
     };
   }
@@ -338,9 +343,15 @@ class HomeViewModel extends ChangeNotifier {
     _saving = true;
     notifyListeners();
     try {
-      final modeIdx = _mode == CalendarMode.goal
-          ? 1
-          : _mode == CalendarMode.life ? 2 : 0;
+      // ── ADDED MODE 3 FOR WEEKLY (Native mapping) ──
+      final modeIdx = switch (_mode) {
+        CalendarMode.year   => 0,
+        CalendarMode.goal   => 1,
+        CalendarMode.life   => 2,
+        CalendarMode.weekly => 3, 
+        _ => 0,
+      };
+
       await _channel.invokeMethod('saveSettings', {
         'bgColor':        _toArgb(_bgColor),
         'pastColor':      _toArgb(_pastColor),
@@ -360,6 +371,7 @@ class HomeViewModel extends ChangeNotifier {
         'lifeLived':      daysLived,
         'apiUrl':         apiKey,
         'bgImagePath':    _bgImagePath,
+        'dotshape' : _dotShape.index
       });
       await _channel.invokeMethod('openWallpaperPicker');
       return true;

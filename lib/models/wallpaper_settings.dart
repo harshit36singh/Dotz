@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-enum CalendarMode { year, goal, life, settings }
+enum CalendarMode { year, goal, life, weekly, settings }
 enum WallpaperTarget { lockscreen, homescreen, both }
+enum DotShape { circle, square, star, glass }
 
 class WallpaperSettings {
   Color backgroundColor;
@@ -26,6 +27,7 @@ class WallpaperSettings {
 
   // ── Background Image ──
   String bgImagePath;
+  DotShape shape;
 
   WallpaperSettings({
     this.backgroundColor   = const Color(0xFF000000),
@@ -43,7 +45,8 @@ class WallpaperSettings {
     this.goalDate,
     this.lifeExpectancyYears = 80,
     this.birthDate,
-    this.bgImagePath       = '', // Default to empty string
+    this.bgImagePath       = '', 
+    this.shape=DotShape.circle
   });
 
   WallpaperSettings copyWith({
@@ -54,6 +57,7 @@ class WallpaperSettings {
     String? goalName, DateTime? goalDate,
     int? lifeExpectancyYears, DateTime? birthDate,
     String? bgImagePath,
+    DotShape? shape,
   }) => WallpaperSettings(
     backgroundColor:     backgroundColor     ?? this.backgroundColor,
     pastDotColor:        pastDotColor        ?? this.pastDotColor,
@@ -71,6 +75,7 @@ class WallpaperSettings {
     lifeExpectancyYears: lifeExpectancyYears ?? this.lifeExpectancyYears,
     birthDate:           birthDate           ?? this.birthDate,
     bgImagePath:         bgImagePath         ?? this.bgImagePath,
+    shape:               shape               ?? this.shape
   );
 
   // ── Year helpers ──────────────────────────────────────────────
@@ -85,6 +90,9 @@ class WallpaperSettings {
   }
 
   static double get yearProgress => dayOfYear / daysInYear;
+
+  // ── Weekly helpers ────────────────────────────────────────────
+  static int get currentWeek => (dayOfYear / 7).ceil().clamp(1, 52);
 
   // ── Goal helpers ──────────────────────────────────────────────
   int get goalTotalDays {
@@ -123,6 +131,7 @@ class WallpaperSettings {
   int get totalDots {
     switch (mode) {
       case CalendarMode.year:     return daysInYear;
+      case CalendarMode.weekly:   return 52; // 52 weeks in a standard year
       case CalendarMode.goal:     return goalTotalDays.clamp(1, 3650);
       case CalendarMode.life:     return lifeTotalDays;
       case CalendarMode.settings: return daysInYear;
@@ -132,6 +141,7 @@ class WallpaperSettings {
   int get pastDots {
     switch (mode) {
       case CalendarMode.year:     return dayOfYear - 1;
+      case CalendarMode.weekly:   return currentWeek - 1; // Past weeks
       case CalendarMode.goal:     return (totalDots - goalDaysLeft).clamp(0, totalDots);
       case CalendarMode.life:     return lifeDaysLived;
       case CalendarMode.settings: return dayOfYear - 1;
@@ -142,6 +152,9 @@ class WallpaperSettings {
     switch (mode) {
       case CalendarMode.year:
         return '${daysInYear - dayOfYear} days left · '
+            '${(yearProgress * 100).toStringAsFixed(0)}%';
+      case CalendarMode.weekly:
+        return '${52 - currentWeek} weeks left · '
             '${(yearProgress * 100).toStringAsFixed(0)}%';
       case CalendarMode.goal:
         return '$goalDaysLeft days left · $goalName';

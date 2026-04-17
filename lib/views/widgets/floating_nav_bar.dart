@@ -10,8 +10,10 @@ class FloatingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = [
+    // ── ADDED WEEKLY MODE HERE ──
+    final items = [
       (CalendarMode.year, Icons.calendar_today_outlined),
+      (CalendarMode.weekly, Icons.view_week_outlined), 
       (CalendarMode.goal, Icons.flag_outlined),
       (CalendarMode.life, Icons.favorite_outline),
       (CalendarMode.settings, Icons.settings_outlined),
@@ -19,11 +21,10 @@ class FloatingNavBar extends StatelessWidget {
 
     return Center(
       child: Padding(
-        // Adds a small safety margin so it doesn't touch screen edges
         padding: const EdgeInsets.symmetric(horizontal: 16), 
         child: ConstrainedBox(
-          // 1. LIMIT maximum width so it doesn't stretch on tablets
-          constraints: const BoxConstraints(maxWidth: 280), 
+          // ── INCREASED MAX WIDTH TO 340 TO FIT 5 ICONS ──
+          constraints: const BoxConstraints(maxWidth: 340), 
           child: ClipRRect(
             borderRadius: BorderRadius.circular(100),
             child: BackdropFilter(
@@ -37,10 +38,8 @@ class FloatingNavBar extends StatelessWidget {
                 ),
                 foregroundDecoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(100),
-                
                 ),
                 child: Row(
-                  // 2. Use MainAxisSize.max here within the ConstrainedBox
                   mainAxisSize: MainAxisSize.max, 
                   children: _buildItems(items),
                 ),
@@ -59,7 +58,6 @@ class FloatingNavBar extends StatelessWidget {
       final (m, icon) = items[i];
       final active = mode == m;
 
-      // 3. Wrap in Expanded so buttons shrink on small screens
       widgets.add(
         Expanded(
           child: GestureDetector(
@@ -86,7 +84,7 @@ class FloatingNavBar extends StatelessWidget {
         widgets.add(
           Container(
             width: 1,
-            height: 20, // 4. Fixed height for divider looks cleaner
+            height: 20, 
             color: Colors.white.withOpacity(0.1),
           ),
         );

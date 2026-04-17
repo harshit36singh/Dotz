@@ -10,7 +10,6 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-
     private val CHANNEL    = "com.example.dotz/wallpaper"
     private val PREFS_NAME = "dotz_prefs"
 
@@ -33,9 +32,10 @@ class MainActivity : FlutterActivity() {
                                 // ── Label colour + size ────────────────────────
                                 putInt("labelColor",    (call.argument<Any>("labelColor")    as? Number)?.toInt() ?: Color.WHITE)
                                 putFloat("labelFontSize", (call.argument<Any>("labelFontSize") as? Number)?.toFloat() ?: 0f)
-                                // ── Grid ──────────────────────────────────────
+                                // ── Grid & Shapes ─────────────────────────────
                                 putInt("columns",    (call.argument<Any>("columns") as? Number)?.toInt() ?: 20)
                                 putBoolean("showLabel", call.argument<Boolean>("showLabel") ?: true)
+                                putInt("dotShape",   (call.argument<Any>("dotShape") as? Number)?.toInt() ?: 0) // ── FIX: Added Shape saving here! ──
                                 // ── Label mode: 0=off,1=progress,2=quote,3=custom ──
                                 putInt("labelMode",   (call.argument<Any>("labelMode") as? Number)?.toInt() ?: 1)
                                 putString("customLabel", call.argument<String>("customLabel") ?: "")
