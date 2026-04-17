@@ -17,7 +17,7 @@ enum LabelMode { off, progress, quote, custom }
 class HomeViewModel extends ChangeNotifier {
   static const _channel = MethodChannel('com.example.dotz/wallpaper');
 
-DotShape _dotShape = DotShape.circle;
+  DotShape _dotShape = DotShape.circle;
   DotShape get dotShape => _dotShape;
   void setDotShape(DotShape s) {
     _dotShape = s;
@@ -371,7 +371,7 @@ DotShape _dotShape = DotShape.circle;
         'lifeLived':      daysLived,
         'apiUrl':         apiKey,
         'bgImagePath':    _bgImagePath,
-        'dotshape' : _dotShape.index
+        'dotShape':       _dotShape.index // <--- FIXED THE CAPITAL 'S' HERE!
       });
       await _channel.invokeMethod('openWallpaperPicker');
       return true;
