@@ -13,6 +13,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
+    final title="Settings";
     final w = mq.size.width;
     final h = mq.size.height;
     final hp = w >= 900
@@ -42,17 +43,16 @@ class SettingsPage extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Settings',
-                      style: TextStyle(
-                        fontFamily: 'Glass Antiqua',
-                        color: Colors.white.withOpacity(0.92),
-                        fontSize: 19,
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
+                  Text(
+               title.toUpperCase()
+                  ,style: TextStyle(
+                    // Removing fontFamily defaults to the clean system font (Roboto/SF Pro)
+                    color: Colors.white.withOpacity(0.85), // Slightly dimmed for a "sober" look
+                    fontSize: 13, // Smaller size
+                    fontWeight: FontWeight.w600, // Medium weight, not too bold
+                    letterSpacing: 2.5, // Wide, elegant spacing
+                  ),
+                ),
                   ],
                 ),
               ),
@@ -343,6 +343,7 @@ class _LabelModeSection extends StatelessWidget {
             // Minimal refresh row — no icon, just a subtle label
             GestureDetector(
               onTap: vm.fetchQuote,
+              behavior: HitTestBehavior.opaque,
               child: Text(
                 '↻  REFRESH',
                 style: TextStyle(
@@ -439,6 +440,7 @@ class _CustomLabelInputState extends State<_CustomLabelInput> {
                     widget.vm.setCustomLabelText('');
                     setState(() {});
                   },
+                  behavior: HitTestBehavior.opaque,
                   child: Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: Icon(
@@ -479,6 +481,7 @@ class _LabelAppearanceControls extends StatelessWidget {
         // Colour row
         GestureDetector(
           onTap: () => _pickColor(context),
+          behavior: HitTestBehavior.opaque,
           child: Row(
             children: [
               Container(
@@ -533,6 +536,7 @@ class _LabelAppearanceControls extends StatelessWidget {
             const Spacer(),
             GestureDetector(
               onTap: () => vm.setLabelFontSize(isAuto ? 12.0 : 0.0),
+              behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 padding:
@@ -671,6 +675,7 @@ class _FourWayToggle extends StatelessWidget {
             return Expanded(
               child: GestureDetector(
                 onTap: () => onChanged(mode),
+                behavior: HitTestBehavior.opaque,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   margin: const EdgeInsets.all(3),
@@ -737,6 +742,7 @@ class _MinimalButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => GestureDetector(
         onTap: onTap,
+        behavior: HitTestBehavior.opaque,
         child: Container(
           padding:
               const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
@@ -798,12 +804,14 @@ class _BackgroundImageSection extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _GlassContainer(
-                blur: 10,
-                color: const Color(0x33FFFFFF),
-                borderRadius: 10,
-                child: GestureDetector(
-                  onTap: vm.pickBackgroundImage,
+              // ── Moved GestureDetector Outside for full button hit area ──
+              child: GestureDetector(
+                onTap: vm.pickBackgroundImage,
+                behavior: HitTestBehavior.opaque, 
+                child: _GlassContainer(
+                  blur: 10,
+                  color: const Color(0x33FFFFFF),
+                  borderRadius: 10,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     child: Center(
@@ -824,12 +832,14 @@ class _BackgroundImageSection extends StatelessWidget {
             ),
             if (hasImage) ...[
               const SizedBox(width: 10),
-              _GlassContainer(
-                blur: 10,
-                color: const Color(0x44FF3B30),
-                borderRadius: 10,
-                child: GestureDetector(
-                  onTap: vm.clearBackgroundImage,
+              // ── Moved GestureDetector Outside for full button hit area ──
+              GestureDetector(
+                onTap: vm.clearBackgroundImage,
+                behavior: HitTestBehavior.opaque, 
+                child: _GlassContainer(
+                  blur: 10,
+                  color: const Color(0x44FF3B30),
+                  borderRadius: 10,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: 13, horizontal: 18),
@@ -916,6 +926,7 @@ class _ShapeSelector extends StatelessWidget {
             return Expanded(
               child: GestureDetector(
                 onTap: () => vm.setDotShape(shape),
+                behavior: HitTestBehavior.opaque,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   margin: const EdgeInsets.all(3),

@@ -1,122 +1,202 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import '../../viewmodels/home_view_model.dart';
 
 class LifeSetupSection extends StatelessWidget {
   final HomeViewModel vm;
   const LifeSetupSection({super.key, required this.vm});
 
-  Future<void> _pickDate(BuildContext context) async {
-    final picked = await showDatePicker(
+  // ── CUSTOM GLASS DATE PICKER ──
+  Future<void> _pickDob(BuildContext context) async {
+    final now = DateTime.now();
+    DateTime tempDate = vm.birthDate ?? DateTime(2000, 1, 1);
+    if (tempDate.isAfter(now)) tempDate = now; // Safety check
+
+    final date = await showGeneralDialog<DateTime>(
       context: context,
-      initialDate: vm.birthDate ?? DateTime(1995, 6, 15),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      builder: (ctx, child) => Stack(
-        children: [
-          // ── Blurs the entire screen behind the calendar ──
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              child: const SizedBox.expand(),
-            ),
-          ),
-          Theme(
-            data: ThemeData.dark().copyWith(
-              colorScheme: const ColorScheme.dark(
-                primary: Colors.white,
-                onPrimary: Colors.black,
-                surface: Color(
-                  0xAA000000,
-                ), // Slightly darker glass tint for legibility
-                onSurface: Colors.white,
-              ),
-              dialogBackgroundColor: const Color(0xAA000000), // Glass tint
-              dialogTheme: DialogThemeData(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  side: BorderSide(
-                    color: Colors.white.withOpacity(0.1),
-                    width: 1,
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      barrierColor: Colors.black.withOpacity(0.4),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+          child: FadeTransition(
+            opacity: animation,
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.85,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Theme(
+                            data: ThemeData.dark().copyWith(
+                              colorScheme: const ColorScheme.dark(
+                                primary: Colors.white, // Selected circle color
+                                onPrimary: Colors.black, // Text inside selected circle
+                                surface: Colors.transparent, // Background of calendar
+                                onSurface: Colors.white, // Default text color
+                              ),
+                              dialogBackgroundColor: Colors.transparent,
+                              textTheme: const TextTheme(
+                                bodyMedium: TextStyle(fontFamily: 'Glass Antiqua'),
+                                titleMedium: TextStyle(fontFamily: 'Glass Antiqua'),
+                              ),
+                            ),
+                            child: CalendarDatePicker(
+                              initialDate: tempDate,
+                              firstDate: DateTime(1900),
+                              lastDate: now,
+                              onDateChanged: (val) => tempDate = val,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                behavior: HitTestBehavior.opaque,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  child: Text(
+                                    'CANCEL',
+                                    style: TextStyle(
+                                      fontFamily: 'Glass Antiqua',
+                                      color: Colors.white.withOpacity(0.6),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => Navigator.pop(context, tempDate),
+                                behavior: HitTestBehavior.opaque,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(100),
+                                    border: Border.all(color: Colors.white.withOpacity(0.3)),
+                                  ),
+                                  child: const Text(
+                                    'CONFIRM',
+                                    style: TextStyle(
+                                      fontFamily: 'Glass Antiqua',
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
-            child: child!,
           ),
-        ],
-      ),
+        );
+      },
     );
-    if (picked != null) vm.setBirthDate(picked);
+    if (date != null) vm.setBirthDate(date);
   }
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const SizedBox(height: 20),
-
-      // ── Native Glass Container ──
-      ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0x55000000),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.05),
-                width: 1,
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Date of Birth Section
+        GestureDetector(
+          onTap: () => _pickDob(context),
+          behavior: HitTestBehavior.opaque,
+          child: _GlassCard(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'DATE OF BIRTH',
+                        style: TextStyle(
+                          fontFamily: 'Glass Antiqua',
+                          color: Colors.white.withOpacity(0.35),
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        vm.birthDate == null
+                            ? 'Tap to set birth date'
+                            : DateFormat('MMMM d, yyyy').format(vm.birthDate!),
+                        style: TextStyle(
+                          fontFamily: 'Glass Antiqua',
+                          color: vm.birthDate == null ? Colors.white.withOpacity(0.5) : Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '›',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.2),
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
               ),
             ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        
+        // Life Expectancy Section
+        _GlassCard(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Date of birth
-                _FieldLabel(icon: CupertinoIcons.heart, label: 'DATE OF BIRTH'),
-                const SizedBox(height: 10),
-                GestureDetector(
-                  onTap: () => _pickDate(context),
-                  child: Row(
-                    children: [
-                      Text(
-                        vm.birthDate == null
-                            ? 'Tap to pick your birth date'
-                            : '${vm.birthDate!.day} / ${vm.birthDate!.month} / ${vm.birthDate!.year}',
-                        style: TextStyle(
-                          fontFamily: 'Glass Antiqua',
-                          color: vm.birthDate != null
-                              ? Colors.white
-                              : Colors.white.withOpacity(0.2),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (vm.birthDate != null)
-                        _Chip('Age ${vm.age}')
-                      else
-                        Icon(
-                          CupertinoIcons.chevron_right,
-                          color: Colors.white.withOpacity(0.2),
-                          size: 16,
-                        ),
-                    ],
+                Text(
+                  'LIFE EXPECTANCY',
+                  style: TextStyle(
+                    fontFamily: 'Glass Antiqua',
+                    color: Colors.white.withOpacity(0.35),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 2.0,
                   ),
                 ),
-
-                _Divider(),
-
-                // Life expectancy
-                _FieldLabel(
-                  icon: CupertinoIcons.timer,
-                  label: 'LIFE EXPECTANCY',
-                ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Text(
@@ -124,194 +204,72 @@ class LifeSetupSection extends StatelessWidget {
                       style: const TextStyle(
                         fontFamily: 'Glass Antiqua',
                         color: Colors.white,
-                        fontSize: 42,
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w900,
-                        height: 0.9,
-                        letterSpacing: -2,
+                        fontSize: 32,
+                        fontWeight: FontWeight.w300,
+                        height: 1,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Column(
-                      mainAxisSize:
-                          MainAxisSize.min, // Prevents infinite height crash
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'years',
-                          style: TextStyle(
-                            fontFamily: 'Glass Antiqua',
-                            color: Colors.white.withOpacity(0.4),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        Text(
-                          '${vm.totalDays} days total',
-                          style: TextStyle(
-                            fontFamily: 'Glass Antiqua',
-                            color: Colors.white.withOpacity(0.6),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: 8),
+                    Text(
+                      'years\n${vm.lifeExp * 365} days total',
+                      style: TextStyle(
+                        fontFamily: 'Glass Antiqua',
+                        color: Colors.white.withOpacity(0.5),
+                        fontSize: 10,
+                        height: 1.3,
+                      ),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: SliderTheme(
                         data: SliderTheme.of(context).copyWith(
                           activeTrackColor: Colors.white,
                           inactiveTrackColor: Colors.white.withOpacity(0.1),
                           thumbColor: Colors.white,
-                          overlayColor: Colors.white.withOpacity(0.06),
+                          overlayColor: Colors.white.withOpacity(0.05),
                           trackHeight: 2,
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 6,
-                          ),
+                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                         ),
                         child: Slider(
                           value: vm.lifeExp.toDouble(),
-                          min: 50,
-                          max: 120,
-                          divisions: 70,
+                          min: 40,
+                          max: 100,
+                          divisions: 60,
                           onChanged: (v) => vm.setLifeExp(v.round()),
                         ),
                       ),
                     ),
                   ],
                 ),
-
-                // Stats chips
-                if (vm.birthDate != null) ...[
-                  _Divider(),
-                  Row(
-                    children: [
-                      _StatChip(
-                        value: '${vm.totalDays - vm.daysLived}',
-                        label: 'DAYS LEFT',
-                      ),
-                      const SizedBox(width: 8),
-                      _StatChip(
-                        value: vm.totalDays > 0
-                            ? '${(vm.daysLived / vm.totalDays * 100).toStringAsFixed(1)}%'
-                            : '0%',
-                        label: 'LIFE LIVED',
-                      ),
-                      const SizedBox(width: 8),
-                      _StatChip(value: '${vm.daysLived}', label: 'DAYS LIVED'),
-                    ],
-                  ),
-                ],
               ],
             ),
           ),
         ),
-      ),
-
-      const SizedBox(height: 16),
-    ],
-  );
+      ],
+    );
+  }
 }
 
-class _FieldLabel extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _FieldLabel({required this.icon, required this.label});
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  const _GlassCard({required this.child});
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Icon(icon, color: Colors.white.withOpacity(0.3), size: 14),
-      const SizedBox(width: 8),
-      Text(
-        label,
-        style: TextStyle(
-          fontFamily: 'Glass Antiqua',
-          color: Colors.white.withOpacity(0.4),
-          fontSize: 10,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 2,
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(16),
+           
+          ),
+          child: child,
         ),
       ),
-    ],
-  );
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 14),
-    child: Container(height: 1, color: Colors.white.withOpacity(0.05)),
-  );
-}
-
-class _Chip extends StatelessWidget {
-  final String text;
-  const _Chip(this.text);
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.08),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
-    ),
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontFamily: 'Glass Antiqua',
-        color: Colors.white,
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-      ),
-    ),
-  );
-}
-
-class _StatChip extends StatelessWidget {
-  final String value, label;
-  const _StatChip({required this.value, required this.label});
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.06), width: 1),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min, // Prevents infinite height crash
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontFamily: 'Glass Antiqua',
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              fontStyle: FontStyle.italic,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'Glass Antiqua',
-              color: Colors.white.withOpacity(0.4),
-              fontSize: 9,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.0,
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+    );
+  }
 }

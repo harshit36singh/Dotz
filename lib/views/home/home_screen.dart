@@ -68,10 +68,7 @@ class _HomeScreenState extends State<HomeScreen>
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.12),
             borderRadius: BorderRadius.circular(100),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.22),
-              width: 0.8,
-            ),
+           
           ),
           child: GestureDetector(
             onTap: _vm.saving ? null : _apply,
@@ -91,8 +88,9 @@ class _HomeScreenState extends State<HomeScreen>
                     : Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Minimal upload icon — two strokes, no fill
-                          _MinimalIcon.upload(size: 13, color: Colors.white.withOpacity(0.85)),
+                          _MinimalIcon.upload(
+                              size: 13,
+                              color: Colors.white.withOpacity(0.85)),
                           const SizedBox(width: 10),
                           Text(
                             'APPLY TO LOCK SCREEN',
@@ -141,7 +139,8 @@ class _HomeScreenState extends State<HomeScreen>
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.32),
               borderRadius: BorderRadius.circular(100),
@@ -153,15 +152,14 @@ class _HomeScreenState extends State<HomeScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'Glass Antiqua',
-                    color: Colors.white,
-                    fontSize: 19,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
+          Text(
+                  title.toUpperCase(), // Uppercase looks very minimal and clean
+                  style: TextStyle(
+                    // Removing fontFamily defaults to the clean system font (Roboto/SF Pro)
+                    color: Colors.white.withOpacity(0.85), // Slightly dimmed for a "sober" look
+                    fontSize: 13, // Smaller size
+                    fontWeight: FontWeight.w600, // Medium weight, not too bold
+                    letterSpacing: 2.5, // Wide, elegant spacing
                   ),
                 ),
               ],
@@ -187,7 +185,8 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── Lockscreen Preview ────────────────────────────────────────────
-  Widget _dotPreview(double hPad, double pw, double ph, double mockupScale) {
+  Widget _dotPreview(
+      double hPad, double pw, double ph, double mockupScale) {
     final bgColor = _vm.bgColor;
     final bgImage = _vm.bgImagePath;
     final now = DateTime.now();
@@ -210,34 +209,31 @@ class _HomeScreenState extends State<HomeScreen>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // ── Phone Mockup ──
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(30 * mockupScale),
+                  borderRadius:
+                      BorderRadius.circular(30 * mockupScale),
                   child: SizedBox(
                     width: pw,
                     height: ph,
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        // 1. Background
                         if (bgImage.isNotEmpty)
                           Image.file(File(bgImage), fit: BoxFit.cover)
                         else
                           Container(color: bgColor),
-
-                        // 2. Dots
                         CustomPaint(
-                          painter: DotGridPainter(_vm.settings, repaint: _vm),
+                          painter:
+                              DotGridPainter(_vm.settings, repaint: _vm),
                           child: const SizedBox.expand(),
                         ),
-
-                        // 3. Status Bar
                         Positioned(
                           top: 22 * mockupScale,
                           left: 20 * mockupScale,
                           right: 20 * mockupScale,
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 DateFormat('HH:mm').format(now),
@@ -251,17 +247,17 @@ class _HomeScreenState extends State<HomeScreen>
                               Row(
                                 children: [
                                   Icon(Icons.signal_wifi_4_bar_rounded,
-                                      color: Colors.white, size: 11 * mockupScale),
+                                      color: Colors.white,
+                                      size: 11 * mockupScale),
                                   SizedBox(width: 4 * mockupScale),
                                   Icon(Icons.battery_full_rounded,
-                                      color: Colors.white, size: 11 * mockupScale),
+                                      color: Colors.white,
+                                      size: 11 * mockupScale),
                                 ],
                               ),
                             ],
                           ),
                         ),
-
-                        // 4. Center Clock
                         Align(
                           alignment: const Alignment(0, -0.60),
                           child: Column(
@@ -288,8 +284,6 @@ class _HomeScreenState extends State<HomeScreen>
                             ],
                           ),
                         ),
-
-                        // 5. Progress Label
                         if (_vm.showLabel)
                           Positioned(
                             bottom: 100 * mockupScale,
@@ -302,30 +296,32 @@ class _HomeScreenState extends State<HomeScreen>
                                 color: _vm.labelColor,
                                 fontSize: _vm.labelFontSize == 0
                                     ? 13 * mockupScale
-                                    : (_vm.labelFontSize * 0.8) * mockupScale,
+                                    : (_vm.labelFontSize * 0.8) *
+                                        mockupScale,
                                 fontFamily: 'Glass Antiqua',
                                 shadows: const [
-                                  Shadow(blurRadius: 6, color: Colors.black38),
+                                  Shadow(
+                                      blurRadius: 6,
+                                      color: Colors.black38),
                                 ],
                               ),
                             ),
                           ),
-
-                        // 6. Bottom Lockscreen Icons
                         Positioned(
                           bottom: 38 * mockupScale,
                           left: 28 * mockupScale,
                           right: 28 * mockupScale,
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
                             children: [
-                              _lockScreenIcon(Icons.mic_none_rounded, mockupScale),
-                              _lockScreenIcon(Icons.camera_alt_outlined, mockupScale),
+                              _lockScreenIcon(
+                                  Icons.mic_none_rounded, mockupScale),
+                              _lockScreenIcon(
+                                  Icons.camera_alt_outlined, mockupScale),
                             ],
                           ),
                         ),
-
-                        // 7. Navigation Pill
                         Positioned(
                           bottom: 10 * mockupScale,
                           left: 0,
@@ -345,16 +341,16 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                 ),
-
-                // ── Edit Button ──
                 const SizedBox(height: 7),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(context).push(
                       PageRouteBuilder(
                         opaque: false,
-                        transitionDuration: const Duration(milliseconds: 300),
-                        pageBuilder: (_, __, ___) => FullScreenEditor(vm: _vm),
+                        transitionDuration:
+                            const Duration(milliseconds: 300),
+                        pageBuilder: (_, __, ___) =>
+                            FullScreenEditor(vm: _vm),
                         transitionsBuilder: (_, anim, __, child) =>
                             FadeTransition(opacity: anim, child: child),
                       ),
@@ -374,8 +370,9 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Minimal expand arrows icon — outline only
-                        _MinimalIcon.expand(size: 12, color: Colors.white.withOpacity(0.6)),
+                        _MinimalIcon.expand(
+                            size: 12,
+                            color: Colors.white.withOpacity(0.6)),
                         const SizedBox(width: 7),
                         Text(
                           'EDIT WALLPAPER',
@@ -404,7 +401,8 @@ class _HomeScreenState extends State<HomeScreen>
     decoration: BoxDecoration(
       shape: BoxShape.circle,
       color: Colors.white.withOpacity(0.1),
-      border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
+      border:
+          Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
     ),
     child: Icon(icon, color: Colors.white, size: 22 * scale),
   );
@@ -446,7 +444,7 @@ class _HomeScreenState extends State<HomeScreen>
             height: 300,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.pinkAccent.withOpacity(0.25),
+              color: Colors.pinkAccent.withOpacity(0.2),
             ),
           ),
         ),
@@ -499,38 +497,55 @@ class _HomeScreenState extends State<HomeScreen>
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
+        // ── KEY FIX: prevent the scaffold from resizing when keyboard appears.
+        // The nav bar is in a Stack anchored to the bottom of the screen,
+        // so with resizeToAvoidBottomInset: false it never moves.
+        resizeToAvoidBottomInset: false,
         backgroundColor: Colors.transparent,
         body: Stack(
           children: [
             _buildBackground(context),
-            SafeArea(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (isSettings)
-                    _settingsBody(hPad)
-                  else
-                    Column(
-                      children: [
-                        _dynamicHeader(hPad),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            physics: const BouncingScrollPhysics(),
-                            padding:
-                                const EdgeInsets.only(top: 24, bottom: 120),
-                            child:
-                                _calendarBody(hPad, pw, ph, mockupScale),
+
+            // ── All content sits inside a MediaQuery that ignores viewInsets.
+            // This means even if the keyboard is open, the content area does
+            // not get squashed — text fields inside scroll views handle their
+            // own scrollIntoView via ScrollController / Scrollable.ensureVisible.
+            MediaQuery(
+              data: mq.removeViewInsets(removeBottom: true),
+              child: SafeArea(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (isSettings)
+                      _settingsBody(hPad)
+                    else
+                      Column(
+                        children: [
+                          _dynamicHeader(hPad),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              padding: const EdgeInsets.only(
+                                  top: 24, bottom: 120),
+                              child: _calendarBody(
+                                  hPad, pw, ph, mockupScale),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+
+                    // ── Nav bar: Positioned inside SafeArea so it respects
+                    // the home indicator / bottom notch, but is completely
+                    // immune to keyboard because resizeToAvoidBottomInset=false.
+                    Positioned(
+                      left: navSideInset,
+                      right: (navSideInset + 18),
+                      bottom: 20,
+                      child: FloatingNavBar(
+                          mode: _vm.mode, onTap: _switchMode),
                     ),
-                  Positioned(
-                    left: navSideInset,
-                    right: (navSideInset + 18),
-                    bottom: 20,
-                    child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -541,7 +556,7 @@ class _HomeScreenState extends State<HomeScreen>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ── Minimal Icon Painter — thin strokes, no fills ────────────────────────────
+// ── Minimal Icon Painters ─────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _MinimalIcon extends StatelessWidget {
@@ -583,24 +598,22 @@ class _MinimalIconPainter extends CustomPainter {
     final h = size.height;
 
     if (type == _MinimalIconType.upload) {
-      // Upward arrow with base line
-      canvas.drawLine(Offset(w / 2, h * 0.7), Offset(w / 2, h * 0.1), paint);
-      canvas.drawLine(Offset(w * 0.25, h * 0.35), Offset(w / 2, h * 0.1), paint);
-      canvas.drawLine(Offset(w * 0.75, h * 0.35), Offset(w / 2, h * 0.1), paint);
-      canvas.drawLine(Offset(w * 0.1, h * 0.85), Offset(w * 0.9, h * 0.85), paint);
+      canvas.drawLine(
+          Offset(w / 2, h * 0.7), Offset(w / 2, h * 0.1), paint);
+      canvas.drawLine(
+          Offset(w * 0.25, h * 0.35), Offset(w / 2, h * 0.1), paint);
+      canvas.drawLine(
+          Offset(w * 0.75, h * 0.35), Offset(w / 2, h * 0.1), paint);
+      canvas.drawLine(
+          Offset(w * 0.1, h * 0.85), Offset(w * 0.9, h * 0.85), paint);
     } else if (type == _MinimalIconType.expand) {
-      // Four corner expand arrows
       final s = w * 0.28;
-      // Top-left
       canvas.drawLine(Offset(0, s), Offset(0, 0), paint);
       canvas.drawLine(Offset(0, 0), Offset(s, 0), paint);
-      // Top-right
       canvas.drawLine(Offset(w - s, 0), Offset(w, 0), paint);
       canvas.drawLine(Offset(w, 0), Offset(w, s), paint);
-      // Bottom-left
       canvas.drawLine(Offset(0, h - s), Offset(0, h), paint);
       canvas.drawLine(Offset(0, h), Offset(s, h), paint);
-      // Bottom-right
       canvas.drawLine(Offset(w - s, h), Offset(w, h), paint);
       canvas.drawLine(Offset(w, h), Offset(w, h - s), paint);
     }
@@ -636,25 +649,21 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
 
     return Scaffold(
       backgroundColor: Colors.black,
+      resizeToAvoidBottomInset: false,
       body: AnimatedBuilder(
         animation: vm,
         builder: (context, child) {
           return Stack(
             fit: StackFit.expand,
             children: [
-              // 1. Fullscreen Background
               if (vm.bgImagePath.isNotEmpty)
                 Image.file(File(vm.bgImagePath), fit: BoxFit.cover)
               else
                 Container(color: vm.bgColor),
-
-              // 2. Fullscreen Dots
               CustomPaint(
                 painter: DotGridPainter(vm.settings, repaint: vm),
                 child: const SizedBox.expand(),
               ),
-
-              // 3. Status Bar
               Positioned(
                 top: 54,
                 left: 24,
@@ -683,8 +692,6 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                   ],
                 ),
               ),
-
-              // 4. Clock
               Align(
                 alignment: const Alignment(0, -0.60),
                 child: Column(
@@ -711,8 +718,6 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                   ],
                 ),
               ),
-
-              // 5. Gesture Detector
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onScaleStart: (details) {
@@ -724,15 +729,15 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                 onScaleUpdate: (details) {
                   vm.setGridScale(
                       (_baseScale * details.scale).clamp(0.2, 3.0));
-                  final dx = (details.localFocalPoint.dx - _focalPoint.dx) /
-                      size.width;
-                  final dy = (details.localFocalPoint.dy - _focalPoint.dy) /
-                      size.height;
+                  final dx =
+                      (details.localFocalPoint.dx - _focalPoint.dx) /
+                          size.width;
+                  final dy =
+                      (details.localFocalPoint.dy - _focalPoint.dy) /
+                          size.height;
                   vm.setOffsets(_baseOffsetX + dx, _baseOffsetY + dy);
                 },
               ),
-
-              // 6. Instruction HUD
               Positioned(
                 top: 120,
                 left: 0,
@@ -742,7 +747,8 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(30),
                       child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        filter:
+                            ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 9),
@@ -757,7 +763,7 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                           child: Text(
                             'Pinch to Zoom  ·  Drag to Pan',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.65),
+                              color: Colors.white.withOpacity(0.6),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                               letterSpacing: 0.8,
@@ -769,8 +775,6 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                   ),
                 ),
               ),
-
-              // 7. Reset Button (Bottom Left)
               Positioned(
                 bottom: 40,
                 left: 24,
@@ -782,7 +786,8 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      filter:
+                          ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
                         padding: const EdgeInsets.all(15),
                         decoration: BoxDecoration(
@@ -793,7 +798,6 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                             width: 0.8,
                           ),
                         ),
-                        // Minimal reset icon — single circular arc stroke
                         child: Icon(
                           Icons.refresh_rounded,
                           color: Colors.white.withOpacity(0.8),
@@ -804,8 +808,6 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                   ),
                 ),
               ),
-
-              // 8. Done Button (Bottom Right)
               Positioned(
                 bottom: 40,
                 right: 24,

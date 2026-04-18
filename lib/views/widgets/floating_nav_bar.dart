@@ -10,21 +10,24 @@ class FloatingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ── ADDED WEEKLY MODE HERE ──
     final items = [
-      (CalendarMode.year, Icons.calendar_today_outlined),
-      (CalendarMode.weekly, Icons.view_week_outlined), 
-      (CalendarMode.goal, Icons.flag_outlined),
-      (CalendarMode.life, Icons.favorite_outline),
-      (CalendarMode.settings, Icons.settings_outlined),
+      // Year  — a clean dot-grid feel
+      (CalendarMode.year,    Icons.grid_on_outlined),
+      // Monthly — horizontal bands / rows
+      (CalendarMode.weekly,  Icons.table_rows_outlined),
+      // Goal — target / bullseye feel
+      (CalendarMode.goal,    Icons.my_location_outlined),
+      // Life — hourglass (time of your life)
+      (CalendarMode.life,    Icons.hourglass_bottom_outlined),
+      // Settings — sliders, not a gear
+      (CalendarMode.settings, Icons.tune_rounded),
     ];
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16), 
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ConstrainedBox(
-          // ── INCREASED MAX WIDTH TO 340 TO FIT 5 ICONS ──
-          constraints: const BoxConstraints(maxWidth: 340), 
+          constraints: const BoxConstraints(maxWidth: 340),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(100),
             child: BackdropFilter(
@@ -35,12 +38,13 @@ class FloatingNavBar extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(100),
-                ),
-                foregroundDecoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.08),
+                    width: 0.8,
+                  ),
                 ),
                 child: Row(
-                  mainAxisSize: MainAxisSize.max, 
+                  mainAxisSize: MainAxisSize.max,
                   children: _buildItems(items),
                 ),
               ),
@@ -52,7 +56,7 @@ class FloatingNavBar extends StatelessWidget {
   }
 
   List<Widget> _buildItems(List<(CalendarMode, IconData)> items) {
-    List<Widget> widgets = [];
+    final List<Widget> widgets = [];
 
     for (int i = 0; i < items.length; i++) {
       final (m, icon) = items[i];
@@ -68,12 +72,14 @@ class FloatingNavBar extends StatelessWidget {
               height: double.infinity,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: active ? Colors.white.withOpacity(0.15) : Colors.transparent,
+                color: active
+                    ? Colors.white.withOpacity(0.13)
+                    : Colors.transparent,
               ),
               child: Icon(
                 icon,
-                color: active ? Colors.white : Colors.white54,
-                size: 22,
+                color: active ? Colors.white : Colors.white38,
+                size: 21,
               ),
             ),
           ),
@@ -83,9 +89,9 @@ class FloatingNavBar extends StatelessWidget {
       if (i < items.length - 1) {
         widgets.add(
           Container(
-            width: 1,
-            height: 20, 
-            color: Colors.white.withOpacity(0.1),
+            width: 0.5,
+            height: 18,
+            color: Colors.white.withOpacity(0.08),
           ),
         );
       }

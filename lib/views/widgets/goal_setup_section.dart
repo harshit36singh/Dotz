@@ -1,209 +1,283 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import '../../viewmodels/home_view_model.dart';
 
 class GoalSetupSection extends StatefulWidget {
   final HomeViewModel vm;
   const GoalSetupSection({super.key, required this.vm});
+
   @override
   State<GoalSetupSection> createState() => _GoalSetupSectionState();
 }
 
 class _GoalSetupSectionState extends State<GoalSetupSection> {
-  late final TextEditingController _nameCtrl;
+  late final TextEditingController _ctrl;
 
   @override
   void initState() {
     super.initState();
-    _nameCtrl = TextEditingController(
-      text: widget.vm.goalName == 'Goal' ? '' : widget.vm.goalName);
+    _ctrl = TextEditingController(
+      text: widget.vm.goalName == 'My Goal' ? '' : widget.vm.goalName,
+    );
   }
 
   @override
-  void dispose() { _nameCtrl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
 
-  Future<void> _pickDate() async {
-    final vm = widget.vm;
-    final picked = await showDatePicker(
+  // ── CUSTOM GLASS DATE PICKER ──
+  Future<void> _pickDate(BuildContext context) async {
+    final now = DateTime.now();
+    DateTime tempDate = widget.vm.goalDate ?? now.add(const Duration(days: 100));
+    if (tempDate.isBefore(now)) tempDate = now; // Safety check
+
+    final date = await showGeneralDialog<DateTime>(
       context: context,
-      initialDate: vm.goalDate ?? DateTime.now().add(const Duration(days: 60)),
-      firstDate: DateTime.now().add(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 10)),
-      builder: (ctx, child) => Theme(
-        data: ThemeData.dark().copyWith(
-          colorScheme: const ColorScheme.dark(
-            primary: Colors.white,
-            onPrimary: Colors.black,
-            surface: Color(0xFF2C2936), // Match new UI
+      barrierDismissible: true,
+      barrierLabel: 'Dismiss',
+      barrierColor: Colors.black.withOpacity(0.4),
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+          child: FadeTransition(
+            opacity: animation,
+            child: Center(
+              child: Material(
+                color: Colors.transparent,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.85,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Theme(
+                            data: ThemeData.dark().copyWith(
+                              colorScheme: const ColorScheme.dark(
+                                primary: Colors.white, // Selected circle color
+                                onPrimary: Colors.black, // Text inside selected circle
+                                surface: Colors.transparent, // Background of calendar
+                                onSurface: Colors.white, // Default text color
+                              ),
+                              dialogBackgroundColor: Colors.transparent,
+                              textTheme: const TextTheme(
+                                bodyMedium: TextStyle(fontFamily: 'Glass Antiqua'),
+                                titleMedium: TextStyle(fontFamily: 'Glass Antiqua'),
+                              ),
+                            ),
+                            child: CalendarDatePicker(
+                              initialDate: tempDate,
+                              firstDate: now,
+                              lastDate: now.add(const Duration(days: 365 * 10)),
+                              onDateChanged: (val) => tempDate = val,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              GestureDetector(
+                                onTap: () => Navigator.pop(context),
+                                behavior: HitTestBehavior.opaque,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                  child: Text(
+                                    'CANCEL',
+                                    style: TextStyle(
+                                      fontFamily: 'Glass Antiqua',
+                                      color: Colors.white.withOpacity(0.6),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => Navigator.pop(context, tempDate),
+                                behavior: HitTestBehavior.opaque,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(100),
+                                    border: Border.all(color: Colors.white.withOpacity(0.3)),
+                                  ),
+                                  child: const Text(
+                                    'CONFIRM',
+                                    style: TextStyle(
+                                      fontFamily: 'Glass Antiqua',
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
-          dialogBackgroundColor: const Color(0xFF2C2936),
-        ),
-        child: child!,
-      ),
+        );
+      },
     );
-    if (picked != null) vm.setGoalDate(picked);
+    if (date != null) widget.vm.setGoalDate(date);
   }
 
   @override
   Widget build(BuildContext context) {
-    final vm   = widget.vm;
-    final days = vm.goalDate == null
-        ? null
-        : vm.goalDate!.difference(DateTime.now()).inDays;
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const SizedBox(height: 20),
-      
-      // ── Native Glass Container ──
-      ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0x55000000), // Semi-transparent for glass effect
-              borderRadius: BorderRadius.circular(20),
+    return _GlassCard(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Goal Name
+            Text(
+              'GOAL NAME',
+              style: TextStyle(
+                fontFamily: 'Glass Antiqua',
+                color: Colors.white.withOpacity(0.35),
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 2.0,
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 8),
+            Row(
               children: [
-                // Goal name
-                _FieldLabel(icon: CupertinoIcons.flag, label: 'GOAL NAME'),
-                const SizedBox(height: 10),
-                Row(children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _nameCtrl,
-                      style: const TextStyle(
-                        fontFamily: 'Glass Antiqua', // Font applied
-                        color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
-                      decoration: InputDecoration(
-                        hintText: 'e.g. New York Marathon',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Glass Antiqua',
-                          color: Colors.white.withOpacity(0.2)),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
+                Expanded(
+                  child: TextField(
+                    controller: _ctrl,
+                    style: const TextStyle(
+                      fontFamily: 'Glass Antiqua',
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'e.g. Prepare for test',
+                      hintStyle: TextStyle(
+                        fontFamily: 'Glass Antiqua',
+                        color: Colors.white.withOpacity(0.3),
+                        fontSize: 16,
                       ),
-                      onChanged: (v) {
-                        vm.setGoalName(v);
-                        setState(() {});
-                      },
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
                     ),
+                    onChanged: widget.vm.setGoalName,
                   ),
-                  if (_nameCtrl.text.isNotEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        _nameCtrl.clear();
-                        vm.setGoalName('');
-                        setState(() {});
-                      },
-                      child: Icon(CupertinoIcons.xmark_circle_fill,
-                        color: Colors.white.withOpacity(0.2), size: 18),
-                    ),
-                ]),
-
-                _Divider(),
-
-                // Target date
-                _FieldLabel(icon: CupertinoIcons.calendar, label: 'TARGET DATE'),
-                const SizedBox(height: 10),
-                GestureDetector(
-                  onTap: _pickDate,
-                  child: Row(children: [
-                    Text(
-                      vm.goalDate == null
-                          ? 'Tap to pick a date'
-                          : '${vm.goalDate!.day} / ${vm.goalDate!.month} / ${vm.goalDate!.year}',
-                      style: TextStyle(
-                        fontFamily: 'Glass Antiqua', // Font applied
-                        color: vm.goalDate != null
-                            ? Colors.white
-                            : Colors.white.withOpacity(0.2),
-                        fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
-                    const Spacer(),
-                    if (days != null)
-                      _Chip('$days days')
-                    else
-                      Icon(CupertinoIcons.chevron_right,
-                        color: Colors.white.withOpacity(0.2), size: 16),
-                  ]),
                 ),
-
-                if (vm.goalDate != null || _nameCtrl.text.isNotEmpty) ...[
-                  _Divider(),
+                if (_ctrl.text.isNotEmpty)
                   GestureDetector(
                     onTap: () {
-                      vm.clearGoal();
-                      _nameCtrl.clear();
-                      setState(() {});
+                      _ctrl.clear();
+                      widget.vm.setGoalName('');
+                      FocusScope.of(context).unfocus();
                     },
-                    child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Icon(CupertinoIcons.arrow_counterclockwise,
-                        color: Colors.white.withOpacity(0.3), size: 12),
-                      const SizedBox(width: 6),
-                      Text('RESET GOAL',
-                        style: TextStyle(
-                          fontFamily: 'Glass Antiqua', // Font applied
-                          color: Colors.white.withOpacity(0.3),
-                          fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 2)),
-                    ]),
+                    child: Text(
+                      'CLEAR',
+                      style: TextStyle(
+                        fontFamily: 'Glass Antiqua',
+                        color: Colors.white.withOpacity(0.3),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
                   ),
-                ],
               ],
             ),
-          ),
+            
+            const SizedBox(height: 20),
+            Container(height: 1, color: Colors.white.withOpacity(0.1)),
+            const SizedBox(height: 20),
+
+            // Target Date
+            Text(
+              'TARGET DATE',
+              style: TextStyle(
+                fontFamily: 'Glass Antiqua',
+                color: Colors.white.withOpacity(0.35),
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 2.0,
+              ),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => _pickDate(context),
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.vm.goalDate == null
+                        ? 'Tap to pick a date'
+                        : DateFormat('MMMM d, yyyy').format(widget.vm.goalDate!),
+                    style: TextStyle(
+                      fontFamily: 'Glass Antiqua',
+                      color: widget.vm.goalDate == null ? Colors.white.withOpacity(0.5) : Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    '›',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.2),
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
-      const SizedBox(height: 16),
-    ]);
+    );
   }
 }
 
-class _FieldLabel extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _FieldLabel({required this.icon, required this.label});
+class _GlassCard extends StatelessWidget {
+  final Widget child;
+  const _GlassCard({required this.child});
 
   @override
-  Widget build(BuildContext context) => Row(children: [
-    Icon(icon, color: Colors.white.withOpacity(0.3), size: 14),
-    const SizedBox(width: 8),
-    Text(label,
-      style: TextStyle(
-        fontFamily: 'Glass Antiqua', // Font applied
-        color: Colors.white.withOpacity(0.4),
-        fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 2)),
-  ]);
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 14),
-    child: Container(height: 1, color: Colors.white.withOpacity(0.05)),
-  );
-}
-
-class _Chip extends StatelessWidget {
-  final String text;
-  const _Chip(this.text);
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.08),
-      borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
-    ),
-    child: Text(text,
-      style: const TextStyle(
-        fontFamily: 'Glass Antiqua', // Font applied
-        color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-  );
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(16),
+           
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
 }
