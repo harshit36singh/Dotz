@@ -3,7 +3,10 @@
 A beautiful Flutter & Native Android app that generates dynamic, live wallpapers visualizing your time. Track your year, your life, or your specific goals using highly customizable dot grids and glass aesthetics.
 
 ---
+## 📸 App Overview 
 
+![Dotz App Screenshot](lib/screenshot/dotz.png)
+---
 ## 📱 Features
 
 - **True Live Wallpaper Engine** — Runs natively on Android using Kotlin `WallpaperService` for zero battery drain and instant updates.
