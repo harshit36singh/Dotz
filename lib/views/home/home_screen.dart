@@ -2,8 +2,8 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart'; 
-import 'package:dotz/views/setting/setting_page.dart'; 
+import 'package:intl/intl.dart';
+import 'package:dotz/views/setting/setting_page.dart';
 import '../../models/wallpaper_settings.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../widgets/dot_grid_widget.dart';
@@ -24,17 +24,13 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _ac;
   late Animation<double> _af;
 
-  // ── Gesture State Variables ──
-  bool _isEditingScale = false;
-  double _baseScale = 1.0;
-  double _baseOffsetX = 0.0;
-  double _baseOffsetY = 0.0;
-  Offset _focalPoint = Offset.zero;
-
   @override
   void initState() {
     super.initState();
-    _ac = AnimationController(vsync: this, duration: const Duration(milliseconds: 340));
+    _ac = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 340),
+    );
     _af = CurvedAnimation(parent: _ac, curve: Curves.easeOut);
     _ac.forward();
     _vm.checkLive();
@@ -63,107 +59,186 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _showApplySheet() => showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        builder: (_) => ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 30.0, sigmaY: 30.0),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 48),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
-                border: Border(top: BorderSide(color: Colors.white.withOpacity(0.12), width: 0.5)),
+    context: context,
+    backgroundColor: Colors.transparent,
+    elevation: 0,
+    builder: (_) => ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 30.0, sigmaY: 30.0),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 48),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.5),
+            border: Border(
+              top: BorderSide(
+                color: Colors.white.withOpacity(0.12),
+                width: 0.5,
               ),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Container(
-                  width: 44, height: 5,
-                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.35), borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 44,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.35),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Apply to Lock Screen',
-                  style: TextStyle(fontFamily: 'Glass Antiqua', color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700, fontStyle: FontStyle.italic, letterSpacing: -0.5),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'Apply to Lock Screen',
+                style: TextStyle(
+                  fontFamily: 'Glass Antiqua',
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  fontStyle: FontStyle.italic,
+                  letterSpacing: -0.5,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  'Long-press home → Wallpapers → Live → DotZ → Apply',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontFamily: 'Glass Antiqua', color: Colors.white.withOpacity(0.55), fontSize: 13, height: 1.8),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Long-press home → Wallpapers → Live → DotZ → Apply',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Glass Antiqua',
+                  color: Colors.white.withOpacity(0.55),
+                  fontSize: 13,
+                  height: 1.8,
                 ),
-                const SizedBox(height: 32),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      decoration: BoxDecoration(color: const Color(0xCCFFFFFF), borderRadius: BorderRadius.circular(100)),
-                      child: GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: const SizedBox(
-                          width: double.infinity, height: 54,
-                          child: Center(child: Text('GOT IT', style: TextStyle(fontFamily: 'Glass Antiqua', color: Colors.black, fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 2.0))),
+              ),
+              const SizedBox(height: 32),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(100),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(100),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: const SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: Center(
+                          child: Text(
+                            'GOT IT',
+                            style: TextStyle(
+                              fontFamily: 'Glass Antiqua',
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2.0,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ]),
-            ),
+              ),
+            ],
           ),
         ),
-      ).then((_) => _vm.checkLive());
+      ),
+    ),
+  ).then((_) => _vm.checkLive());
 
   Widget _applyBtn(double hPad) => Padding(
-        padding: EdgeInsets.symmetric(horizontal: hPad),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(100),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              decoration: BoxDecoration(color: const Color(0xCCFFFFFF), borderRadius: BorderRadius.circular(100)),
-              child: GestureDetector(
-                onTap: _vm.saving ? null : _apply,
-                child: SizedBox(
-                  width: double.infinity, height: 54,
-                  child: Center(
-                    child: _vm.saving
-                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
-                        : const Text('APPLY TO LOCK SCREEN', style: TextStyle(fontFamily: 'Glass Antiqua', color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 2.0)),
-                  ),
-                ),
+    padding: EdgeInsets.symmetric(horizontal: hPad),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(100),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(100),
+          ),
+          child: GestureDetector(
+            onTap: _vm.saving ? null : _apply,
+            child: SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: Center(
+                child: _vm.saving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'APPLY TO LOCK SCREEN',
+                        style: TextStyle(
+                          fontFamily: 'Glass Antiqua',
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2.0,
+                        ),
+                      ),
               ),
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _topBar(double hPad) => Padding(
-        padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 0),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(100),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              decoration: BoxDecoration(color: const Color(0x66000000), borderRadius: BorderRadius.circular(100)),
-              child: Row(
-                children: const [
-                  SizedBox(width: 8),
-                  Text('DotZ', style: TextStyle(fontFamily: 'Glass Antiqua', color: Colors.white, fontSize: 20, fontStyle: FontStyle.italic, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
-                ],
+    padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 0),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(100),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0x66000000),
+            borderRadius: BorderRadius.circular(100),
+          ),
+          child: Row(
+            children: const [
+              SizedBox(width: 8),
+              Text(
+                'DotZ',
+                style: TextStyle(
+                  fontFamily: 'Glass Antiqua',
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ),
+            ],
           ),
         ),
-      );
+      ),
+    ),
+  );
 
   Widget _modeSetup(double hPad) {
-    if (_vm.mode == CalendarMode.year || _vm.mode == CalendarMode.settings) return const SizedBox.shrink();
+    if (_vm.mode == CalendarMode.year || _vm.mode == CalendarMode.settings)
+      return const SizedBox.shrink();
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: hPad),
-      child: _vm.mode == CalendarMode.goal ? GoalSetupSection(vm: _vm) : LifeSetupSection(vm: _vm),
+      child: _vm.mode == CalendarMode.goal
+          ? GoalSetupSection(vm: _vm)
+          : LifeSetupSection(vm: _vm),
     );
   }
 
@@ -178,14 +253,14 @@ class _HomeScreenState extends State<HomeScreen>
       child: FadeTransition(
         opacity: _af,
         child: Container(
-          padding: const EdgeInsets.all(8), 
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: const Color(0x22FFFFFF),
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: _isEditingScale ? Colors.blueAccent : Colors.white.withOpacity(0.1), width: _isEditingScale ? 2 : 1),
+            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(32 * mockupScale), 
+            borderRadius: BorderRadius.circular(32 * mockupScale),
             child: SizedBox(
               width: double.infinity,
               height: ph,
@@ -198,7 +273,7 @@ class _HomeScreenState extends State<HomeScreen>
                   else
                     Container(color: bgColor),
 
-                  // 2. Dots Painter Layer (Now responds to offset AND scale)
+                  // 2. Dots Painter Layer
                   CustomPaint(
                     painter: DotGridPainter(_vm.settings, repaint: _vm),
                     child: const SizedBox.expand(),
@@ -206,18 +281,35 @@ class _HomeScreenState extends State<HomeScreen>
 
                   // 3. Status Bar Simulation
                   Positioned(
-                    top: 24 * mockupScale, left: 24 * mockupScale, right: 24 * mockupScale,
+                    top: 24 * mockupScale,
+                    left: 24 * mockupScale,
+                    right: 24 * mockupScale,
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(DateFormat('HH:mm').format(now), style: TextStyle(color: Colors.white, fontSize: 14 * mockupScale, fontWeight: FontWeight.w600)),
+                        Text(
+                          DateFormat('HH:mm').format(now),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14 * mockupScale,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         Row(
                           children: [
-                            Icon(Icons.wifi, color: Colors.white, size: 14 * mockupScale),
+                            Icon(
+                              Icons.wifi,
+                              color: Colors.white,
+                              size: 14 * mockupScale,
+                            ),
                             SizedBox(width: 6 * mockupScale),
-                            Icon(Icons.battery_full, color: Colors.white, size: 14 * mockupScale),
+                            Icon(
+                              Icons.battery_full,
+                              color: Colors.white,
+                              size: 14 * mockupScale,
+                            ),
                           ],
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -228,8 +320,23 @@ class _HomeScreenState extends State<HomeScreen>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(DateFormat('EEEE').format(now), style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 20 * mockupScale, fontFamily: 'Glass Antiqua')),
-                        Text(DateFormat('H:mm').format(now), style: TextStyle(color: Colors.white, fontSize: 80 * mockupScale, fontWeight: FontWeight.w300, letterSpacing: -2 * mockupScale)),
+                        Text(
+                          DateFormat('EEEE').format(now),
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 20 * mockupScale,
+                            fontFamily: 'Glass Antiqua',
+                          ),
+                        ),
+                        Text(
+                          DateFormat('H:mm').format(now),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 80 * mockupScale,
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: -2 * mockupScale,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -237,22 +344,30 @@ class _HomeScreenState extends State<HomeScreen>
                   // 5. Progress Label
                   if (_vm.showLabel)
                     Positioned(
-                      bottom: 100 * mockupScale, left: 20, right: 20,
+                      bottom: 100 * mockupScale,
+                      left: 20,
+                      right: 20,
                       child: Text(
                         _vm.resolvedLabel,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: _vm.labelColor,
-                          fontSize: _vm.labelFontSize == 0 ? 14 * mockupScale : (_vm.labelFontSize * 0.8) * mockupScale,
+                          fontSize: _vm.labelFontSize == 0
+                              ? 14 * mockupScale
+                              : (_vm.labelFontSize * 0.8) * mockupScale,
                           fontFamily: 'Glass Antiqua',
-                          shadows: const [Shadow(blurRadius: 4, color: Colors.black45)],
+                          shadows: const [
+                            Shadow(blurRadius: 4, color: Colors.black45),
+                          ],
                         ),
                       ),
                     ),
 
                   // 6. Gesture Navigation Pill
                   Positioned(
-                    bottom: 12 * mockupScale, left: 0, right: 0,
+                    bottom: 12 * mockupScale,
+                    left: 0,
+                    right: 0,
                     child: Center(
                       child: Container(
                         width: 120 * mockupScale,
@@ -265,75 +380,69 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
 
-                  // ── Overlay for Pinch-to-Zoom & PANNING ──
-                  if (_isEditingScale)
-                    Positioned.fill(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onScaleStart: (details) {
-                          _baseScale = _vm.gridScale;
-                          _baseOffsetX = _vm.offsetX;
-                          _baseOffsetY = _vm.offsetY;
-                          _focalPoint = details.localFocalPoint;
-                        },
-                        onScaleUpdate: (details) {
-                          // 1. Handle Zoom
-                          _vm.setGridScale((_baseScale * details.scale).clamp(0.2, 3.0));
-                          
-                          // 2. Handle Panning (Sliding)
-                          // Divide by the preview width/height to get a normalized percentage!
-                          final dx = (details.localFocalPoint.dx - _focalPoint.dx) / pw;
-                          final dy = (details.localFocalPoint.dy - _focalPoint.dy) / ph;
-                          
-                          _vm.setOffsets(_baseOffsetX + dx, _baseOffsetY + dy);
-                        },
-                        child: Container(
-                          color: Colors.black.withOpacity(0.4),
-                          child: Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.pinch, color: Colors.white.withOpacity(0.8), size: 48 * mockupScale),
-                                SizedBox(height: 12 * mockupScale),
-                                Text('Pinch & Drag to Edit Grid', style: TextStyle(color: Colors.white, fontSize: 16 * mockupScale, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
-                                SizedBox(height: 8 * mockupScale),
-                                Text('Scale: ${(_vm.gridScale * 100).toInt()}%', style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 12 * mockupScale)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // ── Edit Button ──
+                  // ── Edit Grid Size Button ──
+                  // Tapping this pushes the immersive Full-Screen Editor!
                   Positioned(
-                    top: 16 * mockupScale, right: 16 * mockupScale,
+                    top: 16 * mockupScale,
+                    right: 16 * mockupScale,
                     child: GestureDetector(
                       onTap: () {
-                        setState(() { _isEditingScale = !_isEditingScale; });
+                        // Open the FullScreen Editor Route
+                        Navigator.of(context).push(
+                          PageRouteBuilder(
+                            opaque: false,
+                            transitionDuration: const Duration(
+                              milliseconds: 300,
+                            ),
+                            pageBuilder: (_, __, ___) =>
+                                FullScreenEditor(vm: _vm),
+                            transitionsBuilder: (_, anim, __, child) =>
+                                FadeTransition(opacity: anim, child: child),
+                          ),
+                        );
                       },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(100),
                         child: BackdropFilter(
                           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                           child: Container(
-                            padding: EdgeInsets.all(10 * mockupScale),
-                            decoration: BoxDecoration(
-                              color: _isEditingScale ? Colors.blueAccent.withOpacity(0.8) : Colors.black.withOpacity(0.4),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14 * mockupScale,
+                              vertical: 8 * mockupScale,
                             ),
-                            child: Icon(
-                              _isEditingScale ? Icons.check : Icons.zoom_out_map, 
-                              color: Colors.white, 
-                              size: 20 * mockupScale
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.4),
+                              borderRadius: BorderRadius.circular(100),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.zoom_out_map,
+                                  color: Colors.white,
+                                  size: 16 * mockupScale,
+                                ),
+                                SizedBox(width: 6 * mockupScale),
+                                Text(
+                                  'EDIT',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10 * mockupScale,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ),
                     ),
                   ),
-
                 ],
               ),
             ),
@@ -345,24 +454,65 @@ class _HomeScreenState extends State<HomeScreen>
 
   Widget _buildBackground(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return Stack(children: [
-      Container(color: Colors.black),
-      Positioned(top: -150, right: -100, child: Container(width: 400, height: 400, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.deepPurpleAccent.withOpacity(0.5)))),
-      Positioned(bottom: -150, left: -100, child: Container(width: 450, height: 450, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.blueAccent.withOpacity(0.35)))),
-      Positioned(top: size.height * 0.3, left: size.width * 0.2, child: Container(width: 300, height: 300, decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.pinkAccent.withOpacity(0.25)))),
-      Positioned.fill(child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100), child: Container(color: Colors.transparent))),
-    ]);
+    return Stack(
+      children: [
+        Container(color: Colors.black),
+        Positioned(
+          top: -150,
+          right: -100,
+          child: Container(
+            width: 400,
+            height: 400,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.deepPurpleAccent.withOpacity(0.5),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: -150,
+          left: -100,
+          child: Container(
+            width: 450,
+            height: 450,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.blueAccent.withOpacity(0.35),
+            ),
+          ),
+        ),
+        Positioned(
+          top: size.height * 0.3,
+          left: size.width * 0.2,
+          child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.pinkAccent.withOpacity(0.25),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
+            child: Container(color: Colors.transparent),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _settingsBody(double hPad) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 24),
-          Expanded(child: SettingsPage(vm: _vm)),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const SizedBox(height: 24),
+      Expanded(child: SettingsPage(vm: _vm)),
+    ],
+  );
 
-  Widget _calendarBody(double hPad, double pw, double ph, double mockupScale) => Column(
+  Widget _calendarBody(double hPad, double pw, double ph, double mockupScale) =>
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_vm.mode == CalendarMode.year) _topBar(hPad),
@@ -398,54 +548,287 @@ class _HomeScreenState extends State<HomeScreen>
     final sw = mq.size.width;
     final sh = mq.size.height;
 
-    final hPad = sw >= 900 ? 48.0 : sw >= 600 ? 32.0 : 20.0;
+    final hPad = sw >= 900
+        ? 48.0
+        : sw >= 600
+        ? 32.0
+        : 20.0;
     final pw = sw - hPad * 2;
-    
-    final deviceRatio = sh / sw;
-    final mockupScale = pw / sw; 
 
-    final ph = sw >= 700 
-        ? (pw * 0.55).clamp(240.0, sh * 0.5) 
-        : (pw * deviceRatio); 
+    final deviceRatio = sh / sw;
+    final mockupScale = pw / sw;
+
+    final ph = sw >= 700
+        ? (pw * 0.55).clamp(240.0, sh * 0.5)
+        : (pw * deviceRatio);
 
     final isSettings = _vm.mode == CalendarMode.settings;
-    final navSideInset = sw >= 900 ? sw * 0.3 : sw >= 600 ? sw * 0.2 : 80.0;
+    final navSideInset = sw >= 900
+        ? sw * 0.3
+        : sw >= 600
+        ? sw * 0.2
+        : 80.0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Stack(children: [
-          _buildBackground(context),
-          SafeArea(
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (isSettings)
-                  _settingsBody(hPad)
-                else
-                  SingleChildScrollView(
-                    physics: _isEditingScale ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(bottom: 120),
-                    child: _calendarBody(hPad, pw, ph, mockupScale),
+        body: Stack(
+          children: [
+            _buildBackground(context),
+            SafeArea(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (isSettings)
+                    _settingsBody(hPad)
+                  else
+                    SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.only(bottom: 120),
+                      child: _calendarBody(hPad, pw, ph, mockupScale),
+                    ),
+                  Positioned(
+                    left: navSideInset,
+                    right: (navSideInset + 18),
+                    bottom: 20,
+                    child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
                   ),
-                Positioned(
-                  left: navSideInset,
-                  right: (navSideInset + 18),
-                  bottom: 20,
-                  child: AnimatedOpacity(
-                    opacity: _isEditingScale ? 0.0 : 1.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: IgnorePointer(
-                      ignoring: _isEditingScale,
-                      child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ── FULL SCREEN WALLPAPER EDITOR ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+
+class FullScreenEditor extends StatefulWidget {
+  final HomeViewModel vm;
+  const FullScreenEditor({super.key, required this.vm});
+
+  @override
+  State<FullScreenEditor> createState() => _FullScreenEditorState();
+}
+
+class _FullScreenEditorState extends State<FullScreenEditor> {
+  double _baseScale = 1.0;
+  double _baseOffsetX = 0.0;
+  double _baseOffsetY = 0.0;
+  Offset _focalPoint = Offset.zero;
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = widget.vm;
+    final size = MediaQuery.of(context).size;
+    final now = DateTime.now();
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: AnimatedBuilder(
+        animation: vm,
+        builder: (context, child) {
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              // 1. Fullscreen Background
+              if (vm.bgImagePath.isNotEmpty)
+                Image.file(File(vm.bgImagePath), fit: BoxFit.cover)
+              else
+                Container(color: vm.bgColor),
+
+              // 2. Fullscreen Dots Painter
+              CustomPaint(
+                painter: DotGridPainter(vm.settings, repaint: vm),
+                child: const SizedBox.expand(),
+              ),
+
+              // 3. UI Overlay (True 1:1 Scale Clock & Status Bar)
+              Positioned(
+                top: 54,
+                left: 24,
+                right: 24,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      DateFormat('HH:mm').format(now),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Row(
+                      children: const [
+                        Icon(Icons.wifi, color: Colors.white, size: 16),
+                        SizedBox(width: 6),
+                        Icon(Icons.battery_full, color: Colors.white, size: 16),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              Align(
+                alignment: const Alignment(0, -0.60),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      DateFormat('EEEE').format(now),
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 22,
+                        fontFamily: 'Glass Antiqua',
+                      ),
+                    ),
+                    Text(
+                      DateFormat('H:mm').format(now),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 86,
+                        fontWeight: FontWeight.w300,
+                        letterSpacing: -2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 4. Immersive Gesture Detector
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onScaleStart: (details) {
+                  _baseScale = vm.gridScale;
+                  _baseOffsetX = vm.offsetX;
+                  _baseOffsetY = vm.offsetY;
+                  _focalPoint = details.localFocalPoint;
+                },
+                onScaleUpdate: (details) {
+                  vm.setGridScale((_baseScale * details.scale).clamp(0.2, 3.0));
+                  final dx =
+                      (details.localFocalPoint.dx - _focalPoint.dx) /
+                      size.width;
+                  final dy =
+                      (details.localFocalPoint.dy - _focalPoint.dy) /
+                      size.height;
+                  vm.setOffsets(_baseOffsetX + dx, _baseOffsetY + dy);
+                },
+              ),
+
+              // 5. Instruction HUD
+              Positioned(
+                top: 130,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                        ),
+                      ),
+                      child: Text(
+                        'Pinch to Zoom • Drag to Pan',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        ]),
+              ),
+
+              // 6. Reset Button (Bottom Left)
+              Positioned(
+                bottom: 40,
+                left: 24,
+                child: GestureDetector(
+                  onTap: () {
+                    vm.setGridScale(1.0);
+                    vm.setOffsets(0.0, 0.0);
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.4),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.refresh,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // 7. Done Button (Bottom Right)
+              Positioned(
+                bottom: 40,
+                right: 24,
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 18,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: const Text(
+                          'DONE',
+                          style: TextStyle(
+                            fontFamily: 'Glass Antiqua',
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
