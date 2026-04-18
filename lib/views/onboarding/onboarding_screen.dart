@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../home/home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -9,7 +10,6 @@ class OnboardingScreen extends StatefulWidget {
 
   static const String _onboardingKey = 'dotz_onboarding_complete';
 
-  /// Call this from main.dart to decide whether to show onboarding
   static Future<bool> shouldShow() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -25,7 +25,6 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen>
     with TickerProviderStateMixin {
-
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
@@ -56,11 +55,19 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   @override
   void initState() {
     super.initState();
-    _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _fadeCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
-    _slideCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
-    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _slideCtrl, curve: Curves.easeOut));
+    _slideCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _slideAnim = Tween<Offset>(
+      begin: const Offset(0, 0.08),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideCtrl, curve: Curves.easeOut));
     _fadeCtrl.forward();
     _slideCtrl.forward();
   }
@@ -86,28 +93,45 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   static const _pages = [
     _OnboardPage(
-      emoji: '⬤',
-      title: 'Every dot\nis a day.',
-      subtitle: 'Your year, your goals, your life — reduced to a grid of dots. Watch them fill, one day at a time.',
-      accent: Colors.white,
+      svgPath: 'assets/splash1.svg',
+      title: 'Reimagine life in\nYears.',
+      subtitle: 'Watch your year unfold, dot by dot. Every single day matters.',
     ),
     _OnboardPage(
-      emoji: '◉',
-      title: 'Three\ncalendars.',
-      subtitle: 'Track the year ahead. Count down to a goal. Or see your entire life in a single glance.',
-      accent: Colors.white,
+      svgPath: 'assets/splash3.svg',
+      title: 'Reimagine life in\nMonths.',
+      subtitle:
+          'Track your progress with a clean, beautifully organized 12-month grid layout.',
     ),
     _OnboardPage(
-      emoji: '◈',
-      title: 'Live on your\nlock screen.',
-      subtitle: 'Set it as a live wallpaper. Every unlock reminds you how much time is left — and how to use it.',
-      accent: Colors.white,
+      svgPath: 'assets/splash2.svg',
+      title: 'Set a\nGoal.',
+      subtitle:
+          'Count down to what matters most. See exactly how much time you have left.',
+    ),
+    _OnboardPage(
+      svgPath: 'assets/splash4.svg',
+      title: 'Reimagine your\nLife.',
+      subtitle:
+          'See your entire life in a single glance. Make every dot count.',
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
+    // ── Responsive breakpoints ───────────────────────────────────
+    // isTablet: width >= 600 (covers iPad mini, iPad, tablets)
+    // isLargePhone: width >= 390 (iPhone Pro Max, large Androids)
+    final double screenW = size.width;
+    final bool isTablet = screenW >= 600;
+    final bool isLargePhone = screenW >= 390 && !isTablet;
+
+    // Bottom padding for CTA button area
+    final double bottomPad = isTablet ? 56 : 36;
+    // Dots indicator bottom spacing
+    final double dotsBottomGap = isTablet ? 32 : 20;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -124,49 +148,17 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                 position: _slideAnim,
                 child: Column(
                   children: [
-                    const SizedBox(height: 24),
-
-                    // Top logo bar
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 32, height: 32,
-                            decoration: const BoxDecoration(
-                              color: Colors.white, shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Container(
-                                width: 12, height: 12,
-                                decoration: const BoxDecoration(
-                                  color: Colors.black, shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Text(
-                            'DotZ',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontStyle: FontStyle.italic,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
                     // Pages
                     Expanded(
                       child: PageView.builder(
                         controller: _pageController,
                         onPageChanged: (i) => setState(() => _currentPage = i),
                         itemCount: _pages.length,
-                        itemBuilder: (_, i) => _OnboardPageView(page: _pages[i]),
+                        itemBuilder: (_, i) => _OnboardPageView(
+                          page: _pages[i],
+                          isTablet: isTablet,
+                          isLargePhone: isLargePhone,
+                        ),
                       ),
                     ),
 
@@ -190,32 +182,39 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       }),
                     ),
 
-                    const SizedBox(height: 40),
+                    SizedBox(height: dotsBottomGap),
 
-                    // CTA Button
+                    // ── GLASS CTA BUTTON ─────────────────────────
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isTablet ? 80 : 24,
+                      ),
                       child: GestureDetector(
                         onTap: _nextPage,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(100),
                           child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                            filter: ImageFilter.blur(
+                              sigmaX: 18.0,
+                              sigmaY: 18.0,
+                            ),
                             child: Container(
                               width: double.infinity,
-                              height: 56,
+                              height: isTablet ? 64 : 56,
                               alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Colors.white.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(100),
+                               
                               ),
                               child: Text(
                                 _currentPage == _pages.length - 1
                                     ? 'GET STARTED'
                                     : 'NEXT',
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 11,
+                                style: TextStyle(
+                                  fontFamily: 'Glass Antiqua',
+                                  color: Colors.white,
+                                  fontSize: isTablet ? 16 : 14,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 2.5,
                                 ),
@@ -226,30 +225,42 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       ),
                     ),
 
-                    const SizedBox(height: 16),
-
-                    // Skip
-                    if (_currentPage < _pages.length - 1)
-                      GestureDetector(
-                        onTap: _complete,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text(
-                            'SKIP',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.35),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 2.5,
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      const SizedBox(height: 40),
-
-                    const SizedBox(height: 8),
+                    SizedBox(height: bottomPad),
                   ],
+                ),
+              ),
+            ),
+          ),
+
+          // ── SKIP BUTTON (Top Right) ──────────────────────────
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            right: 24,
+            child: AnimatedOpacity(
+              opacity: _currentPage < _pages.length - 1 ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 300),
+              child: GestureDetector(
+                onTap: () {
+                  if (_currentPage < _pages.length - 1) _complete();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'SKIP',
+                    style: TextStyle(
+                      fontFamily: 'Glass Antiqua',
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -262,94 +273,113 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
 // ── Data class for each onboard page ──────────────────────────────
 class _OnboardPage {
-  final String emoji;
+  final String svgPath;
   final String title;
   final String subtitle;
-  final Color accent;
 
   const _OnboardPage({
-    required this.emoji,
+    required this.svgPath,
     required this.title,
     required this.subtitle,
-    required this.accent,
   });
 }
 
 // ── Single page view ──────────────────────────────────────────────
 class _OnboardPageView extends StatelessWidget {
   final _OnboardPage page;
-  const _OnboardPageView({required this.page});
+  final bool isTablet;
+  final bool isLargePhone;
+
+  const _OnboardPageView({
+    required this.page,
+    required this.isTablet,
+    required this.isLargePhone,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final double screenH = MediaQuery.of(context).size.height;
+
+    // ── Responsive values ──────────────────────────────────────
+    // SVG size: tablet → 300, large phone → 240, small phone → 200
+    final double svgSize = isTablet
+        ? 300
+        : isLargePhone
+            ? 240
+            : 200;
+
+    // Gap between SVG and title text: tightened significantly
+    // Uses a fraction of screen height to stay proportional
+    final double svgToTextGap = isTablet
+        ? screenH * 0.06
+        : screenH * 0.04; // ~32–40px on most phones
+
+    // Title font size
+    final double titleSize = isTablet
+        ? 44
+        : isLargePhone
+            ? 36
+            : 30;
+
+    // Subtitle font size
+    final double subtitleSize = isTablet ? 17 : 15;
+
+    // Horizontal padding
+    final double hPad = isTablet ? 48 : 24;
+
+    // Vertical padding (top/bottom within the page area)
+    final double vPad = isTablet ? 24 : 12;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center, // ← centered
         children: [
-          // Giant emoji/symbol
-          ClipRRect(
-            borderRadius: BorderRadius.circular(32),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                width: 88, height: 88,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.15),
-                    width: 0.5,
-                  ),
-                ),
-                child: Text(
-                  page.emoji,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 36,
-                    height: 1,
-                  ),
-                ),
-              ),
+          // SVG — centered
+          Center(
+            child: SvgPicture.asset(
+              page.svgPath,
+              width: svgSize,
+              height: svgSize,
             ),
           ),
-          const SizedBox(height: 36),
 
-          // Title
+          SizedBox(height: svgToTextGap), // ← tightened gap
+
+          // Title — centered
           Text(
             page.title,
-            style: const TextStyle(
+            textAlign: TextAlign.center,
+            style: TextStyle(
               color: Colors.white,
-              fontSize: 46,
+              fontSize: titleSize,
               fontWeight: FontWeight.w300,
-              letterSpacing: -2,
+              letterSpacing: -1,
               height: 1.1,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // Subtitle inside glass card
+          // Subtitle inside glass card — centered text
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: Container(
-                padding: const EdgeInsets.all(20),
+                width: double.infinity,
+                padding: EdgeInsets.all(isTablet ? 24 : 18),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.07),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.12),
-                    width: 0.5,
-                  ),
+                 
                 ),
                 child: Text(
                   page.subtitle,
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.7),
-                    fontSize: 15,
+                    fontSize: subtitleSize,
                     height: 1.65,
                     letterSpacing: 0.1,
                   ),
@@ -374,9 +404,11 @@ class _OnboardBackground extends StatelessWidget {
       children: [
         Container(color: Colors.black),
         Positioned(
-          top: -120, right: -80,
+          top: -120,
+          right: -80,
           child: Container(
-            width: 360, height: 360,
+            width: 360,
+            height: 360,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.deepPurpleAccent.withOpacity(0.55),
@@ -384,9 +416,11 @@ class _OnboardBackground extends StatelessWidget {
           ),
         ),
         Positioned(
-          bottom: -120, left: -80,
+          bottom: -120,
+          left: -80,
           child: Container(
-            width: 400, height: 400,
+            width: 400,
+            height: 400,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.blueAccent.withOpacity(0.35),
@@ -394,9 +428,11 @@ class _OnboardBackground extends StatelessWidget {
           ),
         ),
         Positioned(
-          top: size.height * 0.4, left: size.width * 0.15,
+          top: size.height * 0.4,
+          left: size.width * 0.15,
           child: Container(
-            width: 280, height: 280,
+            width: 280,
+            height: 280,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.pinkAccent.withOpacity(0.2),
