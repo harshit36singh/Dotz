@@ -18,47 +18,39 @@ class SettingsPage extends StatelessWidget {
     final hp = w >= 900
         ? 48.0
         : w >= 600
-        ? 32.0
-        : 20.0;
+            ? 32.0
+            : 20.0;
 
-    // Calculate exact height to perfectly fit inside HomeScreen's SafeArea and 120px bottom padding.
-    // This stops the parent from scrolling and hands scroll control to this widget.
     final availableHeight = h - mq.padding.top - mq.padding.bottom - 120;
 
     return SizedBox(
       height: availableHeight,
       child: Column(
         children: [
-          // ── Fixed Top Card ──
+          // ── Fixed Top Header — text only, no icon ──
           Padding(
             padding: EdgeInsets.symmetric(horizontal: hp),
             child: _GlassContainer(
               blur: 14,
-              color: const Color(0x66000000),
+              color: const Color(0x55000000),
               borderRadius: 100,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
+                  horizontal: 24,
                   vertical: 14,
                 ),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const SizedBox(width: 8),
-                    Icon(
-                      CupertinoIcons.gear_alt_fill,
-                      color: Colors.white.withOpacity(0.8),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
+                    Text(
                       'Settings',
                       style: TextStyle(
-                        fontFamily: 'Glass Antiqua', // Font applied
-                        color: Colors.white,
-                        fontSize: 20,
+                        fontFamily: 'Glass Antiqua',
+                        color: Colors.white.withOpacity(0.92),
+                        fontSize: 19,
                         fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
                       ),
                     ),
                   ],
@@ -72,19 +64,16 @@ class SettingsPage extends StatelessWidget {
           // ── Scrollable Settings Body ──
           Expanded(
             child: SingleChildScrollView(
-              // ClampingScrollPhysics ensures it sits completely fixed if there is enough height,
-              // but allows standard scrolling if the screen is too small.
               physics: const ClampingScrollPhysics(),
               padding: EdgeInsets.fromLTRB(hp, 0, hp, 40),
               child: _GlassContainer(
                 blur: 18,
-                color: const Color(0x55000000),
-                borderRadius: 20,
+                color: const Color(0x44000000),
+                borderRadius: 22,
                 child: Column(
                   children: [
-                    _StaticSettingsSection(
-                      icon: CupertinoIcons.paintbrush,
-                      title: 'Dot Colours',
+                    _SettingsSection(
+                      label: 'Dot Colours',
                       child: ColorStrip(
                         pastColor: vm.pastColor,
                         todayColor: vm.todayColor,
@@ -96,28 +85,24 @@ class SettingsPage extends StatelessWidget {
                         onBgChanged: vm.setBgColor,
                       ),
                     ),
-                    _Divider(),
-                    _StaticSettingsSection(
-                      icon: CupertinoIcons.square_grid_3x2,
-                      title: 'Grid Density',
+                    _SectionDivider(),
+                    _SettingsSection(
+                      label: 'Grid Density',
                       child: _GridDensityContent(vm: vm),
                     ),
-                    _Divider(),
-                    _StaticSettingsSection(
-                      icon: CupertinoIcons.text_bubble,
-                      title: 'Wallpaper Label',
+                    _SectionDivider(),
+                    _SettingsSection(
+                      label: 'Wallpaper Label',
                       child: _LabelModeSection(vm: vm),
                     ),
-                    _Divider(),
-                    _StaticSettingsSection(
-                      icon: CupertinoIcons.square,
-                      title: 'Dot Shape',
+                    _SectionDivider(),
+                    _SettingsSection(
+                      label: 'Dot Shape',
                       child: _ShapeSelector(vm: vm),
                     ),
-                    _Divider(),
-                    _StaticSettingsSection(
-                      icon: CupertinoIcons.photo,
-                      title: 'Background Image',
+                    _SectionDivider(),
+                    _SettingsSection(
+                      label: 'Background Image',
                       isLast: true,
                       child: _BackgroundImageSection(vm: vm),
                     ),
@@ -132,16 +117,14 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
-// ── Static Settings Section (Replaced Expandable Tile) ─────────────
-class _StaticSettingsSection extends StatelessWidget {
-  final IconData icon;
-  final String title;
+// ── Settings Section ───────────────────────────────────────────────
+class _SettingsSection extends StatelessWidget {
+  final String label;
   final Widget child;
   final bool isLast;
 
-  const _StaticSettingsSection({
-    required this.icon,
-    required this.title,
+  const _SettingsSection({
+    required this.label,
     required this.child,
     this.isLast = false,
   });
@@ -152,28 +135,20 @@ class _StaticSettingsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-          child: Row(
-            children: [
-              Icon(icon, color: Colors.white, size: 20),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'Glass Antiqua', // Font applied
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ],
+          padding: const EdgeInsets.fromLTRB(20, 22, 20, 14),
+          child: Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontFamily: 'Glass Antiqua',
+              color: Colors.white.withOpacity(0.35),
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 2.2,
+            ),
           ),
         ),
         Padding(
-          padding: EdgeInsets.fromLTRB(20, 0, 20, isLast ? 24 : 16),
+          padding: EdgeInsets.fromLTRB(20, 0, 20, isLast ? 22 : 16),
           child: child,
         ),
       ],
@@ -181,12 +156,15 @@ class _StaticSettingsSection extends StatelessWidget {
   }
 }
 
-class _Divider extends StatelessWidget {
+class _SectionDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Container(height: 1, color: Colors.white.withOpacity(0.05)),
-  );
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          height: 0.5,
+          color: Colors.white.withOpacity(0.06),
+        ),
+      );
 }
 
 // ── Grid Density ───────────────────────────────────────────────────
@@ -204,14 +182,14 @@ class _GridDensityContent extends StatelessWidget {
           style: const TextStyle(
             fontFamily: 'Glass Antiqua',
             color: Colors.white,
-            fontSize: 48,
+            fontSize: 46,
             fontStyle: FontStyle.italic,
             fontWeight: FontWeight.w900,
             height: 1,
             letterSpacing: -2,
           ),
         ),
-        const SizedBox(width: 14),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,8 +198,8 @@ class _GridDensityContent extends StatelessWidget {
                 'columns',
                 style: TextStyle(
                   fontFamily: 'Glass Antiqua',
-                  color: Colors.white.withOpacity(0.35),
-                  fontSize: 10,
+                  color: Colors.white.withOpacity(0.28),
+                  fontSize: 9,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 2,
                 ),
@@ -230,13 +208,12 @@ class _GridDensityContent extends StatelessWidget {
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
                   activeTrackColor: Colors.white,
-                  inactiveTrackColor: Colors.white.withOpacity(0.1),
+                  inactiveTrackColor: Colors.white.withOpacity(0.08),
                   thumbColor: Colors.white,
-                  overlayColor: Colors.white.withOpacity(0.06),
+                  overlayColor: Colors.white.withOpacity(0.04),
                   trackHeight: 1,
-                  thumbShape: const RoundSliderThumbShape(
-                    enabledThumbRadius: 5,
-                  ),
+                  thumbShape:
+                      const RoundSliderThumbShape(enabledThumbRadius: 4.5),
                 ),
                 child: Slider(
                   value: vm.columns.toDouble(),
@@ -272,18 +249,15 @@ class _LabelModeSection extends StatelessWidget {
             'No label will appear on the wallpaper.',
             style: TextStyle(
               fontFamily: 'Glass Antiqua',
-              color: Colors.white.withOpacity(0.4),
+              color: Colors.white.withOpacity(0.35),
               fontSize: 12,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
               height: 1.6,
             ),
           ),
 
         if (vm.labelMode == LabelMode.progress)
-          _PreviewRow(
-            icon: CupertinoIcons.chart_bar,
-            text: vm.settings.progressLabel,
-          ),
+          _PreviewRow(text: vm.settings.progressLabel),
 
         if (vm.labelMode == LabelMode.custom) ...[
           _CustomLabelInput(vm: vm),
@@ -295,11 +269,11 @@ class _LabelModeSection extends StatelessWidget {
             Row(
               children: [
                 SizedBox(
-                  width: 13,
-                  height: 13,
+                  width: 12,
+                  height: 12,
                   child: CircularProgressIndicator(
-                    strokeWidth: 1.5,
-                    color: Colors.white.withOpacity(0.5),
+                    strokeWidth: 1.2,
+                    color: Colors.white.withOpacity(0.4),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -307,7 +281,7 @@ class _LabelModeSection extends StatelessWidget {
                   'Fetching quote…',
                   style: TextStyle(
                     fontFamily: 'Glass Antiqua',
-                    color: Colors.white.withOpacity(0.4),
+                    color: Colors.white.withOpacity(0.35),
                     fontSize: 12,
                   ),
                 ),
@@ -321,7 +295,7 @@ class _LabelModeSection extends StatelessWidget {
                     'Could not load quote.',
                     style: TextStyle(
                       fontFamily: 'Glass Antiqua',
-                      color: Colors.white.withOpacity(0.4),
+                      color: Colors.white.withOpacity(0.35),
                       fontSize: 12,
                     ),
                   ),
@@ -330,10 +304,9 @@ class _LabelModeSection extends StatelessWidget {
               ],
             )
           else if (vm.quoteText.isNotEmpty) ...[
-            // ── Glass quote box ──
             _GlassContainer(
               blur: 8,
-              color: const Color(0x33000000),
+              color: const Color(0x28000000),
               borderRadius: 12,
               child: Padding(
                 padding: const EdgeInsets.all(14),
@@ -347,7 +320,7 @@ class _LabelModeSection extends StatelessWidget {
                         color: vm.labelColor,
                         fontSize: 13,
                         fontStyle: FontStyle.italic,
-                        height: 1.6,
+                        height: 1.65,
                       ),
                     ),
                     if (vm.quoteAuthor.isNotEmpty) ...[
@@ -356,9 +329,9 @@ class _LabelModeSection extends StatelessWidget {
                         '— ${vm.quoteAuthor}',
                         style: TextStyle(
                           fontFamily: 'Glass Antiqua',
-                          color: vm.labelColor.withOpacity(0.5),
+                          color: vm.labelColor.withOpacity(0.45),
                           fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -367,28 +340,18 @@ class _LabelModeSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
+            // Minimal refresh row — no icon, just a subtle label
             GestureDetector(
               onTap: vm.fetchQuote,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    CupertinoIcons.arrow_clockwise,
-                    color: Colors.white.withOpacity(0.3),
-                    size: 11,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'REFRESH',
-                    style: TextStyle(
-                      fontFamily: 'Glass Antiqua',
-                      color: Colors.white.withOpacity(0.3),
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                ],
+              child: Text(
+                '↻  REFRESH',
+                style: TextStyle(
+                  fontFamily: 'Glass Antiqua',
+                  color: Colors.white.withOpacity(0.25),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -429,62 +392,66 @@ class _CustomLabelInputState extends State<_CustomLabelInput> {
 
   @override
   Widget build(BuildContext context) => _GlassContainer(
-    blur: 8,
-    color: const Color(0x33000000),
-    borderRadius: 12,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
-        children: [
-          Icon(
-            CupertinoIcons.pencil,
-            color: Colors.white.withOpacity(0.25),
-            size: 13,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: TextField(
-              controller: _ctrl,
-              style: TextStyle(
-                fontFamily: 'Glass Antiqua',
-                color: widget.vm.labelColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+        blur: 8,
+        color: const Color(0x28000000),
+        borderRadius: 12,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            children: [
+              // Minimal thin pencil line — no icon widget
+              Container(
+                width: 1,
+                height: 16,
+                color: Colors.white.withOpacity(0.15),
               ),
-              decoration: InputDecoration(
-                hintText: 'Type your label…',
-                hintStyle: TextStyle(
-                  fontFamily: 'Glass Antiqua',
-                  color: Colors.white.withOpacity(0.2),
-                  fontSize: 14,
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _ctrl,
+                  style: TextStyle(
+                    fontFamily: 'Glass Antiqua',
+                    color: widget.vm.labelColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Type your label…',
+                    hintStyle: TextStyle(
+                      fontFamily: 'Glass Antiqua',
+                      color: Colors.white.withOpacity(0.18),
+                      fontSize: 14,
+                    ),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  onChanged: (v) {
+                    widget.vm.setCustomLabelText(v);
+                    setState(() {});
+                  },
                 ),
-                border: InputBorder.none,
-                isDense: true,
-                contentPadding: EdgeInsets.zero,
               ),
-              onChanged: (v) {
-                widget.vm.setCustomLabelText(v);
-                setState(() {});
-              },
-            ),
+              if (_ctrl.text.isNotEmpty)
+                GestureDetector(
+                  onTap: () {
+                    _ctrl.clear();
+                    widget.vm.setCustomLabelText('');
+                    setState(() {});
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Icon(
+                      Icons.close_rounded,
+                      color: Colors.white.withOpacity(0.18),
+                      size: 14,
+                    ),
+                  ),
+                ),
+            ],
           ),
-          if (_ctrl.text.isNotEmpty)
-            GestureDetector(
-              onTap: () {
-                _ctrl.clear();
-                widget.vm.setCustomLabelText('');
-                setState(() {});
-              },
-              child: Icon(
-                CupertinoIcons.xmark_circle_fill,
-                color: Colors.white.withOpacity(0.2),
-                size: 15,
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 // ── Label Appearance Controls ──────────────────────────────────────
@@ -493,15 +460,15 @@ class _LabelAppearanceControls extends StatelessWidget {
   const _LabelAppearanceControls({required this.vm});
 
   void _pickColor(BuildContext ctx) => showModalBottomSheet(
-    context: ctx,
-    backgroundColor: Colors.transparent,
-    isScrollControlled: true,
-    builder: (_) => ColorPickerSheet(
-      label: 'Label',
-      current: vm.labelColor,
-      onPick: vm.setLabelColor,
-    ),
-  );
+        context: ctx,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        builder: (_) => ColorPickerSheet(
+          label: 'Label',
+          current: vm.labelColor,
+          onPick: vm.setLabelColor,
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -509,19 +476,20 @@ class _LabelAppearanceControls extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Colour row
         GestureDetector(
           onTap: () => _pickColor(context),
           child: Row(
             children: [
               Container(
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
                 decoration: BoxDecoration(
                   color: vm.labelColor,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 1.5,
+                    color: Colors.white.withOpacity(0.15),
+                    width: 1.2,
                   ),
                 ),
               ),
@@ -530,35 +498,33 @@ class _LabelAppearanceControls extends StatelessWidget {
                 'LABEL COLOUR',
                 style: TextStyle(
                   fontFamily: 'Glass Antiqua',
-                  color: Colors.white.withOpacity(0.45),
+                  color: Colors.white.withOpacity(0.38),
                   fontSize: 9,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 2,
                 ),
               ),
               const Spacer(),
-              Icon(
-                CupertinoIcons.chevron_right,
-                color: Colors.white.withOpacity(0.2),
-                size: 10,
+              Text(
+                '›',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.18),
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 18),
+
+        // Size row
         Row(
           children: [
-            Icon(
-              CupertinoIcons.textformat_size,
-              color: Colors.white.withOpacity(0.35),
-              size: 13,
-            ),
-            const SizedBox(width: 8),
             Text(
               'LABEL SIZE',
               style: TextStyle(
                 fontFamily: 'Glass Antiqua',
-                color: Colors.white.withOpacity(0.45),
+                color: Colors.white.withOpacity(0.38),
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 2,
@@ -569,18 +535,17 @@ class _LabelAppearanceControls extends StatelessWidget {
               onTap: () => vm.setLabelFontSize(isAuto ? 12.0 : 0.0),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: isAuto
-                      ? Colors.white.withOpacity(0.1)
+                      ? Colors.white.withOpacity(0.08)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withOpacity(isAuto ? 0.2 : 0.08),
-                    width: 1,
+                    color: Colors.white
+                        .withOpacity(isAuto ? 0.18 : 0.07),
+                    width: 0.8,
                   ),
                 ),
                 child: Text(
@@ -588,8 +553,8 @@ class _LabelAppearanceControls extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: 'Glass Antiqua',
                     color: isAuto
-                        ? Colors.white
-                        : Colors.white.withOpacity(0.45),
+                        ? Colors.white.withOpacity(0.85)
+                        : Colors.white.withOpacity(0.38),
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.5,
@@ -599,6 +564,7 @@ class _LabelAppearanceControls extends StatelessWidget {
             ),
           ],
         ),
+
         if (!isAuto) ...[
           const SizedBox(height: 10),
           Row(
@@ -607,7 +573,7 @@ class _LabelAppearanceControls extends StatelessWidget {
                 'A',
                 style: TextStyle(
                   fontFamily: 'Glass Antiqua',
-                  color: Colors.white.withOpacity(0.25),
+                  color: Colors.white.withOpacity(0.2),
                   fontSize: 10,
                 ),
               ),
@@ -615,13 +581,12 @@ class _LabelAppearanceControls extends StatelessWidget {
                 child: SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     activeTrackColor: Colors.white,
-                    inactiveTrackColor: Colors.white.withOpacity(0.1),
+                    inactiveTrackColor: Colors.white.withOpacity(0.08),
                     thumbColor: Colors.white,
-                    overlayColor: Colors.white.withOpacity(0.06),
+                    overlayColor: Colors.white.withOpacity(0.04),
                     trackHeight: 1,
-                    thumbShape: const RoundSliderThumbShape(
-                      enabledThumbRadius: 5,
-                    ),
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 4.5),
                   ),
                   child: Slider(
                     value: vm.labelFontSize.clamp(8.0, 32.0),
@@ -636,7 +601,7 @@ class _LabelAppearanceControls extends StatelessWidget {
                 'A',
                 style: TextStyle(
                   fontFamily: 'Glass Antiqua',
-                  color: Colors.white.withOpacity(0.25),
+                  color: Colors.white.withOpacity(0.2),
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
@@ -644,14 +609,14 @@ class _LabelAppearanceControls extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          // ── Glass label preview box ──
           _GlassContainer(
             blur: 8,
-            color: const Color(0x33000000),
+            color: const Color(0x28000000),
             borderRadius: 10,
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Text(
                 vm.resolvedLabel.isEmpty ? 'Label preview' : vm.resolvedLabel,
                 textAlign: TextAlign.center,
@@ -681,24 +646,24 @@ class _FourWayToggle extends StatelessWidget {
   const _FourWayToggle({required this.selected, required this.onChanged});
 
   static const _options = [
-    (LabelMode.off, 'OFF', CupertinoIcons.xmark),
-    (LabelMode.progress, 'PROGRESS', CupertinoIcons.chart_bar_square),
-    (LabelMode.quote, 'QUOTE', CupertinoIcons.quote_bubble),
-    (LabelMode.custom, 'CUSTOM', CupertinoIcons.pencil),
+    (LabelMode.off, 'OFF'),
+    (LabelMode.progress, 'PROGRESS'),
+    (LabelMode.quote, 'QUOTE'),
+    (LabelMode.custom, 'CUSTOM'),
   ];
 
   @override
   Widget build(BuildContext context) {
     return _GlassContainer(
       blur: 8,
-      color: const Color(0x44000000),
+      color: const Color(0x38000000),
       borderRadius: 10,
       child: SizedBox(
-        height: 40,
+        height: 36,
         child: Row(
           children: _options.asMap().entries.map((e) {
             final idx = e.key;
-            final (mode, label, icon) = e.value;
+            final (mode, label) = e.value;
             final active = selected == mode;
             final isFirst = idx == 0;
             final isLast = idx == _options.length - 1;
@@ -710,36 +675,30 @@ class _FourWayToggle extends StatelessWidget {
                   duration: const Duration(milliseconds: 180),
                   margin: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: active ? Colors.white : Colors.transparent,
+                    color: active
+                        ? Colors.white.withOpacity(0.92)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.horizontal(
-                      left: isFirst ? const Radius.circular(7) : Radius.zero,
-                      right: isLast ? const Radius.circular(7) : Radius.zero,
+                      left: isFirst
+                          ? const Radius.circular(7)
+                          : Radius.zero,
+                      right:
+                          isLast ? const Radius.circular(7) : Radius.zero,
                     ),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        icon,
-                        size: 10,
+                  child: Center(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontFamily: 'Glass Antiqua',
                         color: active
-                            ? Colors.black
-                            : Colors.white.withOpacity(0.3),
+                            ? Colors.black.withOpacity(0.85)
+                            : Colors.white.withOpacity(0.28),
+                        fontSize: 7,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontFamily: 'Glass Antiqua',
-                          color: active
-                              ? Colors.black
-                              : Colors.white.withOpacity(0.3),
-                          fontSize: 7,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -753,29 +712,20 @@ class _FourWayToggle extends StatelessWidget {
 
 // ── Preview Row ────────────────────────────────────────────────────
 class _PreviewRow extends StatelessWidget {
-  final IconData icon;
   final String text;
-  const _PreviewRow({required this.icon, required this.text});
+  const _PreviewRow({required this.text});
 
   @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icon, color: Colors.white.withOpacity(0.3), size: 12),
-      const SizedBox(width: 8),
-      Flexible(
-        child: Text(
-          text,
-          style: TextStyle(
-            fontFamily: 'Glass Antiqua',
-            color: Colors.white.withOpacity(0.55),
-            fontSize: 12,
-            fontWeight: FontWeight.w400,
-          ),
+  Widget build(BuildContext context) => Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Glass Antiqua',
+          color: Colors.white.withOpacity(0.45),
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          height: 1.5,
         ),
-      ),
-    ],
-  );
+      );
 }
 
 // ── Minimal Button ─────────────────────────────────────────────────
@@ -786,32 +736,38 @@ class _MinimalButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontFamily: 'Glass Antiqua',
-          color: Colors.white,
-          fontSize: 9,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 2,
+        onTap: onTap,
+        child: Container(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.white.withOpacity(0.12),
+              width: 0.8,
+            ),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontFamily: 'Glass Antiqua',
+              color: Colors.white,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 2,
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }
 
 // ── Hairline ───────────────────────────────────────────────────────
 class _HairLine extends StatelessWidget {
   @override
-  Widget build(BuildContext context) =>
-      Container(height: 0.5, color: Colors.white.withOpacity(0.07));
+  Widget build(BuildContext context) => Container(
+        height: 0.5,
+        color: Colors.white.withOpacity(0.06),
+      );
 }
 
 // ── Background Image Section ───────────────────────────────────────
@@ -831,9 +787,9 @@ class _BackgroundImageSection extends StatelessWidget {
             'Custom image selected',
             style: TextStyle(
               fontFamily: 'Glass Antiqua',
-              color: Colors.white.withOpacity(0.45),
+              color: Colors.white.withOpacity(0.35),
               fontSize: 10,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               letterSpacing: 1.5,
             ),
           ),
@@ -841,59 +797,51 @@ class _BackgroundImageSection extends StatelessWidget {
         ],
         Row(
           children: [
-            // ── Pick image — glass button ──
             Expanded(
               child: _GlassContainer(
                 blur: 10,
-                color: const Color(0x44FFFFFF),
+                color: const Color(0x33FFFFFF),
                 borderRadius: 10,
                 child: GestureDetector(
                   onTap: vm.pickBackgroundImage,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          hasImage
-                              ? CupertinoIcons.arrow_2_circlepath
-                              : CupertinoIcons.photo_on_rectangle,
-                          color: Colors.white,
-                          size: 16,
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    child: Center(
+                      child: Text(
+                        hasImage ? 'CHANGE IMAGE' : 'CHOOSE FROM GALLERY',
+                        style: TextStyle(
+                          fontFamily: 'Glass Antiqua',
+                          color: Colors.white.withOpacity(0.85),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          hasImage ? 'CHANGE IMAGE' : 'CHOOSE FROM GALLERY',
-                          style: const TextStyle(
-                            fontFamily: 'Glass Antiqua',
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-
-            // ── Clear image — red glass button ──
             if (hasImage) ...[
               const SizedBox(width: 10),
               _GlassContainer(
                 blur: 10,
-                color: const Color(0x55FF3B30),
+                color: const Color(0x44FF3B30),
                 borderRadius: 10,
                 child: GestureDetector(
                   onTap: vm.clearBackgroundImage,
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    child: Icon(
-                      CupertinoIcons.trash,
-                      color: Colors.white,
-                      size: 16,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 13, horizontal: 18),
+                    child: Text(
+                      'REMOVE',
+                      style: TextStyle(
+                        fontFamily: 'Glass Antiqua',
+                        color: Colors.white.withOpacity(0.75),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -906,7 +854,7 @@ class _BackgroundImageSection extends StatelessWidget {
   }
 }
 
-// ── Native Glass Container Helper ──────────────────────────────────
+// ── Glass Container Helper ─────────────────────────────────────────
 class _GlassContainer extends StatelessWidget {
   final Widget child;
   final double blur;
@@ -938,32 +886,29 @@ class _GlassContainer extends StatelessWidget {
   }
 }
 
+// ── Shape Selector ─────────────────────────────────────────────────
 class _ShapeSelector extends StatelessWidget {
   final HomeViewModel vm;
   const _ShapeSelector({required this.vm});
 
   static const _options = [
-    (DotShape.circle, 'CIRCLE', CupertinoIcons.circle_fill),
-    (DotShape.square, 'SQUARE', CupertinoIcons.square_fill),
-    (DotShape.star, 'STAR', CupertinoIcons.star_fill),
-    (
-      DotShape.glass,
-      'GLASS',
-      CupertinoIcons.drop_fill,
-    ), // Using a drop icon for "glass"
+    (DotShape.circle, 'CIRCLE'),
+    (DotShape.square, 'SQUARE'),
+    (DotShape.star, 'STAR'),
+    (DotShape.glass, 'GLASS'),
   ];
 
   @override
   Widget build(BuildContext context) {
     return _GlassContainer(
       blur: 8,
-      color: const Color(0x44000000),
+      color: const Color(0x38000000),
       borderRadius: 10,
       child: SizedBox(
-        height: 50, // Slightly taller for shape icons
+        height: 40,
         child: Row(
           children: _options.map((e) {
-            final (shape, label, icon) = e;
+            final (shape, label) = e;
             final active = vm.dotShape == shape;
             final isFirst = e == _options.first;
             final isLast = e == _options.last;
@@ -975,36 +920,30 @@ class _ShapeSelector extends StatelessWidget {
                   duration: const Duration(milliseconds: 180),
                   margin: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: active ? Colors.white : Colors.transparent,
+                    color: active
+                        ? Colors.white.withOpacity(0.92)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.horizontal(
-                      left: isFirst ? const Radius.circular(7) : Radius.zero,
-                      right: isLast ? const Radius.circular(7) : Radius.zero,
+                      left: isFirst
+                          ? const Radius.circular(7)
+                          : Radius.zero,
+                      right:
+                          isLast ? const Radius.circular(7) : Radius.zero,
                     ),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        icon,
-                        size: 14,
+                  child: Center(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        fontFamily: 'Glass Antiqua',
                         color: active
-                            ? Colors.black
-                            : Colors.white.withOpacity(0.3),
+                            ? Colors.black.withOpacity(0.85)
+                            : Colors.white.withOpacity(0.28),
+                        fontSize: 8,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          fontFamily: 'Glass Antiqua',
-                          color: active
-                              ? Colors.black
-                              : Colors.white.withOpacity(0.3),
-                          fontSize: 8,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
