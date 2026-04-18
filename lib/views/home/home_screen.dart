@@ -164,6 +164,10 @@ class _HomeScreenState extends State<HomeScreen>
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.15),
             borderRadius: BorderRadius.circular(100),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1.0,
+            ),
           ),
           child: GestureDetector(
             onTap: _vm.saving ? null : _apply,
@@ -232,8 +236,9 @@ class _HomeScreenState extends State<HomeScreen>
   );
 
   Widget _modeSetup(double hPad) {
-    if (_vm.mode == CalendarMode.year || _vm.mode == CalendarMode.settings)
+    if (_vm.mode == CalendarMode.year || _vm.mode == CalendarMode.settings) {
       return const SizedBox.shrink();
+    }
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: hPad),
       child: _vm.mode == CalendarMode.goal
@@ -250,200 +255,211 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: hPad),
-      child: FadeTransition(
-        opacity: _af,
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0x22FFFFFF),
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(32 * mockupScale),
-            child: SizedBox(
-              width: double.infinity,
-              height: ph,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // 1. Background
-                  if (bgImage.isNotEmpty)
-                    Image.file(File(bgImage), fit: BoxFit.cover)
-                  else
-                    Container(color: bgColor),
+      child: Center(
+        child: FadeTransition(
+          opacity: _af,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: const Color(0x22FFFFFF),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(32 * mockupScale),
+              child: SizedBox(
+                width: pw,
+                height: ph,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // 1. Background
+                    if (bgImage.isNotEmpty)
+                      Image.file(File(bgImage), fit: BoxFit.cover)
+                    else
+                      Container(color: bgColor),
 
-                  // 2. Dots Painter Layer
-                  CustomPaint(
-                    painter: DotGridPainter(_vm.settings, repaint: _vm),
-                    child: const SizedBox.expand(),
-                  ),
-
-                  // 3. Status Bar Simulation
-                  Positioned(
-                    top: 24 * mockupScale,
-                    left: 24 * mockupScale,
-                    right: 24 * mockupScale,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          DateFormat('HH:mm').format(now),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14 * mockupScale,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.wifi,
-                              color: Colors.white,
-                              size: 14 * mockupScale,
-                            ),
-                            SizedBox(width: 6 * mockupScale),
-                            Icon(
-                              Icons.battery_full,
-                              color: Colors.white,
-                              size: 14 * mockupScale,
-                            ),
-                          ],
-                        ),
-                      ],
+                    // 2. Dots Painter Layer
+                    CustomPaint(
+                      painter: DotGridPainter(_vm.settings, repaint: _vm),
+                      child: const SizedBox.expand(),
                     ),
-                  ),
 
-                  // 4. Center Clock
-                  Align(
-                    alignment: const Alignment(0, -0.60),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          DateFormat('EEEE').format(now),
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 20 * mockupScale,
-                            fontFamily: 'Glass Antiqua',
-                          ),
-                        ),
-                        Text(
-                          DateFormat('H:mm').format(now),
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 80 * mockupScale,
-                            fontWeight: FontWeight.w300,
-                            letterSpacing: -2 * mockupScale,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // 5. Progress Label
-                  if (_vm.showLabel)
+                    // 3. Status Bar Simulation
                     Positioned(
-                      bottom: 100 * mockupScale,
-                      left: 20,
-                      right: 20,
-                      child: Text(
-                        _vm.resolvedLabel,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: _vm.labelColor,
-                          fontSize: _vm.labelFontSize == 0
-                              ? 14 * mockupScale
-                              : (_vm.labelFontSize * 0.8) * mockupScale,
-                          fontFamily: 'Glass Antiqua',
-                          shadows: const [
-                            Shadow(blurRadius: 4, color: Colors.black45),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                  // 6. Gesture Navigation Pill
-                  Positioned(
-                    bottom: 12 * mockupScale,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Container(
-                        width: 120 * mockupScale,
-                        height: 5 * mockupScale,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.8),
-                          borderRadius: BorderRadius.circular(4 * mockupScale),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // ── Edit Grid Size Button ──
-                  // Tapping this pushes the immersive Full-Screen Editor!
-                  Positioned(
-                    top: 16 * mockupScale,
-                    right: 16 * mockupScale,
-                    child: GestureDetector(
-                      onTap: () {
-                        // Open the FullScreen Editor Route
-                        Navigator.of(context).push(
-                          PageRouteBuilder(
-                            opaque: false,
-                            transitionDuration: const Duration(
-                              milliseconds: 300,
+                      top: 24 * mockupScale,
+                      left: 24 * mockupScale,
+                      right: 24 * mockupScale,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            DateFormat('HH:mm').format(now),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14 * mockupScale,
+                              fontWeight: FontWeight.w600,
                             ),
-                            pageBuilder: (_, __, ___) =>
-                                FullScreenEditor(vm: _vm),
-                            transitionsBuilder: (_, anim, __, child) =>
-                                FadeTransition(opacity: anim, child: child),
                           ),
-                        );
-                      },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(100),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 14 * mockupScale,
-                              vertical: 8 * mockupScale,
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.wifi,
+                                color: Colors.white,
+                                size: 14 * mockupScale,
+                              ),
+                              SizedBox(width: 6 * mockupScale),
+                              Icon(
+                                Icons.battery_full,
+                                color: Colors.white,
+                                size: 14 * mockupScale,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // 4. Center Clock
+                    Align(
+                      alignment: const Alignment(0, -0.60),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            DateFormat('EEEE').format(now),
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 20 * mockupScale,
+                              fontFamily: 'Glass Antiqua',
                             ),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.4),
-                              borderRadius: BorderRadius.circular(100),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
-                                width: 1,
+                          ),
+                          Text(
+                            DateFormat('H:mm').format(now),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 80 * mockupScale,
+                              fontWeight: FontWeight.w300,
+                              letterSpacing: -2 * mockupScale,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // 5. Progress Label
+                    if (_vm.showLabel)
+                      Positioned(
+                        bottom: 100 * mockupScale,
+                        left: 20,
+                        right: 20,
+                        child: Text(
+                          _vm.resolvedLabel,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: _vm.labelColor,
+                            fontSize: _vm.labelFontSize == 0
+                                ? 14 * mockupScale
+                                : (_vm.labelFontSize * 0.8) * mockupScale,
+                            fontFamily: 'Glass Antiqua',
+                            shadows: const [
+                              Shadow(blurRadius: 4, color: Colors.black45),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                    // 6. Bottom Lockscreen Icons
+                    Positioned(
+                      bottom: 40 * mockupScale,
+                      left: 30 * mockupScale,
+                      right: 30 * mockupScale,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _lockScreenIcon(Icons.assistant, mockupScale),
+                          _lockScreenIcon(Icons.camera_alt, mockupScale),
+                        ],
+                      ),
+                    ),
+
+                    // 7. Gesture Navigation Pill
+                    Positioned(
+                      bottom: 12 * mockupScale,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: Container(
+                          width: 120 * mockupScale,
+                          height: 5 * mockupScale,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(4 * mockupScale),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // ── Edit Grid Size Button ──
+                    Positioned(
+                      top: 16 * mockupScale,
+                      right: 16 * mockupScale,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            PageRouteBuilder(
+                              opaque: false,
+                              transitionDuration: const Duration(milliseconds: 300),
+                              pageBuilder: (_, __, ___) => FullScreenEditor(vm: _vm),
+                              transitionsBuilder: (_, anim, __, child) =>
+                                  FadeTransition(opacity: anim, child: child),
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(100),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 14 * mockupScale,
+                                vertical: 8 * mockupScale,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.4),
+                                borderRadius: BorderRadius.circular(100),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.zoom_out_map,
+                                    color: Colors.white,
+                                    size: 16 * mockupScale,
+                                  ),
+                                  SizedBox(width: 6 * mockupScale),
+                                  Text(
+                                    'EDIT',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10 * mockupScale,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 1.0,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.zoom_out_map,
-                                  color: Colors.white,
-                                  size: 16 * mockupScale,
-                                ),
-                                SizedBox(width: 6 * mockupScale),
-                                Text(
-                                  'EDIT',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10 * mockupScale,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 1.0,
-                                  ),
-                                ),
-                              ],
-                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -451,6 +467,15 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
+
+  Widget _lockScreenIcon(IconData icon, double scale) => Container(
+    padding: EdgeInsets.all(12 * scale),
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: Colors.black.withOpacity(0.3),
+    ),
+    child: Icon(icon, color: Colors.white, size: 24 * scale),
+  );
 
   Widget _buildBackground(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -548,26 +573,18 @@ class _HomeScreenState extends State<HomeScreen>
     final sw = mq.size.width;
     final sh = mq.size.height;
 
-    final hPad = sw >= 900
-        ? 48.0
-        : sw >= 600
-        ? 32.0
-        : 20.0;
-    final pw = sw - hPad * 2;
+    final hPad = sw >= 900 ? 48.0 : sw >= 600 ? 32.0 : 20.0;
+    
+    // ── HALVED PREVIEW MATH ──
+    final pw = (sw * 0.50).clamp(160.0, 400.0);
 
     final deviceRatio = sh / sw;
     final mockupScale = pw / sw;
 
-    final ph = sw >= 700
-        ? (pw * 0.55).clamp(240.0, sh * 0.5)
-        : (pw * deviceRatio);
+    final ph = pw * deviceRatio;
 
     final isSettings = _vm.mode == CalendarMode.settings;
-    final navSideInset = sw >= 900
-        ? sw * 0.3
-        : sw >= 600
-        ? sw * 0.2
-        : 80.0;
+    final navSideInset = sw >= 900 ? sw * 0.3 : sw >= 600 ? sw * 0.2 : 80.0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -701,7 +718,7 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                 ),
               ),
 
-              // 4. Immersive Gesture Detector
+              // 4. Immersive Gesture Detector (Pan & Zoom)
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onScaleStart: (details) {
@@ -712,12 +729,8 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                 },
                 onScaleUpdate: (details) {
                   vm.setGridScale((_baseScale * details.scale).clamp(0.2, 3.0));
-                  final dx =
-                      (details.localFocalPoint.dx - _focalPoint.dx) /
-                      size.width;
-                  final dy =
-                      (details.localFocalPoint.dy - _focalPoint.dy) /
-                      size.height;
+                  final dx = (details.localFocalPoint.dx - _focalPoint.dx) / size.width;
+                  final dy = (details.localFocalPoint.dy - _focalPoint.dy) / size.height;
                   vm.setOffsets(_baseOffsetX + dx, _baseOffsetY + dy);
                 },
               ),
