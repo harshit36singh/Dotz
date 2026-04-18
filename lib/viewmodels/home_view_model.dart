@@ -16,13 +16,33 @@ enum LabelMode { off, progress, quote, custom }
 
 class HomeViewModel extends ChangeNotifier {
   static const _channel = MethodChannel('com.example.dotz/wallpaper');
-
+  
+  // ── Grid Scale ────────────────────────────────────────────────
+  double _gridScale = 1.0;
+  double get gridScale => _gridScale;
+  void setGridScale(double scale) {
+    _gridScale = scale;
+    notifyListeners();
+  }
+  double _offsetX = 0.0;
+  double _offsetY = 0.0;
+  double get offsetX => _offsetX;
+  double get offsetY => _offsetY;
+  
+  void setOffsets(double x, double y) {
+    _offsetX = x.clamp(-1.0, 1.0); // Prevent dragging completely off-screen
+    _offsetY = y.clamp(-1.0, 1.0);
+    notifyListeners();
+  }
+  
+  // ── Dot Shape ─────────────────────────────────────────────────
   DotShape _dotShape = DotShape.circle;
   DotShape get dotShape => _dotShape;
   void setDotShape(DotShape s) {
     _dotShape = s;
     notifyListeners(); // Updates the UI instantly
   }
+  
   // ── Mode ──────────────────────────────────────────────────────
   CalendarMode _mode = CalendarMode.year;
   CalendarMode get mode => _mode;
@@ -278,7 +298,10 @@ class HomeViewModel extends ChangeNotifier {
     birthDate:           _birthDate,
     lifeExpectancyYears: _lifeExp,
     bgImagePath:         _bgImagePath, 
-    shape:               _dotShape
+    shape:               _dotShape,
+    gridScale:           _gridScale,
+    offsetX:             _offsetX, 
+    offsetY:             _offsetY,
   );
 
   // ── Hero display values ───────────────────────────────────────
@@ -371,7 +394,10 @@ class HomeViewModel extends ChangeNotifier {
         'lifeLived':      daysLived,
         'apiUrl':         apiKey,
         'bgImagePath':    _bgImagePath,
-        'dotShape':       _dotShape.index // <--- FIXED THE CAPITAL 'S' HERE!
+        'dotShape':       _dotShape.index,
+        'gridScale':      _gridScale,
+        'offsetX':        _offsetX, 
+        'offsetY':        _offsetY, 
       });
       await _channel.invokeMethod('openWallpaperPicker');
       return true;

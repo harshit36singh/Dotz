@@ -35,11 +35,15 @@ class DotzLiveWallpaper : WallpaperService() {
         private var showLabel     = true
         private var labelMode     = 1
 
+        private var gridScale     = 1.0f
+        private var offsetX       = 0f // ── NEW
+        private var offsetY       = 0f // ── NEW
+        
         private var customLabel   = ""
         private var quoteApiUrl   = ""
         private var bgImagePath   = ""
         private var mode          = 0
-        private var dotShape      = 0 // 0=Circle, 1=Square, 2=Star, 3=Glass
+        private var dotShape      = 0
 
         // Goal
         private var goalTotalDays = 100
@@ -64,7 +68,6 @@ class DotzLiveWallpaper : WallpaperService() {
         private val paintToday  = Paint(Paint.ANTI_ALIAS_FLAG)
         private val paintText   = Paint(Paint.ANTI_ALIAS_FLAG)
 
-        // Used for the "Glass" shape
         private val paintGlassFill = Paint(Paint.ANTI_ALIAS_FLAG)
         private val paintGlassRim  = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -72,7 +75,6 @@ class DotzLiveWallpaper : WallpaperService() {
             color = Color.argb(100, 255, 255, 255)
         }
 
-        // ── Runnables ──────────────────────────────────────────
         private val prefsRunnable = Runnable {
             loadPrefs()
             val f = surfaceHolder.surfaceFrame
@@ -134,7 +136,6 @@ class DotzLiveWallpaper : WallpaperService() {
             }
         }
 
-        // ── Lifecycle ──────────────────────────────────────────
         override fun onCreate(holder: SurfaceHolder) {
             super.onCreate(holder)
             prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
@@ -158,7 +159,6 @@ class DotzLiveWallpaper : WallpaperService() {
             handler.postDelayed(prefsRunnable, 80L)
         }
 
-        // ── Load prefs ─────────────────────────────────────────
         private fun loadPrefs() {
             prefs?.let { p ->
                 bgColor           = p.getInt("bgColor",         Color.BLACK)
@@ -175,15 +175,18 @@ class DotzLiveWallpaper : WallpaperService() {
                 quoteApiUrl       = p.getString("apiUrl",       "") ?: "" 
                 bgImagePath       = p.getString("bgImagePath",  "") ?: ""
                 mode              = p.getInt("mode",            0)
-                dotShape          = p.getInt("dotShape",        0) // ADDED SHAPE PROPERTY
+                dotShape          = p.getInt("dotShape",        0) 
                 
                 goalTotalDays     = p.getInt("goalTotal",       100)
                 goalPastDays      = p.getInt("goalPast",        0)
                 goalName          = p.getString("goalName",     "Goal") ?: "Goal"
                 lifeTotalDays     = p.getInt("lifeTotal",       29200)
                 lifeDaysLived     = p.getInt("lifeLived",       0)
+                
+                gridScale         = p.getFloat("gridScale",     1.0f)
+                offsetX           = p.getFloat("offsetX",       0f) // ── LOAD NEW OFFSETS
+                offsetY           = p.getFloat("offsetY",       0f)
 
-                // Update stroke caps based on shape
                 val cap = if (dotShape == 1) Paint.Cap.SQUARE else Paint.Cap.ROUND
                 paintPast.strokeCap   = cap
                 paintFuture.strokeCap = cap
@@ -191,7 +194,6 @@ class DotzLiveWallpaper : WallpaperService() {
             }
         }
 
-        // ── Dot counts ─────────────────────────────────────────
         private fun totalDots(): Int = when (mode) {
             1    -> goalTotalDays.coerceAtLeast(1)
             2    -> lifeTotalDays.coerceAtLeast(1)
@@ -228,11 +230,10 @@ class DotzLiveWallpaper : WallpaperService() {
             }
         }
 
-        // ── Geometry ───────────────────────────────────────────
         private fun recalc(w: Int, h: Int) {
             val total  = totalDots()
-            val availW = w * 0.90f
-            val availH = h * 0.88f
+            val availW = w * 0.90f * gridScale
+            val availH = h * 0.88f * gridScale
 
             val effectiveCols = if (mode == 2 && total > 1000) {
                 sqrt(total.toDouble() * w / h).toInt().coerceIn(30, 120)
@@ -262,18 +263,27 @@ class DotzLiveWallpaper : WallpaperService() {
             drawFrame()
         }
 
-        // ── Shape Drawing Helpers ──────────────────────────────
         private fun drawShapes(canvas: Canvas, pts: FloatArray, count: Int, paint: Paint) {
             if (count == 0) return
 
             when (dotShape) {
-                0, 1 -> {
-                    // 0 = Circle (ROUND cap), 1 = Square (SQUARE cap)
-                    // Fast native drawing
+                0 -> {
+                    paint.strokeCap = Paint.Cap.ROUND
                     canvas.drawPoints(pts, 0, count, paint)
                 }
+                1 -> {
+                    val cornerRadius = dotRadius * 0.4f 
+                    for (i in 0 until count step 2) {
+                        val cx = pts[i]
+                        val cy = pts[i + 1]
+                        canvas.drawRoundRect(
+                            cx - dotRadius, cy - dotRadius, 
+                            cx + dotRadius, cy + dotRadius, 
+                            cornerRadius, cornerRadius, paint
+                        )
+                    }
+                }
                 2 -> {
-                    // 2 = Star
                     for (i in 0 until count step 2) {
                         val cx = pts[i]
                         val cy = pts[i + 1]
@@ -282,7 +292,6 @@ class DotzLiveWallpaper : WallpaperService() {
                     }
                 }
                 3 -> {
-                    // 3 = Glass
                     paintGlassFill.color = Color.argb(128, Color.red(paint.color), Color.green(paint.color), Color.blue(paint.color))
                     for (i in 0 until count step 2) {
                         val cx = pts[i]
@@ -314,14 +323,12 @@ class DotzLiveWallpaper : WallpaperService() {
             return path
         }
 
-        // ── Build cached bitmap ────────────────────────────────
         private fun buildCache(w: Int, h: Int) {
             if (w <= 0 || h <= 0) return
             cachedBitmap?.recycle()
             cachedBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
             val canvas   = Canvas(cachedBitmap!!)
 
-            // --- BACKGROUND IMAGE LOGIC ---
             if (bgImagePath.isNotEmpty()) {
                 try {
                     val bgImg = BitmapFactory.decodeFile(bgImagePath)
@@ -347,22 +354,22 @@ class DotzLiveWallpaper : WallpaperService() {
             } else {
                 canvas.drawColor(bgColor) 
             }
-            // ----------------------------------
 
-            // ── SET COLORS ──
             paintPast.color = pastColor
             paintFuture.color = futureColor
             paintToday.color = todayColor
 
-            // ── DRAW GRIDS BASED ON MODE ──
+            // ── CALCULATE PIXEL OFFSETS ──
+            val shiftX = offsetX * w
+            val shiftY = offsetY * h
+
             if (mode == 3) {
-                // ── MONTHLY / WEEKLY MODE ──
                 val monthNames = arrayOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
                 val year = Calendar.getInstance().get(Calendar.YEAR)
                 val todayDoy = dayOfYear()
 
-                val availW = w * 0.85f
-                val availH = h * 0.65f
+                val availW = w * 0.85f * gridScale
+                val availH = h * 0.65f * gridScale
                 val blockW = availW / 3f
                 val blockH = availH / 4f
 
@@ -374,8 +381,9 @@ class DotzLiveWallpaper : WallpaperService() {
                 paintFuture.strokeWidth = d
                 paintToday.strokeWidth = d
 
-                val startX = (w - availW) / 2f + (blockW * 0.1f)
-                val startY = (h - availH) / 2f + (h * 0.05f)
+                // ── APPLY OFFSET HERE ──
+                val startX = (w - availW) / 2f + (blockW * 0.1f) + shiftX
+                val startY = (h - availH) / 2f + (h * 0.05f) + shiftY
                 gridBottomY = startY + availH
 
                 val pastPts = FloatArray(366 * 2)
@@ -422,7 +430,6 @@ class DotzLiveWallpaper : WallpaperService() {
                     }
                 }
 
-                // ── DRAW SHAPES ──
                 drawShapes(canvas, pastPts, pIdx, paintPast)
                 if (drewToday) drawShapes(canvas, todayPt, 2, paintToday)
                 drawShapes(canvas, futurePts, fIdx, paintFuture)
@@ -431,7 +438,6 @@ class DotzLiveWallpaper : WallpaperService() {
                 paintText.typeface = Typeface.DEFAULT
 
             } else {
-                // ── STANDARD MODES (0, 1, 2) ──
                 val total    = totalDots()
                 val safePast = pastDots().coerceIn(0, total)
                 val futCount = (total - safePast - 1).coerceAtLeast(0)
@@ -446,8 +452,9 @@ class DotzLiveWallpaper : WallpaperService() {
                 val gridW = renderCols * cell - dotSpacing
                 val gridH = rows       * cell - dotSpacing
 
-                val ox = (w - gridW) / 2f
-                val oy = (h - gridH) / 2f
+                // ── APPLY OFFSET HERE ──
+                val ox = (w - gridW) / 2f + shiftX
+                val oy = (h - gridH) / 2f + shiftY
                 gridBottomY = oy + gridH
 
                 for (i in 0 until total) {
@@ -464,13 +471,11 @@ class DotzLiveWallpaper : WallpaperService() {
                     }
                 }
 
-                // ── DRAW SHAPES ──
                 drawShapes(canvas, pastPts, pIdx, paintPast)
                 if (drewToday) drawShapes(canvas, todayPt, 2, paintToday)
                 drawShapes(canvas, futurePts, fIdx, paintFuture)
             }
 
-            // ── Label ─────────────────────────────────────────
             val label = resolvedLabel()
             if (label.isNotEmpty()) {
                 val density    = resources.displayMetrics.density
@@ -519,7 +524,6 @@ class DotzLiveWallpaper : WallpaperService() {
             if (line.isNotEmpty()) canvas.drawText(line, x, y, paint)
         }
 
-        // ── Surface callbacks ──────────────────────────────────
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {
             super.onSurfaceChanged(holder, format, w, h)
             recalc(w, h)

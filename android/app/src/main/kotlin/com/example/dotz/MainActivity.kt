@@ -50,6 +50,10 @@ class MainActivity : FlutterActivity() {
                                 // ── Life ──────────────────────────────────────
                                 putInt("lifeTotal", (call.argument<Any>("lifeTotal") as? Number)?.toInt() ?: 29200)
                                 putInt("lifeLived", (call.argument<Any>("lifeLived") as? Number)?.toInt() ?: 0)
+                                putFloat("gridScale", (call.argument<Any>("gridScale") as? Number)?.toFloat() ?: 1f)
+                                putFloat("gridScale", (call.argument<Any>("gridScale") as? Number)?.toFloat() ?: 1f)
+                                putFloat("offsetX",   (call.argument<Any>("offsetX") as? Number)?.toFloat() ?: 0f) // <-- ADD THIS
+                                putFloat("offsetY",   (call.argument<Any>("offsetY") as? Number)?.toFloat() ?: 0f) // <-- ADD THIS
                                 apply()
                             }
                             result.success("saved")
