@@ -24,6 +24,8 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _ac;
   late Animation<double> _af;
 
+
+
   @override
   void initState() {
     super.initState();
@@ -53,106 +55,11 @@ class _HomeScreenState extends State<HomeScreen>
     _ac.forward();
   }
 
+  // ── REMOVED BOTTOM SHEET, DIRECTLY APPLIES ──
   Future<void> _apply() async {
     await _vm.applyWallpaper();
-    if (mounted) _showApplySheet();
+    _vm.checkLive();
   }
-
-  void _showApplySheet() => showModalBottomSheet(
-    context: context,
-    backgroundColor: Colors.transparent,
-    elevation: 0,
-    builder: (_) => ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30.0, sigmaY: 30.0),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(24, 12, 24, 48),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.5),
-            border: Border(
-              top: BorderSide(
-                color: Colors.white.withOpacity(0.12),
-                width: 0.5,
-              ),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 44,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              const SizedBox(height: 32),
-              const Text(
-                'Apply to Lock Screen',
-                style: TextStyle(
-                  fontFamily: 'Glass Antiqua',
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  fontStyle: FontStyle.italic,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Long-press home → Wallpapers → Live → DotZ → Apply',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Glass Antiqua',
-                  color: Colors.white.withOpacity(0.55),
-                  fontSize: 13,
-                  height: 1.8,
-                ),
-              ),
-              const SizedBox(height: 32),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(100),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(100),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
-                        width: 1.0,
-                      ),
-                    ),
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: const SizedBox(
-                        width: double.infinity,
-                        height: 54,
-                        child: Center(
-                          child: Text(
-                            'GOT IT',
-                            style: TextStyle(
-                              fontFamily: 'Glass Antiqua',
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2.0,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  ).then((_) => _vm.checkLive());
 
   Widget _applyBtn(double hPad) => Padding(
     padding: EdgeInsets.symmetric(horizontal: hPad),
