@@ -59,6 +59,8 @@ class WallpaperSettings {
   // ── Marked Dates (Year / Weekly mode only) ──
   List<MarkedDate> markedDates;
   Color milestoneColor;
+  // ── Date Numbers (Year / Weekly / Goal mode only, not Life) ──
+  bool showDateNumbers;
 
   WallpaperSettings({
     this.offsetX = 0.0,
@@ -84,6 +86,7 @@ class WallpaperSettings {
     this.gridScale = 1.0,
     this.markedDates = const [],
     this.milestoneColor = const Color(0xFFFFD700),
+    this.showDateNumbers = false,
   });
 
   WallpaperSettings copyWith({
@@ -108,6 +111,7 @@ class WallpaperSettings {
     double? gridScale,
     List<MarkedDate>? markedDates,
     Color? milestoneColor,
+    bool? showDateNumbers,
   }) => WallpaperSettings(
     backgroundColor: backgroundColor ?? this.backgroundColor,
     pastDotColor: pastDotColor ?? this.pastDotColor,
@@ -130,7 +134,15 @@ class WallpaperSettings {
     gridScale: gridScale ?? this.gridScale,
     markedDates: markedDates ?? this.markedDates,
     milestoneColor: milestoneColor ?? this.milestoneColor,
+    showDateNumbers: showDateNumbers ?? this.showDateNumbers,
   );
+
+  /// True for modes whose dots correspond to an actual calendar date
+  /// (Year/Weekly/Goal), so day numbers are meaningful. Life mode dots
+  /// represent "days since birth", not a date, and there can be tens of
+  /// thousands of them — numbering wouldn't be legible or useful.
+  bool get supportsDateNumbers =>
+      mode == CalendarMode.year || mode == CalendarMode.weekly || mode == CalendarMode.goal;
 
   /// The label of the marked date matching (month, day), if any.
   MarkedDate? markedDateFor(int month, int day) {
@@ -164,6 +176,10 @@ class WallpaperSettings {
     if (goalStartDate == null) return base;
     return DateTime(goalStartDate!.year, goalStartDate!.month, goalStartDate!.day);
   }
+
+  /// Public accessor for the same effective start date, for renderers that
+  /// need to map a dot index back to its actual calendar date.
+  DateTime get effectiveGoalStart => _goalStart;
 
   int get goalTotalDays {
     if (goalDate == null) return 100;

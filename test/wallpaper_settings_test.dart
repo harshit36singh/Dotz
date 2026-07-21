@@ -162,6 +162,35 @@ void main() {
     });
   });
 
+  group('supportsDateNumbers', () {
+    test('true for Year, Weekly, and Goal — modes with a real calendar date per dot', () {
+      expect(WallpaperSettings(mode: CalendarMode.year).supportsDateNumbers, true);
+      expect(WallpaperSettings(mode: CalendarMode.weekly).supportsDateNumbers, true);
+      expect(WallpaperSettings(mode: CalendarMode.goal).supportsDateNumbers, true);
+    });
+
+    test('false for Life — dots represent elapsed days, not a calendar date', () {
+      expect(WallpaperSettings(mode: CalendarMode.life).supportsDateNumbers, false);
+    });
+  });
+
+  group('effectiveGoalStart', () {
+    test('defaults to today at midnight when no start date is set', () {
+      final settings = WallpaperSettings(mode: CalendarMode.goal);
+      final now = DateTime.now();
+      final expected = DateTime(now.year, now.month, now.day);
+      expect(settings.effectiveGoalStart, expected);
+    });
+
+    test('uses the custom start date, normalized to midnight, when set', () {
+      final settings = WallpaperSettings(
+        mode: CalendarMode.goal,
+        goalStartDate: DateTime(2026, 3, 15, 14, 30),
+      );
+      expect(settings.effectiveGoalStart, DateTime(2026, 3, 15));
+    });
+  });
+
   group('Year / weekly totals', () {
     test('year mode totals track the current calendar year', () {
       final settings = WallpaperSettings(mode: CalendarMode.year);

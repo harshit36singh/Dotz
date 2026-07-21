@@ -13,8 +13,30 @@ import '../../models/wallpaper_settings.dart';
 // applied wallpaper.
 class DotGridPainter extends CustomPainter {
   final WallpaperSettings settings;
-  
+
   DotGridPainter(this.settings, {Listenable? repaint}) : super(repaint: repaint);
+
+  // Date-numbers sizing: grow dots only as much as needed for a legible
+  // 1-2 digit number, capped so a sparse setting doesn't balloon into
+  // oversized dots — a small tight number in a modestly-sized dot, not a
+  // big dot built around a big number.
+  static const double _minRadiusForNumbers = 8.5;
+  static const double _maxGrowthFactorForNumbers = 1.6;
+
+  /// The calendar date dot index 0 corresponds to, for modes whose dots map
+  /// to a real date. Null disables number rendering (Life mode, or numbers
+  /// toggled off).
+  DateTime? get _numberBaseDate {
+    if (!settings.showDateNumbers || !settings.supportsDateNumbers) return null;
+    switch (settings.mode) {
+      case CalendarMode.year:
+        return DateTime(DateTime.now().year, 1, 1);
+      case CalendarMode.goal:
+        return settings.effectiveGoalStart;
+      default:
+        return null;
+    }
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -57,6 +79,12 @@ class DotGridPainter extends CustomPainter {
     int pIdx = 0, fIdx = 0, mIdx = 0;
     bool drewToday = false;
 
+    final showNumbers = settings.showDateNumbers && settings.supportsDateNumbers;
+    final pastDayNums = <int>[];
+    final futureDayNums = <int>[];
+    final markedDayNums = <int>[];
+    int todayDayNum = 0;
+
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
 
     for (int m = 0; m < 12; m++) {
@@ -93,20 +121,33 @@ class DotGridPainter extends CustomPainter {
           todayPts[0] = cx;
           todayPts[1] = cy;
           drewToday = true;
+          todayDayNum = d;
         } else if (settings.markedDateFor(monthIndex, d) != null) {
           markedPts[mIdx++] = cx;
           markedPts[mIdx++] = cy;
+          if (showNumbers) markedDayNums.add(d);
         } else if (monthIndex < currentMonth || (monthIndex == currentMonth && d < currentDay)) {
           pastPts[pIdx++] = cx;
           pastPts[pIdx++] = cy;
+          if (showNumbers) pastDayNums.add(d);
         } else {
           futurePts[fIdx++] = cx;
           futurePts[fIdx++] = cy;
+          if (showNumbers) futureDayNums.add(d);
         }
       }
     }
 
     _drawShapes(canvas, pastPts, pIdx, todayPts, drewToday, futurePts, fIdx, markedPts, mIdx, r);
+    if (showNumbers) {
+      _drawDayNumbers(
+        canvas, r,
+        pastPts, pastDayNums,
+        todayPts, drewToday, todayDayNum,
+        futurePts, futureDayNums,
+        markedPts, markedDayNums,
+      );
+    }
   }
 
   void _drawStandardGrid(Canvas canvas, Size size) {
@@ -114,22 +155,37 @@ class DotGridPainter extends CustomPainter {
     int past  = settings.pastDots;
     int cols  = settings.columns;
 
-    const int maxPreviewDots = 1200; 
+    const int maxPreviewDots = 1200;
+    bool downsampled = false;
     if (total > maxPreviewDots) {
       final double ratio = maxPreviewDots / total;
       total = maxPreviewDots;
       past = (past * ratio).round();
+      downsampled = true;
     }
 
     final availW = size.width  * 0.90 * settings.gridScale;
     final availH = size.height * 0.88 * settings.gridScale;
 
-    final int effectiveCols;
+    int effectiveCols;
     if (settings.mode == CalendarMode.life || total > 1000) {
       final ideal = Math.sqrt(total * size.width / size.height).truncate();
-      effectiveCols = ideal.clamp(15, 60); 
+      effectiveCols = ideal.clamp(15, 60);
     } else {
       effectiveCols = cols;
+    }
+
+    // Downsampling remaps dot index -> day nonlinearly, so numbers would be
+    // wrong; only show them on an undownsampled (i.e. accurate) grid.
+    final baseDate = downsampled ? null : _numberBaseDate;
+
+    if (baseDate != null) {
+      final naturalR = availW / (effectiveCols * 2.5 - 0.5);
+      if (naturalR < _minRadiusForNumbers) {
+        final target = Math.min(_minRadiusForNumbers, naturalR * _maxGrowthFactorForNumbers);
+        final neededCols = ((availW / target + 0.5) / 2.5).floor();
+        effectiveCols = neededCols.clamp(3, effectiveCols);
+      }
     }
 
     double r = availW / (effectiveCols * 2.5 - 0.5);
@@ -176,6 +232,11 @@ class DotGridPainter extends CustomPainter {
     int pIdx = 0, fIdx = 0, mIdx = 0;
     bool drewToday = false;
 
+    final pastDayNums = <int>[];
+    final futureDayNums = <int>[];
+    final markedDayNums = <int>[];
+    int todayDayNum = 0;
+
     for (int i = 0; i < total; i++) {
       final col = i % effectiveCols;
       final row = i ~/ effectiveCols;
@@ -188,24 +249,38 @@ class DotGridPainter extends CustomPainter {
               return settings.markedDateFor(date.month, date.day) != null;
             }()
           : false;
+      final dayNum = baseDate != null ? baseDate.add(Duration(days: i)).day : 0;
 
       if (i == safePast) {
         todayPts[0] = cx;
         todayPts[1] = cy;
         drewToday = true;
+        todayDayNum = dayNum;
       } else if (marked) {
         markedPts[mIdx++] = cx;
         markedPts[mIdx++] = cy;
+        if (baseDate != null) markedDayNums.add(dayNum);
       } else if (i < safePast) {
         pastPts[pIdx++] = cx;
         pastPts[pIdx++] = cy;
+        if (baseDate != null) pastDayNums.add(dayNum);
       } else {
         futurePts[fIdx++] = cx;
         futurePts[fIdx++] = cy;
+        if (baseDate != null) futureDayNums.add(dayNum);
       }
     }
 
     _drawShapes(canvas, pastPts, pIdx, todayPts, drewToday, futurePts, fIdx, markedPts, mIdx, r);
+    if (baseDate != null) {
+      _drawDayNumbers(
+        canvas, r,
+        pastPts, pastDayNums,
+        todayPts, drewToday, todayDayNum,
+        futurePts, futureDayNums,
+        markedPts, markedDayNums,
+      );
+    }
   }
 
   void _drawShapes(Canvas canvas, Float32List pastPts, int pIdx, Float32List todayPts, bool drewToday, Float32List futurePts, int fIdx, Float32List markedPts, int mIdx, double r) {
@@ -272,6 +347,49 @@ class DotGridPainter extends CustomPainter {
     drawShape(canvas, markedPts, mIdx, paintMarked);
     if (drewToday) drawShape(canvas, todayPts, 2, paintToday);
     drawShape(canvas, futurePts, fIdx, paintFuture);
+  }
+
+  /// Draws the day-of-month number centered on each dot, in black or white
+  /// depending on that dot's fill color so it stays readable either way.
+  void _drawDayNumbers(
+    Canvas canvas,
+    double r,
+    Float32List pastPts, List<int> pastDayNums,
+    Float32List todayPts, bool drewToday, int todayDayNum,
+    Float32List futurePts, List<int> futureDayNums,
+    Float32List markedPts, List<int> markedDayNums,
+  ) {
+    final fontSize = (r * 0.95).clamp(6.0, 20.0);
+    final textPainter = TextPainter(textDirection: TextDirection.ltr);
+
+    void drawNumber(double cx, double cy, int day, Color bgColor) {
+      final textColor = bgColor.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+      textPainter.text = TextSpan(
+        text: '$day',
+        style: TextStyle(
+          color: textColor,
+          fontSize: fontSize,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Montserrat',
+          height: 1.0,
+        ),
+      );
+      textPainter.layout();
+      textPainter.paint(canvas, Offset(cx - textPainter.width / 2, cy - textPainter.height / 2));
+    }
+
+    for (int i = 0; i < pastDayNums.length; i++) {
+      drawNumber(pastPts[i * 2], pastPts[i * 2 + 1], pastDayNums[i], settings.pastDotColor);
+    }
+    for (int i = 0; i < markedDayNums.length; i++) {
+      drawNumber(markedPts[i * 2], markedPts[i * 2 + 1], markedDayNums[i], settings.milestoneColor);
+    }
+    if (drewToday) {
+      drawNumber(todayPts[0], todayPts[1], todayDayNum, settings.todayDotColor);
+    }
+    for (int i = 0; i < futureDayNums.length; i++) {
+      drawNumber(futurePts[i * 2], futurePts[i * 2 + 1], futureDayNums[i], settings.futureDotColor);
+    }
   }
 
   /// Regular polygon (e.g. sides=6 -> hexagon, sides=4 -> diamond) inscribed
