@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "dotz" "\0"
+            VALUE "CompanyName", "Harshit Singh" "\0"
+            VALUE "FileDescription", "Dotz" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "dotz" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Harshit Singh. All rights reserved." "\0"
             VALUE "OriginalFilename", "dotz.exe" "\0"
-            VALUE "ProductName", "dotz" "\0"
+            VALUE "ProductName", "Dotz" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
