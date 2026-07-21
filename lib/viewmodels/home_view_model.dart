@@ -141,10 +141,32 @@ class HomeViewModel extends ChangeNotifier {
   void setTodayColor(Color c)  { _todayColor  = c; notifyListeners(); }
   void setFutureColor(Color c) { _futureColor = c; notifyListeners(); }
   
-  void setBgColor(Color c) { 
-    _bgColor = c; 
-    _bgImagePath = ''; 
-    notifyListeners(); 
+  void setBgColor(Color c) {
+    _bgColor = c;
+    _bgImagePath = '';
+    notifyListeners();
+  }
+
+  // ── Marked Dates (Year / Weekly mode only) ──────────────────────
+  final List<MarkedDate> _markedDates = [];
+  Color _milestoneColor = const Color(0xFFFFD700);
+
+  List<MarkedDate> get markedDates => List.unmodifiable(_markedDates);
+  Color get milestoneColor => _milestoneColor;
+
+  void addMarkedDate(MarkedDate date) {
+    _markedDates.add(date);
+    notifyListeners();
+  }
+
+  void removeMarkedDate(MarkedDate date) {
+    _markedDates.remove(date);
+    notifyListeners();
+  }
+
+  void setMilestoneColor(Color c) {
+    _milestoneColor = c;
+    notifyListeners();
   }
 
   // ── Label colour ──────────────────────────────────────────────
@@ -355,8 +377,10 @@ class HomeViewModel extends ChangeNotifier {
     bgImagePath:         _bgImagePath,
     shape:               _dotShape,
     gridScale:           _gridScale,
-    offsetX:             _offsetX, 
+    offsetX:             _offsetX,
     offsetY:             _offsetY,
+    markedDates:         _markedDates,
+    milestoneColor:      _milestoneColor,
   );
 
   // ── Hero display values ───────────────────────────────────────
@@ -479,6 +503,8 @@ class HomeViewModel extends ChangeNotifier {
         'gridScale':      _gridScale,
         'offsetX':        _offsetX,
         'offsetY':        _offsetY,
+        'markedDates':    jsonEncode(_markedDates.map((m) => m.toJson()).toList()),
+        'milestoneColor': _toArgb(_milestoneColor),
       });
       await _channel.invokeMethod('openWallpaperPicker');
       return true;

@@ -2,8 +2,10 @@ import 'dart:ui';
 import 'package:dotz/models/wallpaper_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../widgets/color_strip.dart';
+import '../widgets/glass_date_picker.dart';
 
 // ── Main Settings Page ─────────────────────────────────────────────
 class SettingsPage extends StatelessWidget {
@@ -103,8 +105,13 @@ class SettingsPage extends StatelessWidget {
                     _SectionDivider(),
                     _SettingsSection(
                       label: 'Background Image',
-                      isLast: true,
                       child: _BackgroundImageSection(vm: vm),
+                    ),
+                    _SectionDivider(),
+                    _SettingsSection(
+                      label: 'Marked Dates',
+                      isLast: true,
+                      child: _MarkedDatesSection(vm: vm),
                     ),
                   ],
                 ),
@@ -979,6 +986,236 @@ class _ShapeSelector extends StatelessWidget {
           _row(_options.sublist(3, 6)),
         ],
       ),
+    );
+  }
+}
+
+// ── Marked Dates ────────────────────────────────────────────────────
+class _MarkedDatesSection extends StatefulWidget {
+  final HomeViewModel vm;
+  const _MarkedDatesSection({required this.vm});
+
+  @override
+  State<_MarkedDatesSection> createState() => _MarkedDatesSectionState();
+}
+
+class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
+  DateTime? _pendingDate;
+  late final TextEditingController _labelCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _labelCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _labelCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final date = await showGlassDatePicker(
+      context: context,
+      initialDate: _pendingDate ?? now,
+      firstDate: DateTime(now.year - 100),
+      lastDate: DateTime(now.year + 10),
+    );
+    if (date != null) setState(() => _pendingDate = date);
+  }
+
+  void _addDate() {
+    final date = _pendingDate;
+    if (date == null) return;
+    final label = _labelCtrl.text.trim().isEmpty ? 'Untitled' : _labelCtrl.text.trim();
+    widget.vm.addMarkedDate(MarkedDate(month: date.month, day: date.day, label: label));
+    setState(() {
+      _pendingDate = null;
+      _labelCtrl.clear();
+    });
+  }
+
+  void _pickColor() => showModalBottomSheet(
+        context: context,
+        backgroundColor: Colors.transparent,
+        isScrollControlled: true,
+        builder: (_) => ColorPickerSheet(
+          label: 'Milestone',
+          current: widget.vm.milestoneColor,
+          onPick: widget.vm.setMilestoneColor,
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = widget.vm;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Highlights specific calendar dates — birthdays, anniversaries — in '
+          'Year and Weekly/Monthly mode. Repeats every year.',
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            color: Colors.white.withOpacity(0.35),
+            fontSize: 11,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Milestone colour
+        GestureDetector(
+          onTap: _pickColor,
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            children: [
+              Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  color: vm.milestoneColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.2),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'MILESTONE COLOUR',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  color: Colors.white.withOpacity(0.38),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2,
+                ),
+              ),
+              const Spacer(),
+              Text('›', style: TextStyle(color: Colors.white.withOpacity(0.18), fontSize: 16)),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+
+        if (vm.markedDates.isNotEmpty) ...[
+          ...vm.markedDates.map(
+            (m) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: BoxDecoration(color: vm.milestoneColor, shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '${m.label} — ${DateFormat('MMM d').format(DateTime(2000, m.month, m.day))}',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        color: Colors.white.withOpacity(0.75),
+                        fontSize: 13,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => vm.removeMarkedDate(m),
+                    behavior: HitTestBehavior.opaque,
+                    child: Icon(Icons.close_rounded, color: Colors.white.withOpacity(0.25), size: 16),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          _HairLine(),
+          const SizedBox(height: 16),
+        ],
+
+        Text(
+          'ADD DATE',
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            color: Colors.white.withOpacity(0.35),
+            fontSize: 9,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _GlassContainer(
+          blur: 8,
+          color: const Color(0x28000000),
+          borderRadius: 12,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _labelCtrl,
+                    style: TextStyle(fontFamily: 'Montserrat', color: Colors.white, fontSize: 14),
+                    decoration: InputDecoration(
+                      hintText: "e.g. Mom's Birthday",
+                      hintStyle: TextStyle(
+                        fontFamily: 'Montserrat',
+                        color: Colors.white.withOpacity(0.18),
+                        fontSize: 14,
+                      ),
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _pickDate,
+                  behavior: HitTestBehavior.opaque,
+                  child: Text(
+                    _pendingDate == null ? 'PICK DATE' : DateFormat('MMM d').format(_pendingDate!),
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.white.withOpacity(0.6),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        GestureDetector(
+          onTap: _pendingDate == null ? null : _addDate,
+          behavior: HitTestBehavior.opaque,
+          child: _GlassContainer(
+            blur: 10,
+            color: _pendingDate == null ? const Color(0x18FFFFFF) : const Color(0x33FFFFFF),
+            borderRadius: 10,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 13),
+              child: Center(
+                child: Text(
+                  'ADD',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    color: Colors.white.withOpacity(_pendingDate == null ? 0.3 : 0.85),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
