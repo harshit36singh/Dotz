@@ -51,10 +51,12 @@ class _SplashMarkState extends State<_SplashMark>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 450),
+    duration: kAnimDuration,
   )..forward();
-  late final Animation<double> _fade =
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+  late final Animation<double> _fade = CurvedAnimation(
+    parent: _ctrl,
+    curve: kAnimCurve,
+  );
 
   @override
   void dispose() {
