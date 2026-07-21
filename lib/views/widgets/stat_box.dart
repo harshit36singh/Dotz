@@ -26,7 +26,7 @@ class StatBox extends StatelessWidget {
             children: [
               Text(value,
                   style: const TextStyle(
-                      fontFamily: 'Glass Antiqua', // Font applied
+                      fontFamily: 'Montserrat', // Font applied
                       color: Colors.white, // Changed to white to match the new dark theme
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -35,7 +35,7 @@ class StatBox extends StatelessWidget {
               const SizedBox(height: 4),
               Text(label,
                   style: TextStyle(
-                      fontFamily: 'Glass Antiqua', // Font applied
+                      fontFamily: 'Montserrat', // Font applied
                       color: Colors.white.withOpacity(0.5), // Match new UI sub-text color
                       fontSize: 10,
                       fontWeight: FontWeight.w600,

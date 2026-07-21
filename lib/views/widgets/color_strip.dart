@@ -70,7 +70,7 @@ class ColorStrip extends StatelessWidget {
                 Text(
                   lbl.toUpperCase(),
                   style: TextStyle(
-                    fontFamily: 'Glass Antiqua', // Applied font
+                    fontFamily: 'Montserrat', // Applied font
                     color: Colors.white.withOpacity(0.6),
                     fontSize: 10, // Bumped slightly for the new font
                     fontWeight: FontWeight.w700,
@@ -134,7 +134,7 @@ class ColorPickerSheet extends StatelessWidget {
                     Text(
                       'Pick $label Color',
                       style: const TextStyle(
-                        fontFamily: 'Glass Antiqua', // Applied font
+                        fontFamily: 'Montserrat', // Applied font
                         color: Colors.white,
                         fontSize: 20, // Bumped slightly for the new font
                         fontWeight: FontWeight.w700,

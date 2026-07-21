@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
+import android.util.Log
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -51,11 +52,18 @@ class MainActivity : FlutterActivity() {
                                 putInt("lifeTotal", (call.argument<Any>("lifeTotal") as? Number)?.toInt() ?: 29200)
                                 putInt("lifeLived", (call.argument<Any>("lifeLived") as? Number)?.toInt() ?: 0)
                                 putFloat("gridScale", (call.argument<Any>("gridScale") as? Number)?.toFloat() ?: 1f)
-                                putFloat("gridScale", (call.argument<Any>("gridScale") as? Number)?.toFloat() ?: 1f)
-                                putFloat("offsetX",   (call.argument<Any>("offsetX") as? Number)?.toFloat() ?: 0f) // <-- ADD THIS
-                                putFloat("offsetY",   (call.argument<Any>("offsetY") as? Number)?.toFloat() ?: 0f) // <-- ADD THIS
+                                putFloat("offsetX",   (call.argument<Any>("offsetX") as? Number)?.toFloat() ?: 0f)
+                                putFloat("offsetY",   (call.argument<Any>("offsetY") as? Number)?.toFloat() ?: 0f)
+                                // ── Raw dates: let goal/life mode self-advance daily,
+                                // the same way Year/Weekly mode already do ──
+                                putLong("goalEndMillis",   (call.argument<Any>("goalEndMillis")   as? Number)?.toLong() ?: 0L)
+                                putLong("goalStartMillis", (call.argument<Any>("goalStartMillis") as? Number)?.toLong() ?: 0L)
+                                putLong("birthMillis",     (call.argument<Any>("birthMillis")     as? Number)?.toLong() ?: 0L)
+                                putInt("lifeExpYears",     (call.argument<Any>("lifeExpYears")    as? Number)?.toInt()  ?: 80)
+                                putInt("lifeUnit",         (call.argument<Any>("lifeUnit")        as? Number)?.toInt()  ?: 0)
                                 apply()
                             }
+                            DotzWidgetProvider.requestUpdate(applicationContext)
                             result.success("saved")
                         } catch (e: Exception) {
                             result.error("SAVE_FAILED", e.message, null)
@@ -71,19 +79,29 @@ class MainActivity : FlutterActivity() {
                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             }
                             startActivity(i); opened = true
-                        } catch (_: Exception) {}
+                        } catch (e: Exception) {
+                            Log.w("Dotz", "ACTION_CHANGE_LIVE_WALLPAPER failed", e)
+                        }
                         if (!opened) try {
                             val i = Intent("android.service.wallpaper.LIVE_WALLPAPER_CHOOSER")
                             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             startActivity(i); opened = true
-                        } catch (_: Exception) {}
+                        } catch (e: Exception) {
+                            Log.w("Dotz", "LIVE_WALLPAPER_CHOOSER failed", e)
+                        }
                         if (!opened) try {
                             val i = Intent(Intent.ACTION_SET_WALLPAPER)
                             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             startActivity(i); opened = true
-                        } catch (_: Exception) {}
-                        if (opened) result.success("opened")
-                        else result.error("FAILED", "Cannot open wallpaper picker", null)
+                        } catch (e: Exception) {
+                            Log.w("Dotz", "ACTION_SET_WALLPAPER failed", e)
+                        }
+                        if (opened) {
+                            result.success("opened")
+                        } else {
+                            Log.e("Dotz", "All wallpaper picker intents failed")
+                            result.error("FAILED", "Cannot open wallpaper picker", null)
+                        }
                     }
 
                     "isLiveWallpaperActive" -> {

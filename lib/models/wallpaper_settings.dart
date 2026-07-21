@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 enum CalendarMode { year, goal, life, weekly, settings }
 
-enum WallpaperTarget { lockscreen, homescreen, both }
+enum DotShape { circle, square, star, glass, hexagon, diamond }
 
-enum DotShape { circle, square, star, glass }
+enum LifeUnit { days, weeks }
 
 class WallpaperSettings {
   Color backgroundColor;
@@ -16,16 +16,17 @@ class WallpaperSettings {
   int columns;
   bool showProgressLabel;
   bool isDark;
-  WallpaperTarget target;
   CalendarMode mode;
 
   // Goal calendar
   String goalName;
   DateTime? goalDate;
+  DateTime? goalStartDate; // null = count from today
 
-  // Life calendar (days-based)
+  // Life calendar
   int lifeExpectancyYears;
   DateTime? birthDate;
+  LifeUnit lifeUnit;
   double offsetX = 0.0;
   double offsetY = 0.0;
   // ── Background Image ──
@@ -45,12 +46,13 @@ class WallpaperSettings {
     this.columns = 20,
     this.showProgressLabel = true,
     this.isDark = true,
-    this.target = WallpaperTarget.lockscreen,
     this.mode = CalendarMode.year,
     this.goalName = 'Goal',
     this.goalDate,
+    this.goalStartDate,
     this.lifeExpectancyYears = 80,
     this.birthDate,
+    this.lifeUnit = LifeUnit.days,
     this.bgImagePath = '',
     this.shape = DotShape.circle,
     this.gridScale = 1.0,
@@ -66,12 +68,13 @@ class WallpaperSettings {
     int? columns,
     bool? showProgressLabel,
     bool? isDark,
-    WallpaperTarget? target,
     CalendarMode? mode,
     String? goalName,
     DateTime? goalDate,
+    DateTime? goalStartDate,
     int? lifeExpectancyYears,
     DateTime? birthDate,
+    LifeUnit? lifeUnit,
     String? bgImagePath,
     DotShape? shape,
     double? gridScale,
@@ -85,12 +88,13 @@ class WallpaperSettings {
     columns: columns ?? this.columns,
     showProgressLabel: showProgressLabel ?? this.showProgressLabel,
     isDark: isDark ?? this.isDark,
-    target: target ?? this.target,
     mode: mode ?? this.mode,
     goalName: goalName ?? this.goalName,
     goalDate: goalDate ?? this.goalDate,
+    goalStartDate: goalStartDate ?? this.goalStartDate,
     lifeExpectancyYears: lifeExpectancyYears ?? this.lifeExpectancyYears,
     birthDate: birthDate ?? this.birthDate,
+    lifeUnit: lifeUnit ?? this.lifeUnit,
     bgImagePath: bgImagePath ?? this.bgImagePath,
     shape: shape ?? this.shape,
     gridScale: gridScale ?? this.gridScale,
@@ -113,16 +117,23 @@ class WallpaperSettings {
   static int get currentWeek => (dayOfYear / 7).ceil().clamp(1, 52);
 
   // ── Goal helpers ──────────────────────────────────────────────
+  /// Effective start of the goal range: goalStartDate if set, else today.
+  DateTime get _goalStart {
+    final today = DateTime.now();
+    final base = DateTime(today.year, today.month, today.day);
+    if (goalStartDate == null) return base;
+    return DateTime(goalStartDate!.year, goalStartDate!.month, goalStartDate!.day);
+  }
+
   int get goalTotalDays {
     if (goalDate == null) return 100;
-    final now = DateTime.now();
-    final diff = goalDate!
-        .difference(DateTime(now.year, now.month, now.day))
-        .inDays;
+    final diff = goalDate!.difference(_goalStart).inDays;
     if (diff <= 0) return 1;
     return diff + 1;
   }
 
+  /// Days remaining from *today* until goalDate (a true countdown, regardless
+  /// of when the range started).
   int get goalDaysLeft {
     if (goalDate == null) return 100;
     final now = DateTime(
@@ -134,7 +145,7 @@ class WallpaperSettings {
     return diff < 0 ? 0 : diff;
   }
 
-  // ── Life helpers (days) ───────────────────────────────────────
+  // ── Life helpers ────────────────────────────────────────────────
   int get lifeTotalDays => lifeExpectancyYears * 365;
 
   int get lifeDaysLived {
@@ -149,6 +160,27 @@ class WallpaperSettings {
   double get lifeProgress =>
       lifeTotalDays > 0 ? lifeDaysLived / lifeTotalDays : 0;
 
+  int get lifeTotalWeeks => lifeExpectancyYears * 52;
+
+  int get lifeWeeksLived {
+    if (birthDate == null) return 0;
+    final weeks = DateTime.now().difference(birthDate!).inDays ~/ 7;
+    return weeks.clamp(0, lifeTotalWeeks);
+  }
+
+  int get lifeWeeksLeft =>
+      (lifeTotalWeeks - lifeWeeksLived).clamp(0, lifeTotalWeeks);
+
+  /// Life dot-grid totals in whichever unit `lifeUnit` selects.
+  int get lifeTotalUnits =>
+      lifeUnit == LifeUnit.weeks ? lifeTotalWeeks : lifeTotalDays;
+
+  int get lifeUnitsLived =>
+      lifeUnit == LifeUnit.weeks ? lifeWeeksLived : lifeDaysLived;
+
+  int get lifeUnitsLeft =>
+      lifeUnit == LifeUnit.weeks ? lifeWeeksLeft : lifeDaysLeft;
+
   // ── Computed dot counts ───────────────────────────────────────
   int get totalDots {
     switch (mode) {
@@ -159,7 +191,7 @@ class WallpaperSettings {
       case CalendarMode.goal:
         return goalTotalDays.clamp(1, 3650);
       case CalendarMode.life:
-        return lifeTotalDays;
+        return lifeTotalUnits;
       case CalendarMode.settings:
         return daysInYear;
     }
@@ -174,7 +206,7 @@ class WallpaperSettings {
       case CalendarMode.goal:
         return (totalDots - goalDaysLeft).clamp(0, totalDots);
       case CalendarMode.life:
-        return lifeDaysLived;
+        return lifeUnitsLived;
       case CalendarMode.settings:
         return dayOfYear - 1;
     }
@@ -191,7 +223,8 @@ class WallpaperSettings {
       case CalendarMode.goal:
         return '$goalDaysLeft days left · $goalName';
       case CalendarMode.life:
-        return '$lifeDaysLeft days left · '
+        final unitLabel = lifeUnit == LifeUnit.weeks ? 'weeks' : 'days';
+        return '$lifeUnitsLeft $unitLabel left · '
             '${(lifeProgress * 100).toStringAsFixed(1)}%';
       case CalendarMode.settings:
         return '';
@@ -199,26 +232,3 @@ class WallpaperSettings {
   }
 }
 
-extension WallpaperTargetX on WallpaperTarget {
-  String get label {
-    switch (this) {
-      case WallpaperTarget.lockscreen:
-        return 'Lock Screen';
-      case WallpaperTarget.homescreen:
-        return 'Home Screen';
-      case WallpaperTarget.both:
-        return 'Both';
-    }
-  }
-
-  IconData get icon {
-    switch (this) {
-      case WallpaperTarget.lockscreen:
-        return Icons.lock_rounded;
-      case WallpaperTarget.homescreen:
-        return Icons.home_rounded;
-      case WallpaperTarget.both:
-        return Icons.layers_rounded;
-    }
-  }
-}

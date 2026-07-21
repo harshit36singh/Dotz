@@ -1,7 +1,7 @@
 import 'package:dotz/views/home/home_screen.dart';
 import 'package:dotz/views/onboarding/onboarding_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import '../core/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
   final bool showOnboarding;
@@ -13,9 +13,14 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 800), _navigate);
+  }
 
   void _navigate() {
-    if (!mounted) return; 
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -28,19 +33,61 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.black,
-      body: Center(
-        child: Lottie.asset(
-          "assets/dot.json", 
-          height: 250,
-          width:250,
-          repeat: false,
-          fit: BoxFit.contain,
-          onLoaded: (composition) {
-            Future.delayed(composition.duration, _navigate);
-          },
-        ),
+      body: Center(child: _SplashMark()),
+    );
+  }
+}
+
+class _SplashMark extends StatefulWidget {
+  const _SplashMark();
+
+  @override
+  State<_SplashMark> createState() => _SplashMarkState();
+}
+
+class _SplashMarkState extends State<_SplashMark>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 450),
+  )..forward();
+  late final Animation<double> _fade =
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _fade,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: kOrange,
+            ),
+          ),
+          const SizedBox(height: 18),
+          const Text(
+            'DOTZ',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 6,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -48,7 +48,7 @@ class HeroSection extends StatelessWidget {
                   Text(
                     tag.toUpperCase(),
                     style: TextStyle(
-                      fontFamily: 'Glass Antiqua', // Font applied
+                      fontFamily: 'Montserrat', // Font applied
                       color: Colors.white.withOpacity(0.5),
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -71,7 +71,7 @@ class HeroSection extends StatelessWidget {
                             Text(
                               '${title.replaceAll('\n', ' ').trim()} ', // Forces single line and adds space
                               style: const TextStyle(
-                                fontFamily: 'Glass Antiqua',
+                                fontFamily: 'Montserrat',
                                 color: Colors.white,
                                 fontSize: 32, // Forced to size 32
                                 fontWeight: FontWeight.w400,
@@ -81,7 +81,7 @@ class HeroSection extends StatelessWidget {
                             Text(
                               bigNum,
                               style: const TextStyle(
-                                fontFamily: 'Glass Antiqua',
+                                fontFamily: 'Montserrat',
                                 color: Colors.white,
                                 fontSize: 32, // Forced to size 32
                                 fontWeight: FontWeight.w600,
@@ -110,7 +110,7 @@ class HeroSection extends StatelessWidget {
                 Text(
                   statB.toUpperCase(),
                   style: TextStyle(
-                    fontFamily: 'Glass Antiqua',
+                    fontFamily: 'Montserrat',
                     color: Colors.white.withOpacity(0.5),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

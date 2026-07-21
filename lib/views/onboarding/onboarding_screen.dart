@@ -212,7 +212,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                     ? 'GET STARTED'
                                     : 'NEXT',
                                 style: TextStyle(
-                                  fontFamily: 'Glass Antiqua',
+                                  fontFamily: 'Montserrat',
                                   color: Colors.white,
                                   fontSize: isTablet ? 16 : 14,
                                   fontWeight: FontWeight.w900,
@@ -254,7 +254,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   child: const Text(
                     'SKIP',
                     style: TextStyle(
-                      fontFamily: 'Glass Antiqua',
+                      fontFamily: 'Montserrat',
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.w800,

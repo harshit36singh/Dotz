@@ -1,7 +1,8 @@
 import 'package:dotz/splashscreen/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'views/onboarding/onboarding_screen.dart';
 
 void main() async {
@@ -33,7 +34,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        fontFamily: 'serif',
+        fontFamily: GoogleFonts.montserrat().fontFamily,
+        textTheme: GoogleFonts.montserratTextTheme(),
         scaffoldBackgroundColor: Colors.black,
         colorScheme: const ColorScheme.dark(
           primary: Colors.white,

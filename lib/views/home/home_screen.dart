@@ -53,8 +53,16 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _apply() async {
-    await _vm.applyWallpaper();
+    final ok = await _vm.applyWallpaper();
     _vm.checkLive();
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not apply wallpaper. Please try again.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   // ── Apply Button ─────────────────────────────────────────────────
@@ -95,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen>
                           Text(
                             'APPLY TO LOCK SCREEN',
                             style: TextStyle(
-                              fontFamily: 'Glass Antiqua',
+                              fontFamily: 'Montserrat',
                               color: Colors.white.withOpacity(0.92),
                               fontSize: 12,
                               fontWeight: FontWeight.w900,
@@ -268,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.75),
                                   fontSize: 18 * mockupScale,
-                                  fontFamily: 'Glass Antiqua',
+                                  fontFamily: 'Montserrat',
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -298,7 +306,7 @@ class _HomeScreenState extends State<HomeScreen>
                                     ? 13 * mockupScale
                                     : (_vm.labelFontSize * 0.8) *
                                         mockupScale,
-                                fontFamily: 'Glass Antiqua',
+                                fontFamily: 'Montserrat',
                                 shadows: const [
                                   Shadow(
                                       blurRadius: 6,
@@ -702,7 +710,7 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.75),
                         fontSize: 22,
-                        fontFamily: 'Glass Antiqua',
+                        fontFamily: 'Montserrat',
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -834,7 +842,7 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                         child: const Text(
                           'DONE',
                           style: TextStyle(
-                            fontFamily: 'Glass Antiqua',
+                            fontFamily: 'Montserrat',
                             color: Colors.white,
                             fontSize: 15,
                             fontWeight: FontWeight.w900,

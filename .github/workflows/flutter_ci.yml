@@ -36,12 +36,18 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # .env is gitignored (see .env.example); flutter_dotenv needs it present as
+      # a build asset. The default quote endpoint is a free public API, so it's
+      # safe to write here directly instead of needing a CI secret.
+      - name: Create .env
+        run: cp .env.example .env
+
       # ✅ Proper analyzer (no || true hack)
       - name: Analyze
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Run tests
-        run: flutter test || true
+        run: flutter test
 
       - name: Build APK
         run: flutter build apk --release

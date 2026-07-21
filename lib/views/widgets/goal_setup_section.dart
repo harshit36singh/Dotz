@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/home_view_model.dart';
+import 'glass_date_picker.dart';
 
 class GoalSetupSection extends StatefulWidget {
   final HomeViewModel vm;
@@ -28,120 +29,31 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
     super.dispose();
   }
 
-  // ── CUSTOM GLASS DATE PICKER ──
   Future<void> _pickDate(BuildContext context) async {
     final now = DateTime.now();
     DateTime tempDate = widget.vm.goalDate ?? now.add(const Duration(days: 100));
     if (tempDate.isBefore(now)) tempDate = now; // Safety check
 
-    final date = await showGeneralDialog<DateTime>(
+    final date = await showGlassDatePicker(
       context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Dismiss',
-      barrierColor: Colors.black.withOpacity(0.4),
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return ScaleTransition(
-          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
-          child: FadeTransition(
-            opacity: animation,
-            child: Center(
-              child: Material(
-                color: Colors.transparent,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(32),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.85,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(32),
-                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Theme(
-                            data: ThemeData.dark().copyWith(
-                              colorScheme: const ColorScheme.dark(
-                                primary: Colors.white, // Selected circle color
-                                onPrimary: Colors.black, // Text inside selected circle
-                                surface: Colors.transparent, // Background of calendar
-                                onSurface: Colors.white, // Default text color
-                              ),
-                              dialogBackgroundColor: Colors.transparent,
-                              textTheme: const TextTheme(
-                                bodyMedium: TextStyle(fontFamily: 'Glass Antiqua'),
-                                titleMedium: TextStyle(fontFamily: 'Glass Antiqua'),
-                              ),
-                            ),
-                            child: CalendarDatePicker(
-                              initialDate: tempDate,
-                              firstDate: now,
-                              lastDate: now.add(const Duration(days: 365 * 10)),
-                              onDateChanged: (val) => tempDate = val,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              GestureDetector(
-                                onTap: () => Navigator.pop(context),
-                                behavior: HitTestBehavior.opaque,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                  child: Text(
-                                    'CANCEL',
-                                    style: TextStyle(
-                                      fontFamily: 'Glass Antiqua',
-                                      color: Colors.white.withOpacity(0.6),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 1.5,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () => Navigator.pop(context, tempDate),
-                                behavior: HitTestBehavior.opaque,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(100),
-                                    border: Border.all(color: Colors.white.withOpacity(0.3)),
-                                  ),
-                                  child: const Text(
-                                    'CONFIRM',
-                                    style: TextStyle(
-                                      fontFamily: 'Glass Antiqua',
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w800,
-                                      letterSpacing: 1.5,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+      initialDate: tempDate,
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365 * 10)),
     );
     if (date != null) widget.vm.setGoalDate(date);
+  }
+
+  Future<void> _pickStartDate(BuildContext context) async {
+    final now = DateTime.now();
+    final tempDate = widget.vm.goalStartDate ?? now;
+
+    final date = await showGlassDatePicker(
+      context: context,
+      initialDate: tempDate,
+      firstDate: now.subtract(const Duration(days: 365 * 5)),
+      lastDate: now.add(const Duration(days: 365 * 10)),
+    );
+    if (date != null) widget.vm.setGoalStartDate(date);
   }
 
   @override
@@ -156,7 +68,7 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
             Text(
               'GOAL NAME',
               style: TextStyle(
-                fontFamily: 'Glass Antiqua',
+                fontFamily: 'Montserrat',
                 color: Colors.white.withOpacity(0.35),
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
@@ -170,14 +82,14 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
                   child: TextField(
                     controller: _ctrl,
                     style: const TextStyle(
-                      fontFamily: 'Glass Antiqua',
+                      fontFamily: 'Montserrat',
                       color: Colors.white,
                       fontSize: 16,
                     ),
                     decoration: InputDecoration(
                       hintText: 'e.g. Prepare for test',
                       hintStyle: TextStyle(
-                        fontFamily: 'Glass Antiqua',
+                        fontFamily: 'Montserrat',
                         color: Colors.white.withOpacity(0.3),
                         fontSize: 16,
                       ),
@@ -198,7 +110,7 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
                     child: Text(
                       'CLEAR',
                       style: TextStyle(
-                        fontFamily: 'Glass Antiqua',
+                        fontFamily: 'Montserrat',
                         color: Colors.white.withOpacity(0.3),
                         fontSize: 9,
                         fontWeight: FontWeight.w700,
@@ -217,7 +129,7 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
             Text(
               'TARGET DATE',
               style: TextStyle(
-                fontFamily: 'Glass Antiqua',
+                fontFamily: 'Montserrat',
                 color: Colors.white.withOpacity(0.35),
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
@@ -236,8 +148,73 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
                         ? 'Tap to pick a date'
                         : DateFormat('MMMM d, yyyy').format(widget.vm.goalDate!),
                     style: TextStyle(
-                      fontFamily: 'Glass Antiqua',
+                      fontFamily: 'Montserrat',
                       color: widget.vm.goalDate == null ? Colors.white.withOpacity(0.5) : Colors.white,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    '›',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.2),
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+            Container(height: 1, color: Colors.white.withOpacity(0.1)),
+            const SizedBox(height: 20),
+
+            // Start Date — defaults to today; set a custom one to track a
+            // range that already started (a challenge you began last week,
+            // a project kicked off last month, etc).
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'START DATE',
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    color: Colors.white.withOpacity(0.35),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 2.0,
+                  ),
+                ),
+                if (widget.vm.goalStartDate != null)
+                  GestureDetector(
+                    onTap: () => widget.vm.setGoalStartDate(null),
+                    behavior: HitTestBehavior.opaque,
+                    child: Text(
+                      'RESET TO TODAY',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        color: Colors.white.withOpacity(0.3),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => _pickStartDate(context),
+              behavior: HitTestBehavior.opaque,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.vm.goalStartDate == null
+                        ? 'Today'
+                        : DateFormat('MMMM d, yyyy').format(widget.vm.goalStartDate!),
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: widget.vm.goalStartDate == null ? Colors.white.withOpacity(0.5) : Colors.white,
                       fontSize: 16,
                     ),
                   ),

@@ -4,6 +4,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../models/wallpaper_settings.dart';
 
+// NOTE: This is a preview-only reimplementation of the grid layout math that
+// actually runs on-device in
+// android/app/src/main/kotlin/com/example/dotz/DotzLiveWallpaper.kt. The two
+// are not derived from a shared source — if you change column count, dot
+// radius/spacing, offset handling, or per-shape drawing here, mirror the
+// change in the Kotlin engine too, or this preview will drift from the
+// applied wallpaper.
 class DotGridPainter extends CustomPainter {
   final WallpaperSettings settings;
   
@@ -65,7 +72,7 @@ class DotGridPainter extends CustomPainter {
           color: settings.textColor.withOpacity(0.9),
           fontSize: r * 3.5, 
           fontWeight: FontWeight.w600,
-          fontFamily: 'Glass Antiqua', 
+          fontFamily: 'Montserrat', 
         ),
       );
       textPainter.layout();
@@ -214,14 +221,26 @@ class DotGridPainter extends CustomPainter {
         final glassBorderPaint = Paint()
           ..color = Colors.white.withOpacity(0.4)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0 
+          ..strokeWidth = 2.0
           ..isAntiAlias = true;
 
         for (int i = 0; i < count; i += 2) {
           final cx = pts[i];
           final cy = pts[i + 1];
-          c.drawCircle(Offset(cx, cy), r, glassInnerPaint); 
-          c.drawCircle(Offset(cx, cy), r, glassBorderPaint); 
+          c.drawCircle(Offset(cx, cy), r, glassInnerPaint);
+          c.drawCircle(Offset(cx, cy), r, glassBorderPaint);
+        }
+      }
+      else if (settings.shape == DotShape.hexagon) {
+        for (int i = 0; i < count; i += 2) {
+          final path = _createPolygonPath(pts[i], pts[i + 1], r, 6);
+          c.drawPath(path, p);
+        }
+      }
+      else if (settings.shape == DotShape.diamond) {
+        for (int i = 0; i < count; i += 2) {
+          final path = _createPolygonPath(pts[i], pts[i + 1], r, 4);
+          c.drawPath(path, p);
         }
       }
     }
@@ -229,6 +248,27 @@ class DotGridPainter extends CustomPainter {
     drawShape(canvas, pastPts, pIdx, paintPast);
     if (drewToday) drawShape(canvas, todayPts, 2, paintToday);
     drawShape(canvas, futurePts, fIdx, paintFuture);
+  }
+
+  /// Regular polygon (e.g. sides=6 -> hexagon, sides=4 -> diamond) inscribed
+  /// in radius [r], point-up.
+  Path _createPolygonPath(double cx, double cy, double r, int sides) {
+    final path = Path();
+    final step = 2 * Math.pi / sides;
+    double angle = -Math.pi / 2;
+
+    for (int i = 0; i < sides; i++) {
+      final dx = cx + Math.cos(angle) * r;
+      final dy = cy + Math.sin(angle) * r;
+      if (i == 0) {
+        path.moveTo(dx, dy);
+      } else {
+        path.lineTo(dx, dy);
+      }
+      angle += step;
+    }
+    path.close();
+    return path;
   }
 
   Path _createStarPath(double cx, double cy, double outerRadius, double innerRadius, int numPoints) {

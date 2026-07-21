@@ -26,7 +26,7 @@ class ControlsSection extends StatelessWidget {
             // ── Colours ───────────────────────────────────────────────
             Text('Colours',
                 style: TextStyle(
-                    fontFamily: 'Glass Antiqua', // Font applied
+                    fontFamily: 'Montserrat', // Font applied
                     color: Colors.white.withOpacity(0.5), 
                     fontSize: 13,
                     fontWeight: FontWeight.w500)),
@@ -48,7 +48,7 @@ class ControlsSection extends StatelessWidget {
             // ── Grid density ──────────────────────────────────────────
             Text('Grid Density',
                 style: TextStyle(
-                    fontFamily: 'Glass Antiqua', // Font applied
+                    fontFamily: 'Montserrat', // Font applied
                     color: Colors.white.withOpacity(0.5), 
                     fontSize: 13,
                     fontWeight: FontWeight.w500)),
@@ -58,7 +58,7 @@ class ControlsSection extends StatelessWidget {
               children: [
                 Text('${vm.columns}',
                     style: const TextStyle(
-                        fontFamily: 'Glass Antiqua', // Font applied
+                        fontFamily: 'Montserrat', // Font applied
                         color: Colors.white, 
                         fontSize: 48,
                         fontStyle: FontStyle.italic,
@@ -72,7 +72,7 @@ class ControlsSection extends StatelessWidget {
                     children: [
                       Text('columns',
                           style: TextStyle(
-                              fontFamily: 'Glass Antiqua', // Font applied
+                              fontFamily: 'Montserrat', // Font applied
                               color: Colors.white.withOpacity(0.5), 
                               fontSize: 12,
                               fontWeight: FontWeight.w500, 
@@ -105,7 +105,7 @@ class ControlsSection extends StatelessWidget {
             // ── Display toggle ────────────────────────────────────────
             Text('Display',
                 style: TextStyle(
-                    fontFamily: 'Glass Antiqua', // Font applied
+                    fontFamily: 'Montserrat', // Font applied
                     color: Colors.white.withOpacity(0.5), 
                     fontSize: 13,
                     fontWeight: FontWeight.w500)),
@@ -118,14 +118,14 @@ class ControlsSection extends StatelessWidget {
                   children: [
                     const Text('Progress label',
                         style: TextStyle(
-                            fontFamily: 'Glass Antiqua', // Font applied
+                            fontFamily: 'Montserrat', // Font applied
                             color: Colors.white, 
                             fontSize: 16,
                             fontWeight: FontWeight.w500)),
                     const SizedBox(height: 4),
                     Text('Show days left at bottom',
                         style: TextStyle(
-                            fontFamily: 'Glass Antiqua', // Font applied
+                            fontFamily: 'Montserrat', // Font applied
                             color: Colors.white.withOpacity(0.5), 
                             fontSize: 13)),
                   ],

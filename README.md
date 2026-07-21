@@ -40,14 +40,18 @@ A beautiful Flutter & Native Android app that generates dynamic, live wallpapers
 
 ### Environment Setup
 
-You will need to set up a `.env` file in the root directory for the Quote API to work:
+You will need to set up a `.env` file in the root directory for the Quote API to work.
+`.env` is gitignored — copy the provided example instead of creating one from scratch:
 
-1. Create a file named `.env` in the root of your project.
-2. Add your API key/URL:
+```bash
+cp .env.example .env
+```
 
 ```env
-API_KEY=your_quote_api_url_here
+QUOTE_API_URL=https://zenquotes.io/api/today
 ```
+
+The default points at [zenquotes.io](https://zenquotes.io), a free public endpoint, so the example file's value works out of the box. Swap in your own quote API URL if you'd rather use a different provider.
 
 ### Run the App
 

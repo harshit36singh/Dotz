@@ -139,7 +139,7 @@ class _SettingsSection extends StatelessWidget {
           child: Text(
             label.toUpperCase(),
             style: TextStyle(
-              fontFamily: 'Glass Antiqua',
+              fontFamily: 'Montserrat',
               color: Colors.white.withOpacity(0.35),
               fontSize: 9,
               fontWeight: FontWeight.w700,
@@ -180,7 +180,7 @@ class _GridDensityContent extends StatelessWidget {
         Text(
           '${vm.columns}',
           style: const TextStyle(
-            fontFamily: 'Glass Antiqua',
+            fontFamily: 'Montserrat',
             color: Colors.white,
             fontSize: 46,
             fontStyle: FontStyle.italic,
@@ -197,7 +197,7 @@ class _GridDensityContent extends StatelessWidget {
               Text(
                 'columns',
                 style: TextStyle(
-                  fontFamily: 'Glass Antiqua',
+                  fontFamily: 'Montserrat',
                   color: Colors.white.withOpacity(0.28),
                   fontSize: 9,
                   fontWeight: FontWeight.w600,
@@ -248,7 +248,7 @@ class _LabelModeSection extends StatelessWidget {
           Text(
             'No label will appear on the wallpaper.',
             style: TextStyle(
-              fontFamily: 'Glass Antiqua',
+              fontFamily: 'Montserrat',
               color: Colors.white.withOpacity(0.35),
               fontSize: 12,
               fontWeight: FontWeight.w400,
@@ -280,7 +280,7 @@ class _LabelModeSection extends StatelessWidget {
                 Text(
                   'Fetching quote…',
                   style: TextStyle(
-                    fontFamily: 'Glass Antiqua',
+                    fontFamily: 'Montserrat',
                     color: Colors.white.withOpacity(0.35),
                     fontSize: 12,
                   ),
@@ -294,7 +294,7 @@ class _LabelModeSection extends StatelessWidget {
                   child: Text(
                     'Could not load quote.',
                     style: TextStyle(
-                      fontFamily: 'Glass Antiqua',
+                      fontFamily: 'Montserrat',
                       color: Colors.white.withOpacity(0.35),
                       fontSize: 12,
                     ),
@@ -316,7 +316,7 @@ class _LabelModeSection extends StatelessWidget {
                     Text(
                       '"${vm.quoteText}"',
                       style: TextStyle(
-                        fontFamily: 'Glass Antiqua',
+                        fontFamily: 'Montserrat',
                         color: vm.labelColor,
                         fontSize: 13,
                         fontStyle: FontStyle.italic,
@@ -328,13 +328,26 @@ class _LabelModeSection extends StatelessWidget {
                       Text(
                         '— ${vm.quoteAuthor}',
                         style: TextStyle(
-                          fontFamily: 'Glass Antiqua',
+                          fontFamily: 'Montserrat',
                           color: vm.labelColor.withOpacity(0.45),
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
+                    // ZenQuotes' free tier requires visible attribution —
+                    // https://zenquotes.io/documentation
+                    const SizedBox(height: 10),
+                    Text(
+                      'Quote via zenquotes.io',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        color: Colors.white.withOpacity(0.22),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -347,7 +360,7 @@ class _LabelModeSection extends StatelessWidget {
               child: Text(
                 '↻  REFRESH',
                 style: TextStyle(
-                  fontFamily: 'Glass Antiqua',
+                  fontFamily: 'Montserrat',
                   color: Colors.white.withOpacity(0.25),
                   fontSize: 9,
                   fontWeight: FontWeight.w700,
@@ -411,7 +424,7 @@ class _CustomLabelInputState extends State<_CustomLabelInput> {
                 child: TextField(
                   controller: _ctrl,
                   style: TextStyle(
-                    fontFamily: 'Glass Antiqua',
+                    fontFamily: 'Montserrat',
                     color: widget.vm.labelColor,
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
@@ -419,7 +432,7 @@ class _CustomLabelInputState extends State<_CustomLabelInput> {
                   decoration: InputDecoration(
                     hintText: 'Type your label…',
                     hintStyle: TextStyle(
-                      fontFamily: 'Glass Antiqua',
+                      fontFamily: 'Montserrat',
                       color: Colors.white.withOpacity(0.18),
                       fontSize: 14,
                     ),
@@ -500,7 +513,7 @@ class _LabelAppearanceControls extends StatelessWidget {
               Text(
                 'LABEL COLOUR',
                 style: TextStyle(
-                  fontFamily: 'Glass Antiqua',
+                  fontFamily: 'Montserrat',
                   color: Colors.white.withOpacity(0.38),
                   fontSize: 9,
                   fontWeight: FontWeight.w700,
@@ -526,7 +539,7 @@ class _LabelAppearanceControls extends StatelessWidget {
             Text(
               'LABEL SIZE',
               style: TextStyle(
-                fontFamily: 'Glass Antiqua',
+                fontFamily: 'Montserrat',
                 color: Colors.white.withOpacity(0.38),
                 fontSize: 9,
                 fontWeight: FontWeight.w700,
@@ -555,7 +568,7 @@ class _LabelAppearanceControls extends StatelessWidget {
                 child: Text(
                   isAuto ? 'AUTO' : '${vm.labelFontSize.round()} SP',
                   style: TextStyle(
-                    fontFamily: 'Glass Antiqua',
+                    fontFamily: 'Montserrat',
                     color: isAuto
                         ? Colors.white.withOpacity(0.85)
                         : Colors.white.withOpacity(0.38),
@@ -576,7 +589,7 @@ class _LabelAppearanceControls extends StatelessWidget {
               Text(
                 'A',
                 style: TextStyle(
-                  fontFamily: 'Glass Antiqua',
+                  fontFamily: 'Montserrat',
                   color: Colors.white.withOpacity(0.2),
                   fontSize: 10,
                 ),
@@ -604,7 +617,7 @@ class _LabelAppearanceControls extends StatelessWidget {
               Text(
                 'A',
                 style: TextStyle(
-                  fontFamily: 'Glass Antiqua',
+                  fontFamily: 'Montserrat',
                   color: Colors.white.withOpacity(0.2),
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -627,7 +640,7 @@ class _LabelAppearanceControls extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontFamily: 'Glass Antiqua',
+                  fontFamily: 'Montserrat',
                   color: vm.labelColor,
                   fontSize: vm.labelFontSize.clamp(8.0, 32.0),
                   fontStyle: vm.labelMode == LabelMode.quote
@@ -695,7 +708,7 @@ class _FourWayToggle extends StatelessWidget {
                     child: Text(
                       label,
                       style: TextStyle(
-                        fontFamily: 'Glass Antiqua',
+                        fontFamily: 'Montserrat',
                         color: active
                             ? Colors.black.withOpacity(0.85)
                             : Colors.white.withOpacity(0.28),
@@ -724,7 +737,7 @@ class _PreviewRow extends StatelessWidget {
   Widget build(BuildContext context) => Text(
         text,
         style: TextStyle(
-          fontFamily: 'Glass Antiqua',
+          fontFamily: 'Montserrat',
           color: Colors.white.withOpacity(0.45),
           fontSize: 12,
           fontWeight: FontWeight.w400,
@@ -756,7 +769,7 @@ class _MinimalButton extends StatelessWidget {
           child: Text(
             label,
             style: const TextStyle(
-              fontFamily: 'Glass Antiqua',
+              fontFamily: 'Montserrat',
               color: Colors.white,
               fontSize: 9,
               fontWeight: FontWeight.w800,
@@ -792,7 +805,7 @@ class _BackgroundImageSection extends StatelessWidget {
           Text(
             'Custom image selected',
             style: TextStyle(
-              fontFamily: 'Glass Antiqua',
+              fontFamily: 'Montserrat',
               color: Colors.white.withOpacity(0.35),
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -818,7 +831,7 @@ class _BackgroundImageSection extends StatelessWidget {
                       child: Text(
                         hasImage ? 'CHANGE IMAGE' : 'CHOOSE FROM GALLERY',
                         style: TextStyle(
-                          fontFamily: 'Glass Antiqua',
+                          fontFamily: 'Montserrat',
                           color: Colors.white.withOpacity(0.85),
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -846,7 +859,7 @@ class _BackgroundImageSection extends StatelessWidget {
                     child: Text(
                       'REMOVE',
                       style: TextStyle(
-                        fontFamily: 'Glass Antiqua',
+                        fontFamily: 'Montserrat',
                         color: Colors.white.withOpacity(0.75),
                         fontSize: 9,
                         fontWeight: FontWeight.w800,
@@ -906,7 +919,52 @@ class _ShapeSelector extends StatelessWidget {
     (DotShape.square, 'SQUARE'),
     (DotShape.star, 'STAR'),
     (DotShape.glass, 'GLASS'),
+    (DotShape.hexagon, 'HEXAGON'),
+    (DotShape.diamond, 'DIAMOND'),
   ];
+
+  Widget _row(List<(DotShape, String)> rowOptions) {
+    return SizedBox(
+      height: 36,
+      child: Row(
+        children: rowOptions.map((e) {
+          final (shape, label) = e;
+          final active = vm.dotShape == shape;
+
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => vm.setDotShape(shape),
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                margin: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: active
+                      ? Colors.white.withOpacity(0.92)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(7),
+                ),
+                child: Center(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: active
+                          ? Colors.black.withOpacity(0.85)
+                          : Colors.white.withOpacity(0.28),
+                      fontSize: 8,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -914,53 +972,12 @@ class _ShapeSelector extends StatelessWidget {
       blur: 8,
       color: const Color(0x38000000),
       borderRadius: 10,
-      child: SizedBox(
-        height: 40,
-        child: Row(
-          children: _options.map((e) {
-            final (shape, label) = e;
-            final active = vm.dotShape == shape;
-            final isFirst = e == _options.first;
-            final isLast = e == _options.last;
-
-            return Expanded(
-              child: GestureDetector(
-                onTap: () => vm.setDotShape(shape),
-                behavior: HitTestBehavior.opaque,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  margin: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: active
-                        ? Colors.white.withOpacity(0.92)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.horizontal(
-                      left: isFirst
-                          ? const Radius.circular(7)
-                          : Radius.zero,
-                      right:
-                          isLast ? const Radius.circular(7) : Radius.zero,
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      label,
-                      style: TextStyle(
-                        fontFamily: 'Glass Antiqua',
-                        color: active
-                            ? Colors.black.withOpacity(0.85)
-                            : Colors.white.withOpacity(0.28),
-                        fontSize: 8,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _row(_options.sublist(0, 3)),
+          _row(_options.sublist(3, 6)),
+        ],
       ),
     );
   }

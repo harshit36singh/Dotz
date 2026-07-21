@@ -9,7 +9,10 @@ import '../models/wallpaper_settings.dart';
 import '../core/app_theme.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-String apiKey = dotenv.env['API_KEY']!;
+/// URL of the daily-quote API (see .env / .env.example). Empty string if the
+/// env var is missing, so a misconfigured build degrades gracefully instead
+/// of crashing on startup.
+String quoteApiUrl = dotenv.env['QUOTE_API_URL'] ?? '';
 
 /// What to show at the bottom of the wallpaper
 enum LabelMode { off, progress, quote, custom }
@@ -60,14 +63,29 @@ class HomeViewModel extends ChangeNotifier {
     try {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-      
+
       if (pickedFile != null) {
         final directory = await getApplicationDocumentsDirectory();
-        final fileName = p.basename(pickedFile.path);
-        final savedImage = File('${directory.path}/$fileName');
-        
+        // Fixed filename — only one background is ever active at a time.
+        // A stable name (instead of the source file's original basename)
+        // avoids two different gallery photos silently overwriting each
+        // other when they share a camera-generated name, and lets us
+        // reliably evict the old bytes from Flutter's image cache below
+        // (a reused path with new bytes would otherwise keep showing the
+        // stale cached image).
+        final ext = p.extension(pickedFile.path);
+        final savedImage =
+            File('${directory.path}/wallpaper_bg${ext.isNotEmpty ? ext : '.jpg'}');
+
+        if (_bgImagePath.isNotEmpty && _bgImagePath != savedImage.path) {
+          try {
+            await File(_bgImagePath).delete();
+          } catch (_) {}
+        }
+
         await File(pickedFile.path).copy(savedImage.path);
-        
+        PaintingBinding.instance.imageCache.evict(FileImage(savedImage));
+
         _bgImagePath = savedImage.path;
         notifyListeners();
       }
@@ -77,6 +95,12 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void clearBackgroundImage() {
+    if (_bgImagePath.isNotEmpty) {
+      PaintingBinding.instance.imageCache.evict(FileImage(File(_bgImagePath)));
+      try {
+        File(_bgImagePath).delete();
+      } catch (_) {}
+    }
     _bgImagePath = '';
     notifyListeners();
   }
@@ -90,7 +114,9 @@ class HomeViewModel extends ChangeNotifier {
       final v = await _channel.invokeMethod<bool>('isLiveWallpaperActive') ?? false;
       _live = v;
       notifyListeners();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('checkLive failed: $e');
+    }
   }
 
   // ── Saving / loading state ────────────────────────────────────
@@ -165,13 +191,19 @@ class HomeViewModel extends ChangeNotifier {
   bool   get quoteError     => _quoteError;
 
   Future<void> fetchQuote() async {
+    if (quoteApiUrl.isEmpty) {
+      _quoteFetching = false;
+      _quoteError    = true;
+      notifyListeners();
+      return;
+    }
     _quoteFetching = true;
     _quoteError    = false;
     notifyListeners();
     try {
       final client = HttpClient();
       client.connectionTimeout = const Duration(seconds: 8);
-      final req  = await client.getUrl(Uri.parse(apiKey));
+      final req  = await client.getUrl(Uri.parse(quoteApiUrl));
       req.headers.set('Accept', 'application/json');
       final res  = await req.close();
       final body = await res.transform(utf8.decoder).join();
@@ -182,7 +214,8 @@ class HomeViewModel extends ChangeNotifier {
         _quoteText   = (item['q'] as String? ?? '').trim();
         _quoteAuthor = (item['a'] as String? ?? '').trim();
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('fetchQuote failed: $e');
       _quoteError = true;
     } finally {
       _quoteFetching = false;
@@ -219,9 +252,11 @@ class HomeViewModel extends ChangeNotifier {
   // ── Goal ─────────────────────────────────────────────────────
   String    _goalName = 'My Goal';
   DateTime? _goalDate;
+  DateTime? _goalStartDate; // null = count from today
 
-  String    get goalName => _goalName;
-  DateTime? get goalDate => _goalDate;
+  String    get goalName      => _goalName;
+  DateTime? get goalDate      => _goalDate;
+  DateTime? get goalStartDate => _goalStartDate;
 
   void setGoalName(String v) {
     _goalName = v.trim().isEmpty ? 'My Goal' : v.trim();
@@ -230,9 +265,12 @@ class HomeViewModel extends ChangeNotifier {
 
   void setGoalDate(DateTime d) { _goalDate = d; notifyListeners(); }
 
+  void setGoalStartDate(DateTime? d) { _goalStartDate = d; notifyListeners(); }
+
   void clearGoal() {
     _goalName = 'My Goal';
     _goalDate = null;
+    _goalStartDate = null;
     notifyListeners();
   }
 
@@ -241,32 +279,44 @@ class HomeViewModel extends ChangeNotifier {
           ? 0
           : _goalDate!.difference(DateTime.now()).inDays.clamp(0, 999999);
 
+  DateTime get _effectiveGoalStart {
+    final today = DateTime.now();
+    final base = DateTime(today.year, today.month, today.day);
+    if (_goalStartDate == null) return base;
+    return DateTime(_goalStartDate!.year, _goalStartDate!.month, _goalStartDate!.day);
+  }
+
   int get goalTotal {
     if (_goalDate == null) return 365;
-    final diff = _goalDate!
-        .difference(DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day))
-        .inDays;
+    final diff = _goalDate!.difference(_effectiveGoalStart).inDays;
     return diff <= 0 ? 1 : diff + 1;
   }
 
   // ── Life ──────────────────────────────────────────────────────
   DateTime? _birthDate;
   int       _lifeExp = 80;
+  LifeUnit  _lifeUnit = LifeUnit.days;
 
   DateTime? get birthDate => _birthDate;
   int       get lifeExp   => _lifeExp;
+  LifeUnit  get lifeUnit  => _lifeUnit;
 
   void setBirthDate(DateTime d) { _birthDate = d; notifyListeners(); }
   void setLifeExp(int v)        { _lifeExp   = v; notifyListeners(); }
+  void setLifeUnit(LifeUnit u)  { _lifeUnit  = u; notifyListeners(); }
 
+  /// Life progress in whichever unit [_lifeUnit] selects (days or weeks).
   int get daysLived {
     if (_birthDate == null) return 0;
     final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     final birth = DateTime(_birthDate!.year, _birthDate!.month, _birthDate!.day);
-    return today.difference(birth).inDays.clamp(0, totalDays);
+    final dayBasedTotal = _lifeExp * 365;
+    final elapsedDays = today.difference(birth).inDays.clamp(0, dayBasedTotal);
+    final elapsed = _lifeUnit == LifeUnit.weeks ? elapsedDays ~/ 7 : elapsedDays;
+    return elapsed.clamp(0, totalDays);
   }
 
-  int get totalDays => _lifeExp * 365;
+  int get totalDays => _lifeUnit == LifeUnit.weeks ? _lifeExp * 52 : _lifeExp * 365;
 
   int get age {
     if (_birthDate == null) return 0;
@@ -295,9 +345,11 @@ class HomeViewModel extends ChangeNotifier {
     mode:                _mode,
     goalName:            _goalName,
     goalDate:            _goalDate,
+    goalStartDate:       _goalStartDate,
     birthDate:           _birthDate,
     lifeExpectancyYears: _lifeExp,
-    bgImagePath:         _bgImagePath, 
+    lifeUnit:            _lifeUnit,
+    bgImagePath:         _bgImagePath,
     shape:               _dotShape,
     gridScale:           _gridScale,
     offsetX:             _offsetX, 
@@ -337,7 +389,7 @@ class HomeViewModel extends ChangeNotifier {
     return switch (_mode) {
       CalendarMode.year     => 'Day $doy',
       CalendarMode.goal     => '$goalDaysLeft days left',
-      CalendarMode.life     => '$daysLived of $totalDays days',
+      CalendarMode.life     => '$daysLived of $totalDays ${_lifeUnit == LifeUnit.weeks ? 'weeks' : 'days'}',
       CalendarMode.weekly   => 'Week $currentWeek of 52', // Added Weekly
       CalendarMode.settings => 'Colors & Grid',
     };
@@ -387,21 +439,32 @@ class HomeViewModel extends ChangeNotifier {
         'labelMode':      _labelMode.index,
         'customLabel':    resolvedLabel,
         'mode':           modeIdx,
+        // Precomputed snapshot — used for the first render immediately after
+        // apply, and as a fallback if the date fields below are unset.
         'goalTotal':      goalTotal,
         'goalPast':       goalTotal - goalDaysLeft,
         'goalName':       _goalName,
         'lifeTotal':      totalDays,
         'lifeLived':      daysLived,
-        'apiUrl':         apiKey,
+        // Raw dates — the native engine recomputes goal/life progress from
+        // these every day so the wallpaper keeps advancing without the app
+        // being reopened (matches how Year/Weekly mode already self-advance).
+        'goalEndMillis':   _goalDate?.millisecondsSinceEpoch ?? 0,
+        'goalStartMillis': _effectiveGoalStart.millisecondsSinceEpoch,
+        'birthMillis':     _birthDate?.millisecondsSinceEpoch ?? 0,
+        'lifeExpYears':    _lifeExp,
+        'lifeUnit':        _lifeUnit.index,
+        'apiUrl':         quoteApiUrl,
         'bgImagePath':    _bgImagePath,
         'dotShape':       _dotShape.index,
         'gridScale':      _gridScale,
-        'offsetX':        _offsetX, 
-        'offsetY':        _offsetY, 
+        'offsetX':        _offsetX,
+        'offsetY':        _offsetY,
       });
       await _channel.invokeMethod('openWallpaperPicker');
       return true;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('applyWallpaper failed: $e');
       return false;
     } finally {
       _saving = false;
