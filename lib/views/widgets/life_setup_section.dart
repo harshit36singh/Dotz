@@ -1,8 +1,9 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../core/app_theme.dart';
 import '../../models/wallpaper_settings.dart';
 import '../../viewmodels/home_view_model.dart';
+import 'glass_container.dart';
 import 'glass_date_picker.dart';
 
 class LifeSetupSection extends StatelessWidget {
@@ -32,7 +33,9 @@ class LifeSetupSection extends StatelessWidget {
         GestureDetector(
           onTap: () => _pickDob(context),
           behavior: HitTestBehavior.opaque,
-          child: _GlassCard(
+          child: GlassContainer(
+            color: Colors.white.withOpacity(0.05),
+            blur: 14,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Row(
@@ -58,7 +61,9 @@ class LifeSetupSection extends StatelessWidget {
                             : DateFormat('MMMM d, yyyy').format(vm.birthDate!),
                         style: TextStyle(
                           fontFamily: 'Montserrat',
-                          color: vm.birthDate == null ? Colors.white.withOpacity(0.5) : Colors.white,
+                          color: vm.birthDate == null
+                              ? Colors.white.withOpacity(0.5)
+                              : Colors.white,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -78,9 +83,11 @@ class LifeSetupSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        
+
         // Life Expectancy Section
-        _GlassCard(
+        GlassContainer(
+          color: Colors.white.withOpacity(0.05),
+          blur: 14,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Column(
@@ -130,7 +137,9 @@ class LifeSetupSection extends StatelessWidget {
                           thumbColor: Colors.white,
                           overlayColor: Colors.white.withOpacity(0.05),
                           trackHeight: 2,
-                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                          thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 6,
+                          ),
                         ),
                         child: Slider(
                           value: vm.lifeExp.toDouble(),
@@ -151,7 +160,9 @@ class LifeSetupSection extends StatelessWidget {
 
         // Display Unit — the classic "life calendar" is week-based (~4,000
         // dots for 80 years); days gives a denser, more granular grid.
-        _GlassCard(
+        GlassContainer(
+          color: Colors.white.withOpacity(0.05),
+          blur: 14,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
@@ -167,10 +178,7 @@ class LifeSetupSection extends StatelessWidget {
                     letterSpacing: 2.0,
                   ),
                 ),
-                _UnitToggle(
-                  selected: vm.lifeUnit,
-                  onChanged: vm.setLifeUnit,
-                ),
+                _UnitToggle(selected: vm.lifeUnit, onChanged: vm.setLifeUnit),
               ],
             ),
           ),
@@ -185,77 +193,47 @@ class _UnitToggle extends StatelessWidget {
   final void Function(LifeUnit) onChanged;
   const _UnitToggle({required this.selected, required this.onChanged});
 
-  static const _options = [
-    (LifeUnit.days, 'DAYS'),
-    (LifeUnit.weeks, 'WEEKS'),
-  ];
+  static const _options = [(LifeUnit.days, 'DAYS'), (LifeUnit.weeks, 'WEEKS')];
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.22),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: _options.map((e) {
-              final (unit, label) = e;
-              final active = selected == unit;
-              return GestureDetector(
-                onTap: () => onChanged(unit),
-                behavior: HitTestBehavior.opaque,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  margin: const EdgeInsets.all(3),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                  decoration: BoxDecoration(
-                    color: active ? Colors.white.withOpacity(0.92) : Colors.transparent,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      color: active ? Colors.black.withOpacity(0.85) : Colors.white.withOpacity(0.35),
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.0,
-                    ),
-                  ),
+    return GlassContainer(
+      color: Colors.black.withOpacity(0.22),
+      blur: 8,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: _options.map((e) {
+          final (unit, label) = e;
+          final active = selected == unit;
+          return GestureDetector(
+            onTap: () => onChanged(unit),
+            behavior: HitTestBehavior.opaque,
+            child: AnimatedContainer(
+              duration: kAnimDuration,
+              curve: kAnimCurve,
+              margin: const EdgeInsets.all(3),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: active
+                    ? Colors.white.withOpacity(0.92)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(kGlassRadius),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  color: active
+                      ? Colors.black.withOpacity(0.85)
+                      : Colors.white.withOpacity(0.35),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.0,
                 ),
-              );
-            }).toList(),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _GlassCard extends StatelessWidget {
-  final Widget child;
-  const _GlassCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(16),
-           
-          ),
-          child: child,
-        ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

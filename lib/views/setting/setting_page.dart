@@ -3,8 +3,10 @@ import 'package:dotz/models/wallpaper_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
+import '../../core/app_theme.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../widgets/color_strip.dart';
+import '../widgets/glass_container.dart';
 import '../widgets/glass_date_picker.dart';
 
 // ── Main Settings Page ─────────────────────────────────────────────
@@ -15,14 +17,14 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context);
-    final title="Settings";
+    final title = "Settings";
     final w = mq.size.width;
     final h = mq.size.height;
     final hp = w >= 900
         ? 48.0
         : w >= 600
-            ? 32.0
-            : 20.0;
+        ? 32.0
+        : 20.0;
 
     final availableHeight = h - mq.padding.top - mq.padding.bottom - 120;
 
@@ -33,10 +35,9 @@ class SettingsPage extends StatelessWidget {
           // ── Fixed Top Header — text only, no icon ──
           Padding(
             padding: EdgeInsets.symmetric(horizontal: hp),
-            child: _GlassContainer(
+            child: GlassContainer(
               blur: 14,
               color: const Color(0x55000000),
-              borderRadius: 100,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -45,16 +46,19 @@ class SettingsPage extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                  Text(
-               title.toUpperCase()
-                  ,style: TextStyle(
-                    // Removing fontFamily defaults to the clean system font (Roboto/SF Pro)
-                    color: Colors.white.withOpacity(0.85), // Slightly dimmed for a "sober" look
-                    fontSize: 13, // Smaller size
-                    fontWeight: FontWeight.w600, // Medium weight, not too bold
-                    letterSpacing: 2.5, // Wide, elegant spacing
-                  ),
-                ),
+                    Text(
+                      title.toUpperCase(),
+                      style: TextStyle(
+                        // Removing fontFamily defaults to the clean system font (Roboto/SF Pro)
+                        color: Colors.white.withOpacity(
+                          0.85,
+                        ), // Slightly dimmed for a "sober" look
+                        fontSize: 13, // Smaller size
+                        fontWeight:
+                            FontWeight.w600, // Medium weight, not too bold
+                        letterSpacing: 2.5, // Wide, elegant spacing
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -68,10 +72,9 @@ class SettingsPage extends StatelessWidget {
             child: SingleChildScrollView(
               physics: const ClampingScrollPhysics(),
               padding: EdgeInsets.fromLTRB(hp, 0, hp, 40),
-              child: _GlassContainer(
+              child: GlassContainer(
                 blur: 18,
                 color: const Color(0x44000000),
-                borderRadius: 22,
                 child: Column(
                   children: [
                     _SettingsSection(
@@ -166,12 +169,9 @@ class _SettingsSection extends StatelessWidget {
 class _SectionDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Container(
-          height: 0.5,
-          color: Colors.white.withOpacity(0.06),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    child: Container(height: 0.5, color: Colors.white.withOpacity(0.06)),
+  );
 }
 
 // ── Grid Density ───────────────────────────────────────────────────
@@ -222,8 +222,9 @@ class _GridDensityContent extends StatelessWidget {
                       thumbColor: Colors.white,
                       overlayColor: Colors.white.withOpacity(0.04),
                       trackHeight: 1,
-                      thumbShape:
-                          const RoundSliderThumbShape(enabledThumbRadius: 4.5),
+                      thumbShape: const RoundSliderThumbShape(
+                        enabledThumbRadius: 4.5,
+                      ),
                     ),
                     child: Slider(
                       value: vm.columns.toDouble(),
@@ -354,10 +355,9 @@ class _LabelModeSection extends StatelessWidget {
               ],
             )
           else if (vm.quoteText.isNotEmpty) ...[
-            _GlassContainer(
+            GlassContainer(
               blur: 8,
               color: const Color(0x28000000),
-              borderRadius: 12,
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(
@@ -455,68 +455,67 @@ class _CustomLabelInputState extends State<_CustomLabelInput> {
   }
 
   @override
-  Widget build(BuildContext context) => _GlassContainer(
-        blur: 8,
-        color: const Color(0x28000000),
-        borderRadius: 12,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          child: Row(
-            children: [
-              // Minimal thin pencil line — no icon widget
-              Container(
-                width: 1,
-                height: 16,
-                color: Colors.white.withOpacity(0.15),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _ctrl,
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    color: widget.vm.labelColor,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Type your label…',
-                    hintStyle: TextStyle(
-                      fontFamily: 'Montserrat',
-                      color: Colors.white.withOpacity(0.18),
-                      fontSize: 14,
-                    ),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  onChanged: (v) {
-                    widget.vm.setCustomLabelText(v);
-                    setState(() {});
-                  },
-                ),
-              ),
-              if (_ctrl.text.isNotEmpty)
-                GestureDetector(
-                  onTap: () {
-                    _ctrl.clear();
-                    widget.vm.setCustomLabelText('');
-                    setState(() {});
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Icon(
-                      Icons.close_rounded,
-                      color: Colors.white.withOpacity(0.18),
-                      size: 14,
-                    ),
-                  ),
-                ),
-            ],
+  Widget build(BuildContext context) => GlassContainer(
+    blur: 8,
+    color: const Color(0x28000000),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          // Minimal thin pencil line — no icon widget
+          Container(
+            width: 1,
+            height: 16,
+            color: Colors.white.withOpacity(0.15),
           ),
-        ),
-      );
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: _ctrl,
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                color: widget.vm.labelColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w400,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Type your label…',
+                hintStyle: TextStyle(
+                  fontFamily: 'Montserrat',
+                  color: Colors.white.withOpacity(0.18),
+                  fontSize: 14,
+                ),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onChanged: (v) {
+                widget.vm.setCustomLabelText(v);
+                setState(() {});
+              },
+            ),
+          ),
+          if (_ctrl.text.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                _ctrl.clear();
+                widget.vm.setCustomLabelText('');
+                setState(() {});
+              },
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Icon(
+                  Icons.close_rounded,
+                  color: Colors.white.withOpacity(0.18),
+                  size: 14,
+                ),
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
 }
 
 // ── Label Appearance Controls ──────────────────────────────────────
@@ -525,15 +524,15 @@ class _LabelAppearanceControls extends StatelessWidget {
   const _LabelAppearanceControls({required this.vm});
 
   void _pickColor(BuildContext ctx) => showModalBottomSheet(
-        context: ctx,
-        backgroundColor: Colors.transparent,
-        isScrollControlled: true,
-        builder: (_) => ColorPickerSheet(
-          label: 'Label',
-          current: vm.labelColor,
-          onPick: vm.setLabelColor,
-        ),
-      );
+    context: ctx,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (_) => ColorPickerSheet(
+      label: 'Label',
+      current: vm.labelColor,
+      onPick: vm.setLabelColor,
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -601,17 +600,19 @@ class _LabelAppearanceControls extends StatelessWidget {
               onTap: () => vm.setLabelFontSize(isAuto ? 12.0 : 0.0),
               behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                duration: kAnimDuration,
+                curve: kAnimCurve,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: isAuto
                       ? Colors.white.withOpacity(0.08)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(kGlassRadius),
                   border: Border.all(
-                    color: Colors.white
-                        .withOpacity(isAuto ? 0.18 : 0.07),
+                    color: Colors.white.withOpacity(isAuto ? 0.18 : 0.07),
                     width: 0.8,
                   ),
                 ),
@@ -652,8 +653,9 @@ class _LabelAppearanceControls extends StatelessWidget {
                     thumbColor: Colors.white,
                     overlayColor: Colors.white.withOpacity(0.04),
                     trackHeight: 1,
-                    thumbShape:
-                        const RoundSliderThumbShape(enabledThumbRadius: 4.5),
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 4.5,
+                    ),
                   ),
                   child: Slider(
                     value: vm.labelFontSize.clamp(8.0, 32.0),
@@ -676,14 +678,12 @@ class _LabelAppearanceControls extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          _GlassContainer(
+          GlassContainer(
             blur: 8,
             color: const Color(0x28000000),
-            borderRadius: 10,
             child: Container(
               width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Text(
                 vm.resolvedLabel.isEmpty ? 'Label preview' : vm.resolvedLabel,
                 textAlign: TextAlign.center,
@@ -721,10 +721,9 @@ class _FourWayToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _GlassContainer(
+    return GlassContainer(
       blur: 8,
       color: const Color(0x38000000),
-      borderRadius: 10,
       child: SizedBox(
         height: 36,
         child: Row(
@@ -740,7 +739,8 @@ class _FourWayToggle extends StatelessWidget {
                 onTap: () => onChanged(mode),
                 behavior: HitTestBehavior.opaque,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
+                  duration: kAnimDuration,
+                  curve: kAnimCurve,
                   margin: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     color: active
@@ -748,10 +748,11 @@ class _FourWayToggle extends StatelessWidget {
                         : Colors.transparent,
                     borderRadius: BorderRadius.horizontal(
                       left: isFirst
-                          ? const Radius.circular(7)
+                          ? Radius.circular(kGlassRadius)
                           : Radius.zero,
-                      right:
-                          isLast ? const Radius.circular(7) : Radius.zero,
+                      right: isLast
+                          ? Radius.circular(kGlassRadius)
+                          : Radius.zero,
                     ),
                   ),
                   child: Center(
@@ -785,15 +786,15 @@ class _PreviewRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text,
-        style: TextStyle(
-          fontFamily: 'Montserrat',
-          color: Colors.white.withOpacity(0.45),
-          fontSize: 12,
-          fontWeight: FontWeight.w400,
-          height: 1.5,
-        ),
-      );
+    text,
+    style: TextStyle(
+      fontFamily: 'Montserrat',
+      color: Colors.white.withOpacity(0.45),
+      fontSize: 12,
+      fontWeight: FontWeight.w400,
+      height: 1.5,
+    ),
+  );
 }
 
 // ── Minimal Button ─────────────────────────────────────────────────
@@ -804,39 +805,33 @@ class _MinimalButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.white.withOpacity(0.12),
-              width: 0.8,
-            ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Montserrat',
-              color: Colors.white,
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 2,
-            ),
-          ),
+    onTap: onTap,
+    behavior: HitTestBehavior.opaque,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.8),
+        borderRadius: BorderRadius.circular(kGlassRadius),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontFamily: 'Montserrat',
+          color: Colors.white,
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 2,
         ),
-      );
+      ),
+    ),
+  );
 }
 
 // ── Hairline ───────────────────────────────────────────────────────
 class _HairLine extends StatelessWidget {
   @override
-  Widget build(BuildContext context) => Container(
-        height: 0.5,
-        color: Colors.white.withOpacity(0.06),
-      );
+  Widget build(BuildContext context) =>
+      Container(height: 0.5, color: Colors.white.withOpacity(0.06));
 }
 
 // ── Background Image Section ───────────────────────────────────────
@@ -870,11 +865,10 @@ class _BackgroundImageSection extends StatelessWidget {
               // ── Moved GestureDetector Outside for full button hit area ──
               child: GestureDetector(
                 onTap: vm.pickBackgroundImage,
-                behavior: HitTestBehavior.opaque, 
-                child: _GlassContainer(
+                behavior: HitTestBehavior.opaque,
+                child: GlassContainer(
                   blur: 10,
                   color: const Color(0x33FFFFFF),
-                  borderRadius: 10,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     child: Center(
@@ -898,14 +892,15 @@ class _BackgroundImageSection extends StatelessWidget {
               // ── Moved GestureDetector Outside for full button hit area ──
               GestureDetector(
                 onTap: vm.clearBackgroundImage,
-                behavior: HitTestBehavior.opaque, 
-                child: _GlassContainer(
+                behavior: HitTestBehavior.opaque,
+                child: GlassContainer(
                   blur: 10,
                   color: const Color(0x44FF3B30),
-                  borderRadius: 10,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        vertical: 13, horizontal: 18),
+                      vertical: 13,
+                      horizontal: 18,
+                    ),
                     child: Text(
                       'REMOVE',
                       style: TextStyle(
@@ -923,38 +918,6 @@ class _BackgroundImageSection extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-// ── Glass Container Helper ─────────────────────────────────────────
-class _GlassContainer extends StatelessWidget {
-  final Widget child;
-  final double blur;
-  final Color color;
-  final double borderRadius;
-
-  const _GlassContainer({
-    required this.child,
-    this.blur = 10,
-    this.color = const Color(0x33000000),
-    this.borderRadius = 12,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: Container(
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(borderRadius),
-          ),
-          child: child,
-        ),
-      ),
     );
   }
 }
@@ -986,13 +949,14 @@ class _ShapeSelector extends StatelessWidget {
               onTap: () => vm.setDotShape(shape),
               behavior: HitTestBehavior.opaque,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
+                duration: kAnimDuration,
+                curve: kAnimCurve,
                 margin: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   color: active
                       ? Colors.white.withOpacity(0.92)
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(7),
+                  borderRadius: BorderRadius.circular(kGlassRadius),
                 ),
                 child: Center(
                   child: Text(
@@ -1018,16 +982,12 @@ class _ShapeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _GlassContainer(
+    return GlassContainer(
       blur: 8,
       color: const Color(0x38000000),
-      borderRadius: 10,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          _row(_options.sublist(0, 3)),
-          _row(_options.sublist(3, 6)),
-        ],
+        children: [_row(_options.sublist(0, 3)), _row(_options.sublist(3, 6))],
       ),
     );
   }
@@ -1072,8 +1032,12 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
   void _addDate() {
     final date = _pendingDate;
     if (date == null) return;
-    final label = _labelCtrl.text.trim().isEmpty ? 'Untitled' : _labelCtrl.text.trim();
-    widget.vm.addMarkedDate(MarkedDate(month: date.month, day: date.day, label: label));
+    final label = _labelCtrl.text.trim().isEmpty
+        ? 'Untitled'
+        : _labelCtrl.text.trim();
+    widget.vm.addMarkedDate(
+      MarkedDate(month: date.month, day: date.day, label: label),
+    );
     setState(() {
       _pendingDate = null;
       _labelCtrl.clear();
@@ -1081,15 +1045,15 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
   }
 
   void _pickColor() => showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        isScrollControlled: true,
-        builder: (_) => ColorPickerSheet(
-          label: 'Milestone',
-          current: widget.vm.milestoneColor,
-          onPick: widget.vm.setMilestoneColor,
-        ),
-      );
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (_) => ColorPickerSheet(
+      label: 'Milestone',
+      current: widget.vm.milestoneColor,
+      onPick: widget.vm.setMilestoneColor,
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -1121,7 +1085,10 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
                 decoration: BoxDecoration(
                   color: vm.milestoneColor,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withOpacity(0.15), width: 1.2),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.15),
+                    width: 1.2,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -1136,7 +1103,13 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
                 ),
               ),
               const Spacer(),
-              Text('›', style: TextStyle(color: Colors.white.withOpacity(0.18), fontSize: 16)),
+              Text(
+                '›',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.18),
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
         ),
@@ -1151,7 +1124,10 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
                   Container(
                     width: 7,
                     height: 7,
-                    decoration: BoxDecoration(color: vm.milestoneColor, shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                      color: vm.milestoneColor,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -1168,7 +1144,11 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
                   GestureDetector(
                     onTap: () => vm.removeMarkedDate(m),
                     behavior: HitTestBehavior.opaque,
-                    child: Icon(Icons.close_rounded, color: Colors.white.withOpacity(0.25), size: 16),
+                    child: Icon(
+                      Icons.close_rounded,
+                      color: Colors.white.withOpacity(0.25),
+                      size: 16,
+                    ),
                   ),
                 ],
               ),
@@ -1190,10 +1170,9 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
           ),
         ),
         const SizedBox(height: 8),
-        _GlassContainer(
+        GlassContainer(
           blur: 8,
           color: const Color(0x28000000),
-          borderRadius: 12,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
@@ -1201,7 +1180,11 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
                 Expanded(
                   child: TextField(
                     controller: _labelCtrl,
-                    style: TextStyle(fontFamily: 'Montserrat', color: Colors.white, fontSize: 14),
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
                     decoration: InputDecoration(
                       hintText: "e.g. Mom's Birthday",
                       hintStyle: TextStyle(
@@ -1219,7 +1202,9 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
                   onTap: _pickDate,
                   behavior: HitTestBehavior.opaque,
                   child: Text(
-                    _pendingDate == null ? 'PICK DATE' : DateFormat('MMM d').format(_pendingDate!),
+                    _pendingDate == null
+                        ? 'PICK DATE'
+                        : DateFormat('MMM d').format(_pendingDate!),
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       color: Colors.white.withOpacity(0.6),
@@ -1237,10 +1222,11 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
         GestureDetector(
           onTap: _pendingDate == null ? null : _addDate,
           behavior: HitTestBehavior.opaque,
-          child: _GlassContainer(
+          child: GlassContainer(
             blur: 10,
-            color: _pendingDate == null ? const Color(0x18FFFFFF) : const Color(0x33FFFFFF),
-            borderRadius: 10,
+            color: _pendingDate == null
+                ? const Color(0x18FFFFFF)
+                : const Color(0x33FFFFFF),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 13),
               child: Center(
@@ -1248,7 +1234,9 @@ class _MarkedDatesSectionState extends State<_MarkedDatesSection> {
                   'ADD',
                   style: TextStyle(
                     fontFamily: 'Montserrat',
-                    color: Colors.white.withOpacity(_pendingDate == null ? 0.3 : 0.85),
+                    color: Colors.white.withOpacity(
+                      _pendingDate == null ? 0.3 : 0.85,
+                    ),
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.5,

@@ -22,3 +22,20 @@ const kSwatches = [
   Color(0xFF282420), Color(0xFFE8D5C4), Color(0xFF8B7355),
   Color(0xFFFF6B35), Color(0xFFA0A09A), Color(0xFFC8B89A),
 ];
+
+// ── Glass design system ──────────────────────────────────────────────
+// One shared set of values for every glass surface in the app (see
+// GlassContainer in widgets/glass_container.dart) so cards, sheets, and
+// buttons read as one consistent material instead of each screen having
+// its own slightly-different blur/radius/border.
+const double kGlassRadius = 6.0; // squarish corners everywhere, not pills
+const double kGlassBlur = 24.0;
+const double kGlassBorderWidth = 1.0;
+final Color kGlassBorderColor = Colors.white.withOpacity(0.20);
+
+// One duration + curve for every micro-interaction (toggles, taps, selection
+// changes) so the app has a single consistent "feel" instead of a mix of
+// speeds. Larger one-off transitions (page navigation, splash) intentionally
+// use their own longer durations, but share this curve family.
+const Duration kAnimDuration = Duration(milliseconds: 220);
+const Curve kAnimCurve = Curves.easeOutCubic;

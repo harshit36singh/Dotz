@@ -1,7 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../viewmodels/home_view_model.dart';
+import 'glass_container.dart';
 import 'glass_date_picker.dart';
 
 class GoalSetupSection extends StatefulWidget {
@@ -31,7 +31,8 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
 
   Future<void> _pickDate(BuildContext context) async {
     final now = DateTime.now();
-    DateTime tempDate = widget.vm.goalDate ?? now.add(const Duration(days: 100));
+    DateTime tempDate =
+        widget.vm.goalDate ?? now.add(const Duration(days: 100));
     if (tempDate.isBefore(now)) tempDate = now; // Safety check
 
     final date = await showGlassDatePicker(
@@ -58,7 +59,9 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
 
   @override
   Widget build(BuildContext context) {
-    return _GlassCard(
+    return GlassContainer(
+      color: Colors.white.withOpacity(0.05),
+      blur: 14,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -120,7 +123,7 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
                   ),
               ],
             ),
-            
+
             const SizedBox(height: 20),
             Container(height: 1, color: Colors.white.withOpacity(0.1)),
             const SizedBox(height: 20),
@@ -146,10 +149,14 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
                   Text(
                     widget.vm.goalDate == null
                         ? 'Tap to pick a date'
-                        : DateFormat('MMMM d, yyyy').format(widget.vm.goalDate!),
+                        : DateFormat(
+                            'MMMM d, yyyy',
+                          ).format(widget.vm.goalDate!),
                     style: TextStyle(
                       fontFamily: 'Montserrat',
-                      color: widget.vm.goalDate == null ? Colors.white.withOpacity(0.5) : Colors.white,
+                      color: widget.vm.goalDate == null
+                          ? Colors.white.withOpacity(0.5)
+                          : Colors.white,
                       fontSize: 16,
                     ),
                   ),
@@ -211,10 +218,14 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
                   Text(
                     widget.vm.goalStartDate == null
                         ? 'Today'
-                        : DateFormat('MMMM d, yyyy').format(widget.vm.goalStartDate!),
+                        : DateFormat(
+                            'MMMM d, yyyy',
+                          ).format(widget.vm.goalStartDate!),
                     style: TextStyle(
                       fontFamily: 'Montserrat',
-                      color: widget.vm.goalStartDate == null ? Colors.white.withOpacity(0.5) : Colors.white,
+                      color: widget.vm.goalStartDate == null
+                          ? Colors.white.withOpacity(0.5)
+                          : Colors.white,
                       fontSize: 16,
                     ),
                   ),
@@ -229,30 +240,6 @@ class _GoalSetupSectionState extends State<GoalSetupSection> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GlassCard extends StatelessWidget {
-  final Widget child;
-  const _GlassCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-        child: Container(
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(16),
-           
-          ),
-          child: child,
         ),
       ),
     );
