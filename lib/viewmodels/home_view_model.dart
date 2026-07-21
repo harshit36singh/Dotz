@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/wallpaper_settings.dart';
 import '../core/app_theme.dart';
+import '../services/windows_wallpaper_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// URL of the daily-quote API (see .env / .env.example). Empty string if the
@@ -110,6 +111,8 @@ class HomeViewModel extends ChangeNotifier {
   bool get live => _live;
 
   Future<void> checkLive() async {
+    // No such concept on Windows — desktop wallpaper is always static.
+    if (Platform.isWindows) return;
     try {
       final v = await _channel.invokeMethod<bool>('isLiveWallpaperActive') ?? false;
       _live = v;
@@ -418,6 +421,22 @@ class HomeViewModel extends ChangeNotifier {
     _saving = true;
     notifyListeners();
     try {
+      if (Platform.isWindows) {
+        return await WindowsWallpaperService.apply(
+          settings: settings,
+          bgImagePath: _bgImagePath,
+          bgColor: _bgColor,
+        );
+      }
+      return await _applyWallpaperAndroid();
+    } finally {
+      _saving = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _applyWallpaperAndroid() async {
+    try {
       // ── ADDED MODE 3 FOR WEEKLY (Native mapping) ──
       final modeIdx = switch (_mode) {
         CalendarMode.year   => 0,
@@ -466,9 +485,6 @@ class HomeViewModel extends ChangeNotifier {
     } catch (e) {
       debugPrint('applyWallpaper failed: $e');
       return false;
-    } finally {
-      _saving = false;
-      notifyListeners();
     }
   }
 }

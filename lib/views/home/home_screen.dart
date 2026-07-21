@@ -101,7 +101,9 @@ class _HomeScreenState extends State<HomeScreen>
                               color: Colors.white.withOpacity(0.85)),
                           const SizedBox(width: 10),
                           Text(
-                            'APPLY TO LOCK SCREEN',
+                            Platform.isWindows
+                                ? 'APPLY WALLPAPER'
+                                : 'APPLY TO LOCK SCREEN',
                             style: TextStyle(
                               fontFamily: 'Montserrat',
                               color: Colors.white.withOpacity(0.92),
