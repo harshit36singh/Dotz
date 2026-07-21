@@ -61,6 +61,9 @@ class MainActivity : FlutterActivity() {
                                 putLong("birthMillis",     (call.argument<Any>("birthMillis")     as? Number)?.toLong() ?: 0L)
                                 putInt("lifeExpYears",     (call.argument<Any>("lifeExpYears")    as? Number)?.toInt()  ?: 80)
                                 putInt("lifeUnit",         (call.argument<Any>("lifeUnit")        as? Number)?.toInt()  ?: 0)
+                                // ── Marked Dates ───────────────────────────────
+                                putString("markedDates", call.argument<String>("markedDates") ?: "")
+                                putInt("milestoneColor", (call.argument<Any>("milestoneColor") as? Number)?.toInt() ?: Color.parseColor("#FFD700"))
                                 apply()
                             }
                             DotzWidgetProvider.requestUpdate(applicationContext)

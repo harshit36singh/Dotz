@@ -55,7 +55,27 @@ data class DotzSettings(
     val birthMillis: Long,
     val lifeExpYears: Int,
     val lifeUnit: Int, // 0 = days, 1 = weeks
+    // JSON-encoded List<{month,day,label}> from MarkedDate.toJson() on the
+    // Dart side — SharedPreferences can't hold a structured list directly.
+    val markedDatesJson: String,
+    val milestoneColor: Int,
 ) {
+    /** (month, day) pairs — parsed once and cached, not on every dot check. */
+    val markedDates: List<Pair<Int, Int>> by lazy {
+        if (markedDatesJson.isBlank()) return@lazy emptyList()
+        try {
+            val arr = org.json.JSONArray(markedDatesJson)
+            (0 until arr.length()).map { i ->
+                val obj = arr.getJSONObject(i)
+                obj.getInt("month") to obj.getInt("day")
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    fun isMarked(month: Int, day: Int): Boolean = markedDates.any { it.first == month && it.second == day }
+
     companion object {
         const val PREFS_NAME = "dotz_prefs"
 
@@ -87,6 +107,8 @@ data class DotzSettings(
             birthMillis       = prefs.getLong("birthMillis", 0L),
             lifeExpYears      = prefs.getInt("lifeExpYears", 80),
             lifeUnit          = prefs.getInt("lifeUnit", 0),
+            markedDatesJson   = prefs.getString("markedDates", "") ?: "",
+            milestoneColor    = prefs.getInt("milestoneColor", Color.parseColor("#FFD700")),
         )
     }
 
@@ -312,6 +334,7 @@ object DotGridRenderer {
         val paintPast   = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = s.pastColor }
         val paintFuture = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = s.futureColor }
         val paintToday  = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = s.todayColor }
+        val paintMarked = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = s.milestoneColor }
         val paintText   = Paint(Paint.ANTI_ALIAS_FLAG).apply { textAlign = Paint.Align.CENTER }
         val paintGlassRim = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -320,6 +343,7 @@ object DotGridRenderer {
         }
         val cap = if (s.dotShape == 1) Paint.Cap.SQUARE else Paint.Cap.ROUND
         paintPast.strokeCap = cap; paintFuture.strokeCap = cap; paintToday.strokeCap = cap
+        paintMarked.strokeCap = cap
 
         // ── Background ───────────────────────────────────────────
         if (s.bgImagePath.isNotEmpty()) {
@@ -365,7 +389,7 @@ object DotGridRenderer {
             dotRadius = (cell * 0.8f) / 2f
 
             val d = dotRadius * 2f
-            paintPast.strokeWidth = d; paintFuture.strokeWidth = d; paintToday.strokeWidth = d
+            paintPast.strokeWidth = d; paintFuture.strokeWidth = d; paintToday.strokeWidth = d; paintMarked.strokeWidth = d
 
             val startX = (w - availW) / 2f + (blockW * 0.1f) + shiftX
             val startY = (h - availH) / 2f + (h * 0.05f) + shiftY
@@ -373,8 +397,9 @@ object DotGridRenderer {
 
             val pastPts = FloatArray(366 * 2)
             val futurePts = FloatArray(366 * 2)
+            val markedPts = FloatArray(366 * 2)
             val todayPt = FloatArray(2)
-            var pIdx = 0; var fIdx = 0; var drewToday = false
+            var pIdx = 0; var fIdx = 0; var mIdx = 0; var drewToday = false
             var currentDoy = 1
 
             paintText.color = s.labelColor
@@ -401,8 +426,9 @@ object DotGridRenderer {
                     val cy = gridStartY + row * cell + dotRadius
 
                     when {
-                        currentDoy < todayDoy -> { pastPts[pIdx++] = cx; pastPts[pIdx++] = cy }
                         currentDoy == todayDoy -> { todayPt[0] = cx; todayPt[1] = cy; drewToday = true }
+                        s.isMarked(m + 1, day + 1) -> { markedPts[mIdx++] = cx; markedPts[mIdx++] = cy }
+                        currentDoy < todayDoy -> { pastPts[pIdx++] = cx; pastPts[pIdx++] = cy }
                         else -> { futurePts[fIdx++] = cx; futurePts[fIdx++] = cy }
                     }
                     currentDoy++
@@ -410,6 +436,7 @@ object DotGridRenderer {
             }
 
             drawShapes(canvas, pastPts, pIdx, paintPast, s.dotShape, dotRadius, paintGlassRim)
+            drawShapes(canvas, markedPts, mIdx, paintMarked, s.dotShape, dotRadius, paintGlassRim)
             if (drewToday) drawShapes(canvas, todayPt, 2, paintToday, s.dotShape, dotRadius, paintGlassRim)
             drawShapes(canvas, futurePts, fIdx, paintFuture, s.dotShape, dotRadius, paintGlassRim)
 
@@ -439,7 +466,7 @@ object DotGridRenderer {
             val renderCols = effectiveCols
 
             val d = dotRadius * 2f
-            paintPast.strokeWidth = d; paintFuture.strokeWidth = d; paintToday.strokeWidth = d
+            paintPast.strokeWidth = d; paintFuture.strokeWidth = d; paintToday.strokeWidth = d; paintMarked.strokeWidth = d
 
             val safePast = pastDots(s).coerceIn(0, total)
             val futCount = (total - safePast - 1).coerceAtLeast(0)
@@ -447,7 +474,17 @@ object DotGridRenderer {
             val pastPts = FloatArray(safePast * 2)
             val todayPt = FloatArray(2)
             val futurePts = FloatArray(futCount * 2)
-            var pIdx = 0; var fIdx = 0; var drewToday = false
+            // Marked dates only correspond to real calendar dates in Year
+            // mode (dot index == day-of-year); Goal/Life dots count "days
+            // since X", not a calendar date, so marking never applies there.
+            val canMark = s.mode == 0 && s.markedDates.isNotEmpty()
+            val markedPts = FloatArray(if (canMark) total * 2 else 0)
+            val yearBase = Calendar.getInstance().apply {
+                set(Calendar.DAY_OF_YEAR, 1)
+                set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            }
+            var pIdx = 0; var fIdx = 0; var mIdx = 0; var drewToday = false
 
             val cell = dotRadius * 2f + dotSpacing
             val rows = ceil(total.toFloat() / renderCols).toInt()
@@ -461,11 +498,20 @@ object DotGridRenderer {
             for (i in 0 until total) {
                 val cx = ox + (i % renderCols) * cell + dotRadius
                 val cy = oy + (i / renderCols) * cell + dotRadius
+
+                val marked = if (canMark && i != safePast) {
+                    val date = (yearBase.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, i) }
+                    s.isMarked(date.get(Calendar.MONTH) + 1, date.get(Calendar.DAY_OF_MONTH))
+                } else false
+
                 when {
+                    i == safePast -> { todayPt[0] = cx; todayPt[1] = cy; drewToday = true }
+                    marked -> {
+                        if (mIdx + 1 < markedPts.size) { markedPts[mIdx++] = cx; markedPts[mIdx++] = cy }
+                    }
                     i < safePast -> {
                         if (pIdx + 1 < pastPts.size) { pastPts[pIdx++] = cx; pastPts[pIdx++] = cy }
                     }
-                    i == safePast -> { todayPt[0] = cx; todayPt[1] = cy; drewToday = true }
                     else -> {
                         if (fIdx + 1 < futurePts.size) { futurePts[fIdx++] = cx; futurePts[fIdx++] = cy }
                     }
@@ -473,6 +519,7 @@ object DotGridRenderer {
             }
 
             drawShapes(canvas, pastPts, pIdx, paintPast, s.dotShape, dotRadius, paintGlassRim)
+            drawShapes(canvas, markedPts, mIdx, paintMarked, s.dotShape, dotRadius, paintGlassRim)
             if (drewToday) drawShapes(canvas, todayPt, 2, paintToday, s.dotShape, dotRadius, paintGlassRim)
             drawShapes(canvas, futurePts, fIdx, paintFuture, s.dotShape, dotRadius, paintGlassRim)
         }
