@@ -6,6 +6,29 @@ enum DotShape { circle, square, star, glass, hexagon, diamond }
 
 enum LifeUnit { days, weeks }
 
+/// A recurring annual marker (birthday, anniversary, holiday...) — matched
+/// by month+day only, no year, so it lights up every time that date comes
+/// around. Only meaningful in Year and Weekly/Monthly mode, since those are
+/// the only modes whose dots correspond to real calendar dates (Goal/Life
+/// dots represent "days since X", not a specific date on the calendar).
+class MarkedDate {
+  final int month; // 1-12
+  final int day;   // 1-31
+  final String label;
+
+  const MarkedDate({required this.month, required this.day, required this.label});
+
+  bool matches(int month, int day) => this.month == month && this.day == day;
+
+  Map<String, dynamic> toJson() => {'month': month, 'day': day, 'label': label};
+
+  factory MarkedDate.fromJson(Map<String, dynamic> json) => MarkedDate(
+        month: json['month'] as int,
+        day: json['day'] as int,
+        label: json['label'] as String? ?? '',
+      );
+}
+
 class WallpaperSettings {
   Color backgroundColor;
   Color pastDotColor;
@@ -33,7 +56,10 @@ class WallpaperSettings {
   String bgImagePath;
   DotShape shape;
   double gridScale;
-  
+  // ── Marked Dates (Year / Weekly mode only) ──
+  List<MarkedDate> markedDates;
+  Color milestoneColor;
+
   WallpaperSettings({
     this.offsetX = 0.0,
     this.offsetY=0.0,
@@ -56,6 +82,8 @@ class WallpaperSettings {
     this.bgImagePath = '',
     this.shape = DotShape.circle,
     this.gridScale = 1.0,
+    this.markedDates = const [],
+    this.milestoneColor = const Color(0xFFFFD700),
   });
 
   WallpaperSettings copyWith({
@@ -78,6 +106,8 @@ class WallpaperSettings {
     String? bgImagePath,
     DotShape? shape,
     double? gridScale,
+    List<MarkedDate>? markedDates,
+    Color? milestoneColor,
   }) => WallpaperSettings(
     backgroundColor: backgroundColor ?? this.backgroundColor,
     pastDotColor: pastDotColor ?? this.pastDotColor,
@@ -98,7 +128,17 @@ class WallpaperSettings {
     bgImagePath: bgImagePath ?? this.bgImagePath,
     shape: shape ?? this.shape,
     gridScale: gridScale ?? this.gridScale,
+    markedDates: markedDates ?? this.markedDates,
+    milestoneColor: milestoneColor ?? this.milestoneColor,
   );
+
+  /// The label of the marked date matching (month, day), if any.
+  MarkedDate? markedDateFor(int month, int day) {
+    for (final m in markedDates) {
+      if (m.matches(month, day)) return m;
+    }
+    return null;
+  }
 
   // ── Year helpers ──────────────────────────────────────────────
   static int get dayOfYear {

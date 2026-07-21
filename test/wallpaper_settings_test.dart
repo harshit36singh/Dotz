@@ -136,6 +136,32 @@ void main() {
     });
   });
 
+  group('MarkedDate', () {
+    test('matches on month/day regardless of year', () {
+      const bday = MarkedDate(month: 3, day: 15, label: "Mom's Birthday");
+      expect(bday.matches(3, 15), true);
+      expect(bday.matches(3, 16), false);
+      expect(bday.matches(4, 15), false);
+    });
+
+    test('markedDateFor finds the matching entry among several', () {
+      final settings = WallpaperSettings(markedDates: const [
+        MarkedDate(month: 1, day: 1, label: "New Year"),
+        MarkedDate(month: 12, day: 25, label: 'Christmas'),
+      ]);
+      expect(settings.markedDateFor(12, 25)?.label, 'Christmas');
+      expect(settings.markedDateFor(6, 1), isNull);
+    });
+
+    test('round-trips through JSON', () {
+      const original = MarkedDate(month: 7, day: 4, label: 'Independence Day');
+      final restored = MarkedDate.fromJson(original.toJson());
+      expect(restored.month, original.month);
+      expect(restored.day, original.day);
+      expect(restored.label, original.label);
+    });
+  });
+
   group('Year / weekly totals', () {
     test('year mode totals track the current calendar year', () {
       final settings = WallpaperSettings(mode: CalendarMode.year);

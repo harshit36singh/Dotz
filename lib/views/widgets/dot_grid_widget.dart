@@ -52,8 +52,9 @@ class DotGridPainter extends CustomPainter {
     final pastPts = Float32List(366 * 2);
     final todayPts = Float32List(2);
     final futurePts = Float32List(366 * 2);
-    
-    int pIdx = 0, fIdx = 0;
+    final markedPts = Float32List(366 * 2);
+
+    int pIdx = 0, fIdx = 0, mIdx = 0;
     bool drewToday = false;
 
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
@@ -88,13 +89,16 @@ class DotGridPainter extends CustomPainter {
         final cx = bx + col * cell + r;
         final cy = gridStartY + row * cell + r;
 
-        if (monthIndex < currentMonth || (monthIndex == currentMonth && d < currentDay)) {
-          pastPts[pIdx++] = cx;
-          pastPts[pIdx++] = cy;
-        } else if (monthIndex == currentMonth && d == currentDay) {
+        if (monthIndex == currentMonth && d == currentDay) {
           todayPts[0] = cx;
           todayPts[1] = cy;
           drewToday = true;
+        } else if (settings.markedDateFor(monthIndex, d) != null) {
+          markedPts[mIdx++] = cx;
+          markedPts[mIdx++] = cy;
+        } else if (monthIndex < currentMonth || (monthIndex == currentMonth && d < currentDay)) {
+          pastPts[pIdx++] = cx;
+          pastPts[pIdx++] = cy;
         } else {
           futurePts[fIdx++] = cx;
           futurePts[fIdx++] = cy;
@@ -102,7 +106,7 @@ class DotGridPainter extends CustomPainter {
       }
     }
 
-    _drawShapes(canvas, pastPts, pIdx, todayPts, drewToday, futurePts, fIdx, r);
+    _drawShapes(canvas, pastPts, pIdx, todayPts, drewToday, futurePts, fIdx, markedPts, mIdx, r);
   }
 
   void _drawStandardGrid(Canvas canvas, Size size) {
@@ -160,8 +164,16 @@ class DotGridPainter extends CustomPainter {
     final pastPts = Float32List(safePast * 2);
     final todayPts = Float32List(2);
     final futurePts = Float32List(safeFutureCount * 2);
+    // Marked dates only correspond to real calendar dates in Year/Settings
+    // mode (dot index == day-of-year); Goal/Life dots count "days since X",
+    // not a calendar date, so marking never applies there.
+    final canMark = settings.markedDates.isNotEmpty &&
+        (settings.mode == CalendarMode.year || settings.mode == CalendarMode.settings) &&
+        total == WallpaperSettings.daysInYear;
+    final markedPts = Float32List(canMark ? total * 2 : 0);
+    final yearStart = DateTime(DateTime.now().year, 1, 1);
 
-    int pIdx = 0, fIdx = 0;
+    int pIdx = 0, fIdx = 0, mIdx = 0;
     bool drewToday = false;
 
     for (int i = 0; i < total; i++) {
@@ -170,28 +182,39 @@ class DotGridPainter extends CustomPainter {
       final cx  = ox + col * cell + r;
       final cy  = oy + row * cell + r;
 
-      if (i < safePast) {
-        pastPts[pIdx++] = cx;
-        pastPts[pIdx++] = cy;
-      } else if (i == safePast) {
+      final marked = canMark
+          ? () {
+              final date = yearStart.add(Duration(days: i));
+              return settings.markedDateFor(date.month, date.day) != null;
+            }()
+          : false;
+
+      if (i == safePast) {
         todayPts[0] = cx;
         todayPts[1] = cy;
         drewToday = true;
+      } else if (marked) {
+        markedPts[mIdx++] = cx;
+        markedPts[mIdx++] = cy;
+      } else if (i < safePast) {
+        pastPts[pIdx++] = cx;
+        pastPts[pIdx++] = cy;
       } else {
         futurePts[fIdx++] = cx;
         futurePts[fIdx++] = cy;
       }
     }
 
-    _drawShapes(canvas, pastPts, pIdx, todayPts, drewToday, futurePts, fIdx, r);
+    _drawShapes(canvas, pastPts, pIdx, todayPts, drewToday, futurePts, fIdx, markedPts, mIdx, r);
   }
 
-  void _drawShapes(Canvas canvas, Float32List pastPts, int pIdx, Float32List todayPts, bool drewToday, Float32List futurePts, int fIdx, double r) {
+  void _drawShapes(Canvas canvas, Float32List pastPts, int pIdx, Float32List todayPts, bool drewToday, Float32List futurePts, int fIdx, Float32List markedPts, int mIdx, double r) {
     final strokeWidth = r * 2;
-    
+
     final paintPast = Paint()..color = settings.pastDotColor..isAntiAlias = true;
     final paintToday = Paint()..color = settings.todayDotColor..isAntiAlias = true;
     final paintFuture = Paint()..color = settings.futureDotColor..isAntiAlias = true;
+    final paintMarked = Paint()..color = settings.milestoneColor..isAntiAlias = true;
 
     void drawShape(Canvas c, Float32List pts, int count, Paint p) {
       if (count == 0) return;
@@ -246,6 +269,7 @@ class DotGridPainter extends CustomPainter {
     }
 
     drawShape(canvas, pastPts, pIdx, paintPast);
+    drawShape(canvas, markedPts, mIdx, paintMarked);
     if (drewToday) drawShape(canvas, todayPts, 2, paintToday);
     drawShape(canvas, futurePts, fIdx, paintFuture);
   }
