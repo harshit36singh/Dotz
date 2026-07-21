@@ -64,6 +64,8 @@ class MainActivity : FlutterActivity() {
                                 // ── Marked Dates ───────────────────────────────
                                 putString("markedDates", call.argument<String>("markedDates") ?: "")
                                 putInt("milestoneColor", (call.argument<Any>("milestoneColor") as? Number)?.toInt() ?: Color.parseColor("#FFD700"))
+                                // ── Date Numbers ───────────────────────────────
+                                putBoolean("showDateNumbers", call.argument<Boolean>("showDateNumbers") ?: false)
                                 apply()
                             }
                             DotzWidgetProvider.requestUpdate(applicationContext)

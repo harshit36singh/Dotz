@@ -59,6 +59,7 @@ data class DotzSettings(
     // Dart side — SharedPreferences can't hold a structured list directly.
     val markedDatesJson: String,
     val milestoneColor: Int,
+    val showDateNumbers: Boolean,
 ) {
     /** (month, day) pairs — parsed once and cached, not on every dot check. */
     val markedDates: List<Pair<Int, Int>> by lazy {
@@ -109,6 +110,7 @@ data class DotzSettings(
             lifeUnit          = prefs.getInt("lifeUnit", 0),
             markedDatesJson   = prefs.getString("markedDates", "") ?: "",
             milestoneColor    = prefs.getInt("milestoneColor", Color.parseColor("#FFD700")),
+            showDateNumbers   = prefs.getBoolean("showDateNumbers", false),
         )
     }
 
@@ -124,10 +126,12 @@ data class DotzSettings(
         return ((midnight(endMillis) - midnight(startMillis)) / 86_400_000L).toInt()
     }
 
+    fun goalEffectiveStartMillis(): Long =
+        if (goalStartMillis > 0L) goalStartMillis else System.currentTimeMillis()
+
     fun goalTotalDays(): Int {
         if (goalEndMillis <= 0L) return goalTotalFallback.coerceAtLeast(1)
-        val start = if (goalStartMillis > 0L) goalStartMillis else System.currentTimeMillis()
-        val diff = daysBetween(start, goalEndMillis)
+        val diff = daysBetween(goalEffectiveStartMillis(), goalEndMillis)
         return if (diff <= 0) 1 else diff + 1
     }
 
@@ -154,8 +158,74 @@ data class DotzSettings(
 
 object DotGridRenderer {
 
+    // Date-numbers sizing: grow dots only as much as needed for a legible
+    // 1-2 digit number, capped so a sparse setting doesn't balloon into
+    // oversized dots.
+    private const val MIN_RADIUS_FOR_NUMBERS = 8.5f
+    private const val MAX_GROWTH_FACTOR_FOR_NUMBERS = 1.6f
+
     fun dayOfYear(): Int = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
     fun daysInYear(): Int = Calendar.getInstance().getActualMaximum(Calendar.DAY_OF_YEAR)
+
+    private fun midnightCalendar(millis: Long): Calendar = Calendar.getInstance().apply {
+        timeInMillis = millis
+        set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+    }
+
+    /**
+     * The calendar date dot index 0 corresponds to, for modes whose dots map
+     * to a real date. Null disables number rendering (Life mode, or numbers
+     * toggled off). Weekly/Monthly mode is handled separately since it
+     * already has month/day directly per-dot.
+     */
+    private fun numberBaseCalendar(s: DotzSettings): Calendar? {
+        if (!s.showDateNumbers) return null
+        return when (s.mode) {
+            0 -> midnightCalendar(System.currentTimeMillis()).apply { set(Calendar.DAY_OF_YEAR, 1) }
+            1 -> midnightCalendar(s.goalEffectiveStartMillis())
+            else -> null
+        }
+    }
+
+    private fun drawDayNumbers(
+        canvas: Canvas, r: Float,
+        pastPts: FloatArray, pastDayNums: List<Int>,
+        todayPt: FloatArray, drewToday: Boolean, todayDayNum: Int,
+        futurePts: FloatArray, futureDayNums: List<Int>,
+        markedPts: FloatArray, markedDayNums: List<Int>,
+        pastColor: Int, todayColor: Int, futureColor: Int, markedColor: Int,
+    ) {
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            textAlign = Paint.Align.CENTER
+            textSize = (r * 0.95f).coerceIn(6f, 20f)
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        }
+
+        fun contrastColor(bg: Int): Int {
+            val luminance = (0.299 * Color.red(bg) + 0.587 * Color.green(bg) + 0.114 * Color.blue(bg)) / 255.0
+            return if (luminance > 0.5) Color.BLACK else Color.WHITE
+        }
+
+        // Baseline offset to vertically center text on the dot (drawText
+        // anchors at the text baseline, not its vertical center).
+        val textOffsetY = -(paint.ascent() + paint.descent()) / 2f
+
+        fun draw(pts: FloatArray, nums: List<Int>, color: Int) {
+            paint.color = contrastColor(color)
+            for (i in nums.indices) {
+                canvas.drawText(nums[i].toString(), pts[i * 2], pts[i * 2 + 1] + textOffsetY, paint)
+            }
+        }
+
+        draw(pastPts, pastDayNums, pastColor)
+        draw(markedPts, markedDayNums, markedColor)
+        if (drewToday) {
+            paint.color = contrastColor(todayColor)
+            canvas.drawText(todayDayNum.toString(), todayPt[0], todayPt[1] + textOffsetY, paint)
+        }
+        draw(futurePts, futureDayNums, futureColor)
+    }
 
     private fun totalDots(s: DotzSettings): Int = when (s.mode) {
         1    -> s.goalTotalDays().coerceAtLeast(1)
@@ -402,6 +472,12 @@ object DotGridRenderer {
             var pIdx = 0; var fIdx = 0; var mIdx = 0; var drewToday = false
             var currentDoy = 1
 
+            val showNumbers = s.showDateNumbers
+            val pastDayNums = ArrayList<Int>()
+            val futureDayNums = ArrayList<Int>()
+            val markedDayNums = ArrayList<Int>()
+            var todayDayNum = 0
+
             paintText.color = s.labelColor
             paintText.textSize = dotRadius * 3.5f
             paintText.textAlign = Paint.Align.LEFT
@@ -426,10 +502,22 @@ object DotGridRenderer {
                     val cy = gridStartY + row * cell + dotRadius
 
                     when {
-                        currentDoy == todayDoy -> { todayPt[0] = cx; todayPt[1] = cy; drewToday = true }
-                        s.isMarked(m + 1, day + 1) -> { markedPts[mIdx++] = cx; markedPts[mIdx++] = cy }
-                        currentDoy < todayDoy -> { pastPts[pIdx++] = cx; pastPts[pIdx++] = cy }
-                        else -> { futurePts[fIdx++] = cx; futurePts[fIdx++] = cy }
+                        currentDoy == todayDoy -> {
+                            todayPt[0] = cx; todayPt[1] = cy; drewToday = true
+                            todayDayNum = day + 1
+                        }
+                        s.isMarked(m + 1, day + 1) -> {
+                            markedPts[mIdx++] = cx; markedPts[mIdx++] = cy
+                            if (showNumbers) markedDayNums.add(day + 1)
+                        }
+                        currentDoy < todayDoy -> {
+                            pastPts[pIdx++] = cx; pastPts[pIdx++] = cy
+                            if (showNumbers) pastDayNums.add(day + 1)
+                        }
+                        else -> {
+                            futurePts[fIdx++] = cx; futurePts[fIdx++] = cy
+                            if (showNumbers) futureDayNums.add(day + 1)
+                        }
                     }
                     currentDoy++
                 }
@@ -439,6 +527,14 @@ object DotGridRenderer {
             drawShapes(canvas, markedPts, mIdx, paintMarked, s.dotShape, dotRadius, paintGlassRim)
             if (drewToday) drawShapes(canvas, todayPt, 2, paintToday, s.dotShape, dotRadius, paintGlassRim)
             drawShapes(canvas, futurePts, fIdx, paintFuture, s.dotShape, dotRadius, paintGlassRim)
+            if (showNumbers) {
+                drawDayNumbers(
+                    canvas, dotRadius,
+                    pastPts, pastDayNums, todayPt, drewToday, todayDayNum,
+                    futurePts, futureDayNums, markedPts, markedDayNums,
+                    s.pastColor, s.todayColor, s.futureColor, s.milestoneColor,
+                )
+            }
 
             paintText.textAlign = Paint.Align.CENTER
             paintText.typeface = Typeface.DEFAULT
@@ -448,10 +544,20 @@ object DotGridRenderer {
             val availW = w * 0.90f * s.gridScale
             val availH = h * 0.88f * s.gridScale
 
-            val effectiveCols = if (s.mode == 2 && total > 1000) {
+            var effectiveCols = if (s.mode == 2 && total > 1000) {
                 sqrt(total.toDouble() * w / h).toInt().coerceIn(30, 120)
             } else {
                 s.columns
+            }
+
+            val numberBase = numberBaseCalendar(s)
+            if (numberBase != null) {
+                val naturalR = availW / (effectiveCols * 2.5f - 0.5f)
+                if (naturalR < MIN_RADIUS_FOR_NUMBERS) {
+                    val target = minOf(MIN_RADIUS_FOR_NUMBERS, naturalR * MAX_GROWTH_FACTOR_FOR_NUMBERS)
+                    val neededCols = ((availW / target + 0.5f) / 2.5f).toInt()
+                    effectiveCols = neededCols.coerceIn(3, effectiveCols)
+                }
             }
 
             var r = availW / (effectiveCols * 2.5f - 0.5f)
@@ -486,6 +592,11 @@ object DotGridRenderer {
             }
             var pIdx = 0; var fIdx = 0; var mIdx = 0; var drewToday = false
 
+            val pastDayNums = ArrayList<Int>()
+            val futureDayNums = ArrayList<Int>()
+            val markedDayNums = ArrayList<Int>()
+            var todayDayNum = 0
+
             val cell = dotRadius * 2f + dotSpacing
             val rows = ceil(total.toFloat() / renderCols).toInt()
             val gridW = renderCols * cell - dotSpacing
@@ -503,17 +614,26 @@ object DotGridRenderer {
                     val date = (yearBase.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, i) }
                     s.isMarked(date.get(Calendar.MONTH) + 1, date.get(Calendar.DAY_OF_MONTH))
                 } else false
+                val dayNum = if (numberBase != null) {
+                    (numberBase.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, i) }.get(Calendar.DAY_OF_MONTH)
+                } else 0
 
                 when {
-                    i == safePast -> { todayPt[0] = cx; todayPt[1] = cy; drewToday = true }
+                    i == safePast -> {
+                        todayPt[0] = cx; todayPt[1] = cy; drewToday = true
+                        todayDayNum = dayNum
+                    }
                     marked -> {
                         if (mIdx + 1 < markedPts.size) { markedPts[mIdx++] = cx; markedPts[mIdx++] = cy }
+                        if (numberBase != null) markedDayNums.add(dayNum)
                     }
                     i < safePast -> {
                         if (pIdx + 1 < pastPts.size) { pastPts[pIdx++] = cx; pastPts[pIdx++] = cy }
+                        if (numberBase != null) pastDayNums.add(dayNum)
                     }
                     else -> {
                         if (fIdx + 1 < futurePts.size) { futurePts[fIdx++] = cx; futurePts[fIdx++] = cy }
+                        if (numberBase != null) futureDayNums.add(dayNum)
                     }
                 }
             }
@@ -522,6 +642,14 @@ object DotGridRenderer {
             drawShapes(canvas, markedPts, mIdx, paintMarked, s.dotShape, dotRadius, paintGlassRim)
             if (drewToday) drawShapes(canvas, todayPt, 2, paintToday, s.dotShape, dotRadius, paintGlassRim)
             drawShapes(canvas, futurePts, fIdx, paintFuture, s.dotShape, dotRadius, paintGlassRim)
+            if (numberBase != null) {
+                drawDayNumbers(
+                    canvas, dotRadius,
+                    pastPts, pastDayNums, todayPt, drewToday, todayDayNum,
+                    futurePts, futureDayNums, markedPts, markedDayNums,
+                    s.pastColor, s.todayColor, s.futureColor, s.milestoneColor,
+                )
+            }
         }
 
         val label = resolvedLabel(s)
