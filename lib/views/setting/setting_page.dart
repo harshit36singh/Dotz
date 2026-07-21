@@ -181,57 +181,100 @@ class _GridDensityContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '${vm.columns}',
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            color: Colors.white,
-            fontSize: 46,
-            fontStyle: FontStyle.italic,
-            fontWeight: FontWeight.w900,
-            height: 1,
-            letterSpacing: -2,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              '${vm.columns}',
+              style: const TextStyle(
+                fontFamily: 'Montserrat',
+                color: Colors.white,
+                fontSize: 46,
+                fontStyle: FontStyle.italic,
+                fontWeight: FontWeight.w900,
+                height: 1,
+                letterSpacing: -2,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'columns',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.white.withOpacity(0.28),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: Colors.white,
+                      inactiveTrackColor: Colors.white.withOpacity(0.08),
+                      thumbColor: Colors.white,
+                      overlayColor: Colors.white.withOpacity(0.04),
+                      trackHeight: 1,
+                      thumbShape:
+                          const RoundSliderThumbShape(enabledThumbRadius: 4.5),
+                    ),
+                    child: Slider(
+                      value: vm.columns.toDouble(),
+                      min: 10,
+                      max: 30,
+                      divisions: 20,
+                      onChanged: (v) => vm.setColumns(v.round()),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'columns',
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  color: Colors.white.withOpacity(0.28),
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 2,
-                ),
+        const SizedBox(height: 14),
+        _HairLine(),
+        const SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Date numbers',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.white.withOpacity(0.85),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'Show the day inside each dot (Year, Weekly, Goal)',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.white.withOpacity(0.35),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
-              SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: Colors.white,
-                  inactiveTrackColor: Colors.white.withOpacity(0.08),
-                  thumbColor: Colors.white,
-                  overlayColor: Colors.white.withOpacity(0.04),
-                  trackHeight: 1,
-                  thumbShape:
-                      const RoundSliderThumbShape(enabledThumbRadius: 4.5),
-                ),
-                child: Slider(
-                  value: vm.columns.toDouble(),
-                  min: 10,
-                  max: 30,
-                  divisions: 20,
-                  onChanged: (v) => vm.setColumns(v.round()),
-                ),
-              ),
-            ],
-          ),
+            ),
+            CupertinoSwitch(
+              value: vm.showDateNumbers,
+              onChanged: vm.setShowDateNumbers,
+              activeColor: const Color(0xFFE4F087),
+              trackColor: Colors.white.withOpacity(0.1),
+            ),
+          ],
         ),
       ],
     );

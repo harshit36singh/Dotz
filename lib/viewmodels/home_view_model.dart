@@ -169,6 +169,14 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── Date Numbers (Year / Weekly / Goal mode only) ────────────────
+  bool _showDateNumbers = false;
+  bool get showDateNumbers => _showDateNumbers;
+  void setShowDateNumbers(bool v) {
+    _showDateNumbers = v;
+    notifyListeners();
+  }
+
   // ── Label colour ──────────────────────────────────────────────
   Color _labelColor = const Color(0xFFFFFFFF);
   Color get labelColor => _labelColor;
@@ -381,6 +389,7 @@ class HomeViewModel extends ChangeNotifier {
     offsetY:             _offsetY,
     markedDates:         _markedDates,
     milestoneColor:      _milestoneColor,
+    showDateNumbers:     _showDateNumbers,
   );
 
   // ── Hero display values ───────────────────────────────────────
@@ -505,6 +514,7 @@ class HomeViewModel extends ChangeNotifier {
         'offsetY':        _offsetY,
         'markedDates':    jsonEncode(_markedDates.map((m) => m.toJson()).toList()),
         'milestoneColor': _toArgb(_milestoneColor),
+        'showDateNumbers': _showDateNumbers,
       });
       await _channel.invokeMethod('openWallpaperPicker');
       return true;
