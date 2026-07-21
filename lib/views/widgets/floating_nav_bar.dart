@@ -1,6 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../core/app_theme.dart';
 import '../../models/wallpaper_settings.dart';
+import 'glass_container.dart';
 
 class FloatingNavBar extends StatelessWidget {
   final CalendarMode mode;
@@ -12,13 +13,13 @@ class FloatingNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       // Year  — a clean dot-grid feel
-      (CalendarMode.year,    Icons.grid_on_outlined),
+      (CalendarMode.year, Icons.grid_on_outlined),
       // Monthly — horizontal bands / rows
-      (CalendarMode.weekly,  Icons.table_rows_outlined),
+      (CalendarMode.weekly, Icons.table_rows_outlined),
       // Goal — target / bullseye feel
-      (CalendarMode.goal,    Icons.my_location_outlined),
+      (CalendarMode.goal, Icons.my_location_outlined),
       // Life — hourglass (time of your life)
-      (CalendarMode.life,    Icons.hourglass_bottom_outlined),
+      (CalendarMode.life, Icons.hourglass_bottom_outlined),
       // Settings — sliders, not a gear
       (CalendarMode.settings, Icons.tune_rounded),
     ];
@@ -28,26 +29,13 @@ class FloatingNavBar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 340),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(100),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
-              child: Container(
-                height: 50,
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(100),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.08),
-                    width: 0.8,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: _buildItems(items),
-                ),
-              ),
+          child: GlassContainer(
+            blur: 12.0,
+            color: Colors.black.withOpacity(0.4),
+            height: 50,
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: _buildItems(items),
             ),
           ),
         ),
@@ -68,7 +56,8 @@ class FloatingNavBar extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () => onTap(m),
             child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
+              duration: kAnimDuration,
+              curve: kAnimCurve,
               height: double.infinity,
               alignment: Alignment.center,
               decoration: BoxDecoration(

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../core/app_theme.dart';
 import '../home/home_screen.dart';
+import '../widgets/glass_container.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -44,7 +46,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       Navigator.of(context).pushReplacement(
         PageRouteBuilder(
           pageBuilder: (_, __, ___) => const HomeScreen(),
-          transitionDuration: const Duration(milliseconds: 600),
+          transitionDuration: kAnimDuration,
           transitionsBuilder: (_, anim, __, child) =>
               FadeTransition(opacity: anim, child: child),
         ),
@@ -55,19 +57,13 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   @override
   void initState() {
     super.initState();
-    _fadeCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
-    _slideCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
+    _fadeCtrl = AnimationController(vsync: this, duration: kAnimDuration);
+    _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: kAnimCurve);
+    _slideCtrl = AnimationController(vsync: this, duration: kAnimDuration);
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 0.08),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideCtrl, curve: Curves.easeOut));
+    ).animate(CurvedAnimation(parent: _slideCtrl, curve: kAnimCurve));
     _fadeCtrl.forward();
     _slideCtrl.forward();
   }
@@ -82,10 +78,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-      );
+      _pageController.nextPage(duration: kAnimDuration, curve: kAnimCurve);
     } else {
       _complete();
     }
@@ -168,7 +161,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       children: List.generate(_pages.length, (i) {
                         final active = i == _currentPage;
                         return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
+                          duration: kAnimDuration,
+                          curve: kAnimCurve,
                           margin: const EdgeInsets.symmetric(horizontal: 4),
                           width: active ? 24 : 6,
                           height: 6,
@@ -191,33 +185,22 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       ),
                       child: GestureDetector(
                         onTap: _nextPage,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(100),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(
-                              sigmaX: 18.0,
-                              sigmaY: 18.0,
-                            ),
-                            child: Container(
-                              width: double.infinity,
-                              height: isTablet ? 64 : 56,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(100),
-                               
-                              ),
-                              child: Text(
-                                _currentPage == _pages.length - 1
-                                    ? 'GET STARTED'
-                                    : 'NEXT',
-                                style: TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  color: Colors.white,
-                                  fontSize: isTablet ? 16 : 14,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 2.5,
-                                ),
+                        child: GlassContainer(
+                          blur: 18.0,
+                          color: Colors.white.withOpacity(0.15),
+                          width: double.infinity,
+                          height: isTablet ? 64 : 56,
+                          child: Center(
+                            child: Text(
+                              _currentPage == _pages.length - 1
+                                  ? 'GET STARTED'
+                                  : 'NEXT',
+                              style: TextStyle(
+                                fontFamily: 'Montserrat',
+                                color: Colors.white,
+                                fontSize: isTablet ? 16 : 14,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2.5,
                               ),
                             ),
                           ),
@@ -238,7 +221,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             right: 24,
             child: AnimatedOpacity(
               opacity: _currentPage < _pages.length - 1 ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 300),
+              duration: kAnimDuration,
+              curve: kAnimCurve,
               child: GestureDetector(
                 onTap: () {
                   if (_currentPage < _pages.length - 1) _complete();
@@ -249,7 +233,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(kGlassRadius),
                   ),
                   child: const Text(
                     'SKIP',
@@ -305,8 +289,8 @@ class _OnboardPageView extends StatelessWidget {
     final double svgSize = isTablet
         ? 300
         : isLargePhone
-            ? 240
-            : 200;
+        ? 240
+        : 200;
 
     // Gap between SVG and title text: tightened significantly
     // Uses a fraction of screen height to stay proportional
@@ -318,8 +302,8 @@ class _OnboardPageView extends StatelessWidget {
     final double titleSize = isTablet
         ? 44
         : isLargePhone
-            ? 36
-            : 30;
+        ? 36
+        : 30;
 
     // Subtitle font size
     final double subtitleSize = isTablet ? 17 : 15;
@@ -346,7 +330,6 @@ class _OnboardPageView extends StatelessWidget {
           ),
 
           SizedBox(height: svgToTextGap), // ← tightened gap
-
           // Title — centered
           Text(
             page.title,
@@ -362,28 +345,19 @@ class _OnboardPageView extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Subtitle inside glass card — centered text
-          ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(isTablet ? 24 : 18),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.07),
-                  borderRadius: BorderRadius.circular(20),
-                 
-                ),
-                child: Text(
-                  page.subtitle,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: subtitleSize,
-                    height: 1.65,
-                    letterSpacing: 0.1,
-                  ),
-                ),
+          GlassContainer(
+            blur: 20,
+            color: Colors.white.withOpacity(0.07),
+            width: double.infinity,
+            padding: EdgeInsets.all(isTablet ? 24 : 18),
+            child: Text(
+              page.subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: subtitleSize,
+                height: 1.65,
+                letterSpacing: 0.1,
               ),
             ),
           ),

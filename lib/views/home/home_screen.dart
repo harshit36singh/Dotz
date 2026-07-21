@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:dotz/views/setting/setting_page.dart';
+import '../../core/app_theme.dart';
 import '../../models/wallpaper_settings.dart';
 import '../../viewmodels/home_view_model.dart';
 import '../widgets/dot_grid_widget.dart';
 import '../widgets/floating_nav_bar.dart';
+import '../widgets/glass_container.dart';
 import '../widgets/goal_setup_section.dart';
 import '../widgets/life_setup_section.dart';
 
@@ -26,11 +28,8 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    _ac = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 340),
-    );
-    _af = CurvedAnimation(parent: _ac, curve: Curves.easeOut);
+    _ac = AnimationController(vsync: this, duration: kAnimDuration);
+    _af = CurvedAnimation(parent: _ac, curve: kAnimCurve);
     _ac.forward();
     _vm.checkLive();
     _vm.addListener(_onVmChange);
@@ -68,54 +67,46 @@ class _HomeScreenState extends State<HomeScreen>
   // ── Apply Button ─────────────────────────────────────────────────
   Widget _applyBtn(double hPad) => Padding(
     padding: EdgeInsets.symmetric(horizontal: hPad),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(100),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(100),
-           
-          ),
-          child: GestureDetector(
-            onTap: _vm.saving ? null : _apply,
-            child: SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: Center(
-                child: _vm.saving
-                    ? SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.5,
-                          color: Colors.white.withOpacity(0.7),
-                        ),
-                      )
-                    : Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _MinimalIcon.upload(
-                              size: 13,
-                              color: Colors.white.withOpacity(0.85)),
-                          const SizedBox(width: 10),
-                          Text(
-                            Platform.isWindows
-                                ? 'APPLY WALLPAPER'
-                                : 'APPLY TO LOCK SCREEN',
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              color: Colors.white.withOpacity(0.92),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2.2,
-                            ),
-                          ),
-                        ],
+    child: GlassContainer(
+      blur: 18.0,
+      color: Colors.white.withOpacity(0.12),
+      child: GestureDetector(
+        onTap: _vm.saving ? null : _apply,
+        child: SizedBox(
+          width: double.infinity,
+          height: 54,
+          child: Center(
+            child: _vm.saving
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.5,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _MinimalIcon.upload(
+                        size: 13,
+                        color: Colors.white.withOpacity(0.85),
                       ),
-              ),
-            ),
+                      const SizedBox(width: 10),
+                      Text(
+                        Platform.isWindows
+                            ? 'APPLY WALLPAPER'
+                            : 'APPLY TO LOCK SCREEN',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          color: Colors.white.withOpacity(0.92),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2.2,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -144,37 +135,26 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Padding(
       padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(100),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.32),
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.06),
-                width: 0.8,
+      child: GlassContainer(
+        blur: 14,
+        color: Colors.black.withOpacity(0.32),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              title.toUpperCase(), // Uppercase looks very minimal and clean
+              style: TextStyle(
+                // Removing fontFamily defaults to the clean system font (Roboto/SF Pro)
+                color: Colors.white.withOpacity(
+                  0.85,
+                ), // Slightly dimmed for a "sober" look
+                fontSize: 13, // Smaller size
+                fontWeight: FontWeight.w600, // Medium weight, not too bold
+                letterSpacing: 2.5, // Wide, elegant spacing
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-          Text(
-                  title.toUpperCase(), // Uppercase looks very minimal and clean
-                  style: TextStyle(
-                    // Removing fontFamily defaults to the clean system font (Roboto/SF Pro)
-                    color: Colors.white.withOpacity(0.85), // Slightly dimmed for a "sober" look
-                    fontSize: 13, // Smaller size
-                    fontWeight: FontWeight.w600, // Medium weight, not too bold
-                    letterSpacing: 2.5, // Wide, elegant spacing
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );
@@ -195,8 +175,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // ── Lockscreen Preview ────────────────────────────────────────────
-  Widget _dotPreview(
-      double hPad, double pw, double ph, double mockupScale) {
+  Widget _dotPreview(double hPad, double pw, double ph, double mockupScale) {
     final bgColor = _vm.bgColor;
     final bgImage = _vm.bgImagePath;
     final now = DateTime.now();
@@ -220,8 +199,7 @@ class _HomeScreenState extends State<HomeScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 ClipRRect(
-                  borderRadius:
-                      BorderRadius.circular(30 * mockupScale),
+                  borderRadius: BorderRadius.circular(30 * mockupScale),
                   child: SizedBox(
                     width: pw,
                     height: ph,
@@ -233,8 +211,7 @@ class _HomeScreenState extends State<HomeScreen>
                         else
                           Container(color: bgColor),
                         CustomPaint(
-                          painter:
-                              DotGridPainter(_vm.settings, repaint: _vm),
+                          painter: DotGridPainter(_vm.settings, repaint: _vm),
                           child: const SizedBox.expand(),
                         ),
                         Positioned(
@@ -242,8 +219,7 @@ class _HomeScreenState extends State<HomeScreen>
                           left: 20 * mockupScale,
                           right: 20 * mockupScale,
                           child: Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 DateFormat('HH:mm').format(now),
@@ -256,13 +232,17 @@ class _HomeScreenState extends State<HomeScreen>
                               ),
                               Row(
                                 children: [
-                                  Icon(Icons.signal_wifi_4_bar_rounded,
-                                      color: Colors.white,
-                                      size: 11 * mockupScale),
+                                  Icon(
+                                    Icons.signal_wifi_4_bar_rounded,
+                                    color: Colors.white,
+                                    size: 11 * mockupScale,
+                                  ),
                                   SizedBox(width: 4 * mockupScale),
-                                  Icon(Icons.battery_full_rounded,
-                                      color: Colors.white,
-                                      size: 11 * mockupScale),
+                                  Icon(
+                                    Icons.battery_full_rounded,
+                                    color: Colors.white,
+                                    size: 11 * mockupScale,
+                                  ),
                                 ],
                               ),
                             ],
@@ -306,13 +286,10 @@ class _HomeScreenState extends State<HomeScreen>
                                 color: _vm.labelColor,
                                 fontSize: _vm.labelFontSize == 0
                                     ? 13 * mockupScale
-                                    : (_vm.labelFontSize * 0.8) *
-                                        mockupScale,
+                                    : (_vm.labelFontSize * 0.8) * mockupScale,
                                 fontFamily: 'Montserrat',
                                 shadows: const [
-                                  Shadow(
-                                      blurRadius: 6,
-                                      color: Colors.black38),
+                                  Shadow(blurRadius: 6, color: Colors.black38),
                                 ],
                               ),
                             ),
@@ -322,13 +299,16 @@ class _HomeScreenState extends State<HomeScreen>
                           left: 28 * mockupScale,
                           right: 28 * mockupScale,
                           child: Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               _lockScreenIcon(
-                                  Icons.mic_none_rounded, mockupScale),
+                                Icons.mic_none_rounded,
+                                mockupScale,
+                              ),
                               _lockScreenIcon(
-                                  Icons.camera_alt_outlined, mockupScale),
+                                Icons.camera_alt_outlined,
+                                mockupScale,
+                              ),
                             ],
                           ),
                         ),
@@ -357,32 +337,25 @@ class _HomeScreenState extends State<HomeScreen>
                     Navigator.of(context).push(
                       PageRouteBuilder(
                         opaque: false,
-                        transitionDuration:
-                            const Duration(milliseconds: 300),
-                        pageBuilder: (_, __, ___) =>
-                            FullScreenEditor(vm: _vm),
+                        transitionDuration: kAnimDuration,
+                        pageBuilder: (_, __, ___) => FullScreenEditor(vm: _vm),
                         transitionsBuilder: (_, anim, __, child) =>
                             FadeTransition(opacity: anim, child: child),
                       ),
                     );
                   },
-                  child: Container(
+                  child: GlassContainer(
+                    blur: 10,
+                    color: Colors.white.withOpacity(0.05),
                     width: pw,
                     padding: const EdgeInsets.symmetric(vertical: 11),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(100),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.1),
-                        width: 0.8,
-                      ),
-                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _MinimalIcon.expand(
-                            size: 12,
-                            color: Colors.white.withOpacity(0.6)),
+                          size: 12,
+                          color: Colors.white.withOpacity(0.6),
+                        ),
                         const SizedBox(width: 7),
                         Text(
                           'EDIT WALLPAPER',
@@ -411,8 +384,7 @@ class _HomeScreenState extends State<HomeScreen>
     decoration: BoxDecoration(
       shape: BoxShape.circle,
       color: Colors.white.withOpacity(0.1),
-      border:
-          Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
+      border: Border.all(color: Colors.white.withOpacity(0.12), width: 0.5),
     ),
     child: Icon(icon, color: Colors.white, size: 22 * scale),
   );
@@ -476,8 +448,7 @@ class _HomeScreenState extends State<HomeScreen>
     ],
   );
 
-  Widget _calendarBody(
-          double hPad, double pw, double ph, double mockupScale) =>
+  Widget _calendarBody(double hPad, double pw, double ph, double mockupScale) =>
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -495,14 +466,22 @@ class _HomeScreenState extends State<HomeScreen>
     final sw = mq.size.width;
     final sh = mq.size.height;
 
-    final hPad = sw >= 900 ? 48.0 : sw >= 600 ? 32.0 : 20.0;
+    final hPad = sw >= 900
+        ? 48.0
+        : sw >= 600
+        ? 32.0
+        : 20.0;
     final pw = (sw * 0.50).clamp(160.0, 400.0);
     final deviceRatio = sh / sw;
     final mockupScale = pw / sw;
     final ph = pw * deviceRatio;
 
     final isSettings = _vm.mode == CalendarMode.settings;
-    final navSideInset = sw >= 900 ? sw * 0.3 : sw >= 600 ? sw * 0.2 : 80.0;
+    final navSideInset = sw >= 900
+        ? sw * 0.3
+        : sw >= 600
+        ? sw * 0.2
+        : 80.0;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
@@ -536,9 +515,10 @@ class _HomeScreenState extends State<HomeScreen>
                             child: SingleChildScrollView(
                               physics: const BouncingScrollPhysics(),
                               padding: const EdgeInsets.only(
-                                  top: 24, bottom: 120),
-                              child: _calendarBody(
-                                  hPad, pw, ph, mockupScale),
+                                top: 24,
+                                bottom: 120,
+                              ),
+                              child: _calendarBody(hPad, pw, ph, mockupScale),
                             ),
                           ),
                         ],
@@ -551,8 +531,7 @@ class _HomeScreenState extends State<HomeScreen>
                       left: navSideInset,
                       right: (navSideInset + 18),
                       bottom: 20,
-                      child: FloatingNavBar(
-                          mode: _vm.mode, onTap: _switchMode),
+                      child: FloatingNavBar(mode: _vm.mode, onTap: _switchMode),
                     ),
                   ],
                 ),
@@ -575,9 +554,9 @@ class _MinimalIcon extends StatelessWidget {
   final Color color;
 
   const _MinimalIcon.upload({required this.size, required this.color})
-      : _type = _MinimalIconType.upload;
+    : _type = _MinimalIconType.upload;
   const _MinimalIcon.expand({required this.size, required this.color})
-      : _type = _MinimalIconType.expand;
+    : _type = _MinimalIconType.expand;
 
   @override
   Widget build(BuildContext context) {
@@ -608,14 +587,22 @@ class _MinimalIconPainter extends CustomPainter {
     final h = size.height;
 
     if (type == _MinimalIconType.upload) {
+      canvas.drawLine(Offset(w / 2, h * 0.7), Offset(w / 2, h * 0.1), paint);
       canvas.drawLine(
-          Offset(w / 2, h * 0.7), Offset(w / 2, h * 0.1), paint);
+        Offset(w * 0.25, h * 0.35),
+        Offset(w / 2, h * 0.1),
+        paint,
+      );
       canvas.drawLine(
-          Offset(w * 0.25, h * 0.35), Offset(w / 2, h * 0.1), paint);
+        Offset(w * 0.75, h * 0.35),
+        Offset(w / 2, h * 0.1),
+        paint,
+      );
       canvas.drawLine(
-          Offset(w * 0.75, h * 0.35), Offset(w / 2, h * 0.1), paint);
-      canvas.drawLine(
-          Offset(w * 0.1, h * 0.85), Offset(w * 0.9, h * 0.85), paint);
+        Offset(w * 0.1, h * 0.85),
+        Offset(w * 0.9, h * 0.85),
+        paint,
+      );
     } else if (type == _MinimalIconType.expand) {
       final s = w * 0.28;
       canvas.drawLine(Offset(0, s), Offset(0, 0), paint);
@@ -692,11 +679,17 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                     ),
                     Row(
                       children: const [
-                        Icon(Icons.signal_wifi_4_bar_rounded,
-                            color: Colors.white, size: 15),
+                        Icon(
+                          Icons.signal_wifi_4_bar_rounded,
+                          color: Colors.white,
+                          size: 15,
+                        ),
                         SizedBox(width: 5),
-                        Icon(Icons.battery_full_rounded,
-                            color: Colors.white, size: 15),
+                        Icon(
+                          Icons.battery_full_rounded,
+                          color: Colors.white,
+                          size: 15,
+                        ),
                       ],
                     ),
                   ],
@@ -737,14 +730,13 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                   _focalPoint = details.localFocalPoint;
                 },
                 onScaleUpdate: (details) {
-                  vm.setGridScale(
-                      (_baseScale * details.scale).clamp(0.2, 3.0));
+                  vm.setGridScale((_baseScale * details.scale).clamp(0.2, 3.0));
                   final dx =
                       (details.localFocalPoint.dx - _focalPoint.dx) /
-                          size.width;
+                      size.width;
                   final dy =
                       (details.localFocalPoint.dy - _focalPoint.dy) /
-                          size.height;
+                      size.height;
                   vm.setOffsets(_baseOffsetX + dx, _baseOffsetY + dy);
                 },
               ),
@@ -754,31 +746,20 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                 right: 0,
                 child: IgnorePointer(
                   child: Center(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: BackdropFilter(
-                        filter:
-                            ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 9),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.35),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.08),
-                              width: 0.8,
-                            ),
-                          ),
-                          child: Text(
-                            'Pinch to Zoom  ·  Drag to Pan',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.6),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
+                    child: GlassContainer(
+                      blur: 10,
+                      color: Colors.black.withOpacity(0.35),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 9,
+                      ),
+                      child: Text(
+                        'Pinch to Zoom  ·  Drag to Pan',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.6),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.8,
                         ),
                       ),
                     ),
@@ -796,8 +777,7 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child: BackdropFilter(
-                      filter:
-                          ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                       child: Container(
                         padding: const EdgeInsets.all(15),
                         decoration: BoxDecoration(
@@ -823,34 +803,21 @@ class _FullScreenEditorState extends State<FullScreenEditor> {
                 right: 24,
                 child: GestureDetector(
                   onTap: () => Navigator.pop(context),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100),
-                    child: BackdropFilter(
-                      filter:
-                          ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 38,
-                          vertical: 17,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(100),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.22),
-                            width: 0.8,
-                          ),
-                        ),
-                        child: const Text(
-                          'DONE',
-                          style: TextStyle(
-                            fontFamily: 'Montserrat',
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 2.2,
-                          ),
-                        ),
+                  child: GlassContainer(
+                    blur: 18.0,
+                    color: Colors.white.withOpacity(0.12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 38,
+                      vertical: 17,
+                    ),
+                    child: const Text(
+                      'DONE',
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2.2,
                       ),
                     ),
                   ),
