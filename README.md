@@ -1,5 +1,7 @@
 # dotz: live wallpaper
 
+![dotz: your year, goal or life as dots on your lock screen](.github/assets/dotz-hero.jpg)
+
 A native Android app (Kotlin + Jetpack Compose) that turns time into a grid of dots on your lock screen. Track your year, a month-by-month calendar, a goal countdown, or your whole life. Today's dot is **Pip**, the dotz mascot.
 
 ---
