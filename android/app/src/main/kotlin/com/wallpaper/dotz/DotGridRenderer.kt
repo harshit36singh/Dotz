@@ -1,4 +1,4 @@
-package com.example.dotz
+package com.wallpaper.dotz
 
 import android.content.SharedPreferences
 import android.content.res.Resources
@@ -10,16 +10,14 @@ import kotlin.math.sqrt
 import java.util.Calendar
 
 // NOTE: This is the single source of truth for what gets drawn into a Dotz
-// bitmap on the native side — used by both DotzLiveWallpaper (the live
-// wallpaper engine) and DotzWidgetProvider (the home-screen widget), so the
-// two can never drift from each other. The grid-layout math here is
-// intentionally mirrored in lib/views/widgets/dot_grid_widget.dart for the
-// in-app preview; there is no shared source of truth with that Dart file —
-// if you change the layout formulas here, change them there too.
+// bitmap — used by DotzLiveWallpaper (the live wallpaper engine),
+// DotzWidgetProvider (the home-screen widget) AND the in-app Compose preview
+// (ui/WallpaperPreview.kt), so all three always match pixel for pixel.
 
 /**
  * Snapshot of everything needed to render a Dotz grid, loaded from the
- * "dotz_prefs" SharedPreferences the Flutter app writes to.
+ * "dotz_prefs" SharedPreferences the app writes to when "Set as wallpaper"
+ * is tapped.
  */
 data class DotzSettings(
     val bgColor: Int,
@@ -60,6 +58,8 @@ data class DotzSettings(
     val markedDatesJson: String,
     val milestoneColor: Int,
     val showDateNumbers: Boolean,
+    // "pip" draws today's dot as Pip (circle + two eyes), "plain" as a dot.
+    val todayStyle: String = TODAY_STYLE_PIP,
 ) {
     /** (month, day) pairs — parsed once and cached, not on every dot check. */
     val markedDates: List<Pair<Int, Int>> by lazy {
@@ -79,12 +79,21 @@ data class DotzSettings(
 
     companion object {
         const val PREFS_NAME = "dotz_prefs"
+        const val TODAY_STYLE_PIP = "pip"
+        const val TODAY_STYLE_PLAIN = "plain"
+
+        // Redesign defaults (see ui/theme/Color.kt).
+        val DEFAULT_BG     = Color.parseColor("#0D0C0A")
+        val DEFAULT_PAST   = Color.parseColor("#3A3836")
+        val DEFAULT_FUTURE = Color.parseColor("#EDE8E0")
+        val DEFAULT_TODAY  = Color.parseColor("#FF5A1F")
+        val DEFAULT_MILESTONE = Color.parseColor("#FFCC44")
 
         fun load(prefs: SharedPreferences): DotzSettings = DotzSettings(
-            bgColor           = prefs.getInt("bgColor", Color.BLACK),
-            pastColor         = prefs.getInt("pastColor", Color.WHITE),
-            futureColor       = prefs.getInt("futureColor", Color.parseColor("#2A2A2A")),
-            todayColor        = prefs.getInt("todayColor", Color.parseColor("#FF4500")),
+            bgColor           = prefs.getInt("bgColor", DEFAULT_BG),
+            pastColor         = prefs.getInt("pastColor", DEFAULT_PAST),
+            futureColor       = prefs.getInt("futureColor", DEFAULT_FUTURE),
+            todayColor        = prefs.getInt("todayColor", DEFAULT_TODAY),
             labelColor        = prefs.getInt("labelColor", Color.WHITE),
             labelFontSizeSp   = prefs.getFloat("labelFontSize", 0f),
             columns           = prefs.getInt("columns", 20),
@@ -109,8 +118,9 @@ data class DotzSettings(
             lifeExpYears      = prefs.getInt("lifeExpYears", 80),
             lifeUnit          = prefs.getInt("lifeUnit", 0),
             markedDatesJson   = prefs.getString("markedDates", "") ?: "",
-            milestoneColor    = prefs.getInt("milestoneColor", Color.parseColor("#FFD700")),
+            milestoneColor    = prefs.getInt("milestoneColor", DEFAULT_MILESTONE),
             showDateNumbers   = prefs.getBoolean("showDateNumbers", false),
+            todayStyle        = prefs.getString("todayStyle", TODAY_STYLE_PIP) ?: TODAY_STYLE_PIP,
         )
     }
 
@@ -249,7 +259,7 @@ object DotGridRenderer {
         return computeProgressLabel(s)
     }
 
-    private fun computeProgressLabel(s: DotzSettings): String = when (s.mode) {
+    fun computeProgressLabel(s: DotzSettings): String = when (s.mode) {
         1 -> "${(s.goalTotalDays() - s.goalPastDays()).coerceAtLeast(0)} left · ${s.goalName}"
         2 -> {
             val total = s.lifeTotalUnits()
@@ -375,6 +385,39 @@ object DotGridRenderer {
         }
     }
 
+    /**
+     * Today's dot. With todayStyle == "pip" it's Pip: a circle in the today
+     * colour plus two eyes, geometry scaled from Pip's 100-unit viewBox
+     * (body r48, eyes at (37,46)/(63,46), rx5.5 ry8). Eyes are skipped when
+     * the dot is too small for them to read.
+     */
+    private fun drawToday(
+        canvas: Canvas, pt: FloatArray, paint: Paint, s: DotzSettings,
+        dotRadius: Float, paintGlassRim: Paint,
+    ) {
+        if (s.todayStyle != DotzSettings.TODAY_STYLE_PIP) {
+            drawShapes(canvas, pt, 2, paint, s.dotShape, dotRadius, paintGlassRim)
+            return
+        }
+        val cx = pt[0]; val cy = pt[1]
+        // Pip reads a touch larger than its neighbours so the face is legible.
+        val r = dotRadius * 1.25f
+        val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = paint.color }
+        canvas.drawCircle(cx, cy, r, fill)
+        val density = Resources.getSystem().displayMetrics.density
+        if (r >= 6f * density) {
+            val sc = r / 48f
+            val eye = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = PIP_EYE }
+            for (ex in floatArrayOf(37f, 63f)) {
+                val ox = cx + (ex - 50f) * sc
+                val oy = cy + (46f - 50f) * sc
+                canvas.drawOval(ox - 5.5f * sc, oy - 8f * sc, ox + 5.5f * sc, oy + 8f * sc, eye)
+            }
+        }
+    }
+
+    private val PIP_EYE = Color.parseColor("#1A0E08")
+
     private fun drawWrappedText(
         canvas: Canvas, text: String, x: Float, startY: Float,
         maxWidth: Float, lineHeight: Float, paint: Paint,
@@ -396,7 +439,7 @@ object DotGridRenderer {
     }
 
     /** Renders the full Dotz grid (background + dots + label) into a new bitmap. */
-    fun buildBitmap(w: Int, h: Int, s: DotzSettings): Bitmap? {
+    fun buildBitmap(w: Int, h: Int, s: DotzSettings, labelTypeface: Typeface? = null): Bitmap? {
         if (w <= 0 || h <= 0) return null
         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -525,7 +568,7 @@ object DotGridRenderer {
 
             drawShapes(canvas, pastPts, pIdx, paintPast, s.dotShape, dotRadius, paintGlassRim)
             drawShapes(canvas, markedPts, mIdx, paintMarked, s.dotShape, dotRadius, paintGlassRim)
-            if (drewToday) drawShapes(canvas, todayPt, 2, paintToday, s.dotShape, dotRadius, paintGlassRim)
+            if (drewToday) drawToday(canvas, todayPt, paintToday, s, dotRadius, paintGlassRim)
             drawShapes(canvas, futurePts, fIdx, paintFuture, s.dotShape, dotRadius, paintGlassRim)
             if (showNumbers) {
                 drawDayNumbers(
@@ -640,7 +683,7 @@ object DotGridRenderer {
 
             drawShapes(canvas, pastPts, pIdx, paintPast, s.dotShape, dotRadius, paintGlassRim)
             drawShapes(canvas, markedPts, mIdx, paintMarked, s.dotShape, dotRadius, paintGlassRim)
-            if (drewToday) drawShapes(canvas, todayPt, 2, paintToday, s.dotShape, dotRadius, paintGlassRim)
+            if (drewToday) drawToday(canvas, todayPt, paintToday, s, dotRadius, paintGlassRim)
             drawShapes(canvas, futurePts, fIdx, paintFuture, s.dotShape, dotRadius, paintGlassRim)
             if (numberBase != null) {
                 drawDayNumbers(
@@ -663,7 +706,8 @@ object DotGridRenderer {
 
             paintText.color = s.labelColor
             paintText.textSize = textSizePx
-            paintText.letterSpacing = 0.04f
+            paintText.letterSpacing = 0.01f
+            paintText.typeface = labelTypeface ?: Typeface.DEFAULT
 
             val gap = dotRadius * 3f
             val startY = gridBottomY + gap + textSizePx

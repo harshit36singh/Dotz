@@ -1,24 +1,15 @@
-allprojects {
+buildscript {
     repositories {
         google()
-        mavenCentral()
+    }
+    dependencies {
+        // AGP 8.9's bundled R8 can't read Kotlin 2.2 metadata; pin a newer R8.
+        classpath("com.android.tools:r8:8.11.18")
     }
 }
 
-val newBuildDir: Directory =
-    rootProject.layout.buildDirectory
-        .dir("../../build")
-        .get()
-rootProject.layout.buildDirectory.value(newBuildDir)
-
-subprojects {
-    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
-    project.layout.buildDirectory.value(newSubprojectBuildDir)
-}
-subprojects {
-    project.evaluationDependsOn(":app")
-}
-
-tasks.register<Delete>("clean") {
-    delete(rootProject.layout.buildDirectory)
+plugins {
+    id("com.android.application") version "8.9.1" apply false
+    id("org.jetbrains.kotlin.android") version "2.2.20" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.20" apply false
 }

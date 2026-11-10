@@ -5,8 +5,9 @@
     android:minResizeWidth="80dp"
     android:minResizeHeight="80dp"
     android:updatePeriodMillis="1800000"
-    android:previewImage="@mipmap/ic_launcher"
+    android:previewImage="@drawable/widget_preview"
+    android:previewLayout="@layout/dotz_widget_preview"
     android:initialLayout="@layout/dotz_widget"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:description="@string/app_name" />
+    android:description="@string/widget_description" />

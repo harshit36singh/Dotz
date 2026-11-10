@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Dotz</string>
+    <string name="app_name">dotz</string>
+    <string name="wallpaper_description">Your year, goal or life as a grid of dots. Today is Pip.</string>
+    <string name="widget_description">Your dotz grid on the home screen</string>
 </resources>

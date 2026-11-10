@@ -1,4 +1,4 @@
-package com.example.dotz
+package com.wallpaper.dotz
 
 import android.content.SharedPreferences
 import android.graphics.Bitmap
@@ -23,6 +23,9 @@ class DotzLiveWallpaper : WallpaperService() {
         private var isVisible = false
 
         private lateinit var settings: DotzSettings
+        private val labelTypeface by lazy {
+            runCatching { androidx.core.content.res.ResourcesCompat.getFont(this@DotzLiveWallpaper, R.font.inter_medium) }.getOrNull()
+        }
 
         private var cachedBitmap: Bitmap? = null
         private var lastDrawnDay = -1
@@ -121,7 +124,7 @@ class DotzLiveWallpaper : WallpaperService() {
 
         private fun buildCache(w: Int, h: Int) {
             cachedBitmap?.recycle()
-            cachedBitmap = DotGridRenderer.buildBitmap(w, h, settings)
+            cachedBitmap = DotGridRenderer.buildBitmap(w, h, settings, labelTypeface)
         }
 
         override fun onSurfaceChanged(holder: SurfaceHolder, format: Int, w: Int, h: Int) {
