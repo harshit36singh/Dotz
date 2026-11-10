@@ -1,0 +1,57 @@
+name: Android CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, native-android]
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # The quote endpoint is read from the repo-root .env at build time. The
+      # default (zenquotes.io) is a free public API, so the example is safe.
+      - name: Create .env
+        working-directory: .
+        run: cp .env.example .env
+
+      - name: Lint
+        run: ./gradlew lintDebug
+
+      - name: Build APK
+        run: ./gradlew assembleRelease
+
+      # No key.properties in CI, so this release APK is unsigned.
+      - name: Upload APK (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotz-apk
+          path: android/app/build/outputs/apk/release/*.apk
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: android/app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

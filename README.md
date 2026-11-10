@@ -1,119 +1,74 @@
-# Dotz — Live Wallpaper
+# dotz: live wallpaper
 
-A beautiful Flutter & Native Android app that generates dynamic, live wallpapers visualizing your time. Track your year, your life, or your specific goals using highly customizable dot grids and glass aesthetics.
-
----
-## 📸 App Overview 
-
-![Dotz App Screenshot](lib/screenshot/dotz.png)
----
-## 📱 Features
-
-- **True Live Wallpaper Engine** — Runs natively on Android using Kotlin `WallpaperService` for zero battery drain and instant updates.
-- **Multiple Time Perspectives**:
-  - **Year Mode:** A 365-dot continuous grid showing your progress through the current year.
-  - **Weekly/Monthly Mode:** A clean 12-month layout broken down by weeks and days (Standard Calendar view).
-  - **Life Mode:** Enter your birthdate and life expectancy to see your entire life visualized in dots.
-  - **Goal Mode:** Set a custom target date and watch the dots count down.
-- **Rich Dot Shapes**: Choose between solid **Circles**, rounded **Squares**, **Stars**, or beautiful translucent **Glass Bubbles**.
-- **Advanced Customization**:
-  - 🖼️ Custom Background Images (from Gallery) with auto-scaling and center-cropping.
-  - 🎨 Dot colors (Past / Today / Future).
-  - 🌅 Background solid colors.
-  - 📐 Dynamic grid density (automatically scales for dense Life modes).
-- **Dynamic Labels & Quotes**:
-  - Display progress percentages and days remaining.
-  - Fetch daily inspirational quotes via API.
-  - Write your own custom lockscreen text.
-- **Lockscreen Simulation** — The Flutter app features a true-to-life Lockscreen preview (complete with status bar, gesture pill, and clock) so you know exactly how it looks before applying.
-- **Native Glass UI** — The app interface is built with stunning blur, translucency, and frosted glass components.
+A native Android app (Kotlin + Jetpack Compose) that turns time into a grid of dots on your lock screen. Track your year, a month-by-month calendar, a goal countdown, or your whole life. Today's dot is **Pip**, the dotz mascot.
 
 ---
 
-## 🚀 Getting Started
+## Features
+
+- **True live wallpaper:** a Kotlin `WallpaperService` redraws once a day, so it uses almost no battery and never needs the app reopened.
+- **Four views**
+  - **Year:** one dot per day of the current year.
+  - **Month:** a 12-month calendar grid.
+  - **Goal:** name a goal, pick a date, and count down.
+  - **Life:** your life in weeks (or days) from your date of birth.
+- **Make it yours:** past / today / future / background colours, six dot shapes (circle, square, diamond, hexagon, star, ring), grid density, date numbers inside dots, a background photo, and yearly marked dates (birthdays, anniversaries).
+- **Today's dot:** a plain dot or Pip's face.
+- **Labels:** progress ("50 days left · 86%"), a daily quote, or your own text.
+- **Exact preview:** the in-app preview, the live wallpaper and the home-screen widget all use the same renderer (`DotGridRenderer.kt`), so what you see is what you get.
+- **Home-screen widget** that mirrors the wallpaper.
+
+---
+
+## Getting started
 
 ### Prerequisites
 
-- Flutter 3.10+ SDK
-- Dart 3.0+
-- Android Studio (Required for compiling the native Kotlin Live Wallpaper service)
+- Android Studio (or JDK 17 + Android SDK 36)
 
-### Environment Setup
+### Quote API (optional)
 
-You will need to set up a `.env` file in the root directory for the Quote API to work.
-`.env` is gitignored — copy the provided example instead of creating one from scratch:
+The daily quote URL is read from a `.env` file in the repo root at build time. Without it, the free public [zenquotes.io](https://zenquotes.io) endpoint is used.
 
 ```bash
 cp .env.example .env
 ```
 
-```env
-QUOTE_API_URL=https://zenquotes.io/api/today
-```
-
-The default points at [zenquotes.io](https://zenquotes.io), a free public endpoint, so the example file's value works out of the box. Swap in your own quote API URL if you'd rather use a different provider.
-
-### Run the App
+### Build and run
 
 ```bash
-flutter pub get
-flutter run
-```
-
-### Build Release APK (Android Only)
-
-> **Note:** Dotz currently uses Android's native `WallpaperService`. iOS does not support third-party live wallpapers in the same way.
-
-```bash
-flutter build apk --release
+cd android
+./gradlew installDebug        # build + install on a connected device
+./gradlew assembleRelease     # release APK (signed if android/key.properties exists)
+./gradlew bundleRelease       # App Bundle for the Play Store
 ```
 
 ---
 
-## 📁 Project Structure
+## Project structure
 
 ```
-lib/
-├── main.dart                  # App entry point
-├── core/
-│   └── app_theme.dart         # Global colors and glass styles
-├── models/
-│   └── wallpaper_settings.dart# Settings model + day calculations + shapes
-├── viewmodels/
-│   └── home_view_model.dart   # State management & Native MethodChannels
-├── views/
-│   ├── home_screen.dart       # Main UI with simulated lockscreen preview
-│   └── setting_page.dart      # Glass control panels for shapes/colors
-└── widgets/
-    ├── dot_grid_widget.dart   # Complex shape/grid rendering logic
-    └── floating_nav_bar.dart  # Custom bottom navigation
-
-android/app/src/main/kotlin/com/example/dotz/
-├── MainActivity.kt            # Flutter engine & SharedPreferences bridge
-└── DotzLiveWallpaper.kt       # High-performance Native Android Canvas rendering
+android/app/src/main/kotlin/com/wallpaper/dotz/
+├── MainActivity.kt          # Compose entry point, navigation, apply flow
+├── DotzViewModel.kt         # UI state + actions
+├── DotGridRenderer.kt       # The one renderer: wallpaper, widget and preview
+├── DotzLiveWallpaper.kt     # WallpaperService engine
+├── DotzWidgetProvider.kt    # Home-screen widget
+├── data/
+│   ├── DotzState.kt         # Settings model, label + JSON helpers
+│   └── DotzRepository.kt    # Draft/wallpaper prefs, quote fetch, background image
+└── ui/
+    ├── theme/Theme.kt       # Colours, Space Grotesk / Inter type
+    ├── components/          # Pip, buttons, toggles, nav bar, sheets, date picker
+    ├── screens/             # Splash, Onboarding, Home tabs, Look, Editor, Applied, ...
+    └── WallpaperPreview.kt  # Phone preview + fake lock-screen clock
 ```
 
 ---
 
-## 🔧 How to Set as Wallpaper
+## Setting it as your wallpaper
 
-1. Open the Dotz app and customize your grid, colors, shape, and background image.
-2. Tap the **APPLY TO LOCK SCREEN** glass button.
-3. The app will securely send your settings to the Android system and open the native wallpaper picker.
-4. Tap **Set Wallpaper** and choose **Home Screen** or **Home and Lock Screen**.
-5. Your dots will now update automatically in the background every day!
-
----
-
-## 📄 Core Dependencies
-
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  flutter_dotenv: ^5.1.0         # Secure API key management
-  image_picker: ^1.0.4           # Background image selection
-  path_provider: ^2.1.1          # Secure file saving for backgrounds
-  shared_preferences: ^2.2.2     # Data persistence between Flutter and Android
-  intl: ^0.18.1                  # Date and time formatting for the preview
-```
+1. Pick a view (Year, Month, Goal or Life) and style it in **Look**.
+2. Tap **Set as wallpaper**.
+3. The first time, Android's wallpaper picker opens: tap **Set wallpaper**. After that, changes apply instantly.
+4. A new dot fills in every midnight.
