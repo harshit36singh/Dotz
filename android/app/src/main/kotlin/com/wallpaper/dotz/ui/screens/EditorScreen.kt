@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.border
 import androidx.compose.foundation.background
@@ -60,9 +59,10 @@ fun EditorScreen(vm: DotzViewModel, state: DotzState, onDone: () -> Unit) {
             "Pinch to zoom · drag to pan",
             style = DotzType.label.copy(color = TextSoft),
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .statusBarsPadding()
-                .padding(top = 220.dp)
+                // Above the buttons, clear of the clock and the grid.
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 128.dp)
                 .clip(CircleShape)
                 .background(Surface)
                 .border(1.dp, Rule, CircleShape)
