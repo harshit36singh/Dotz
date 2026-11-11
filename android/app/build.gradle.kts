@@ -38,8 +38,8 @@ android {
         targetSdk = 36
         // CI passes -PversionCode / -PversionName (from the run number and the
         // git tag) so every Play upload gets a higher code automatically.
-        versionCode = (findProperty("versionCode") as String?)?.toInt() ?: 3
-        versionName = (findProperty("versionName") as String?) ?: "2.0.0"
+        versionCode = (findProperty("versionCode") as String?)?.toInt() ?: 4
+        versionName = (findProperty("versionName") as String?) ?: "2.0.1"
         buildConfigField("String", "QUOTE_API_URL", "\"$quoteApiUrl\"")
     }
 
