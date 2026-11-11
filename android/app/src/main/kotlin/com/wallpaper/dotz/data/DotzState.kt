@@ -53,7 +53,7 @@ data class DotzState(
     val offsetY: Float = 0f,
     val goalName: String = "",
     val goalDateMillis: Long? = null,
-    val goalStartMillis: Long? = null, // null = count from today
+    val goalStartMillis: Long? = null, // set when the goal starts; null only in old drafts
     val birthMillis: Long? = null,
     val lifeExpYears: Int = 80,
     val lifeUnit: LifeUnit = LifeUnit.WEEKS,
@@ -66,10 +66,7 @@ data class DotzState(
     /** Goal start actually used: the picked start, else today. */
     fun effectiveGoalStart(): Long = goalStartMillis ?: todayMidnight()
 
-    /**
-     * Renderer snapshot. [forPreview] keeps the label resolved exactly the way
-     * the wallpaper will show it.
-     */
+    /** Renderer snapshot: exactly what the wallpaper will draw. */
     fun toSettings(): DotzSettings {
         val base = DotzSettings(
             bgColor = bgColor,

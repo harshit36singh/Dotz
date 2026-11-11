@@ -274,9 +274,10 @@ private fun GoalTab(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 FieldCard("Goal name", state.goalName, vm::setGoalName, placeholder = "e.g. Final exams", background = Ink)
-                DateFieldCard("Start date", state.goalStartMillis?.let(::formatDate) ?: "Today", { picker = "start" }, background = Ink)
-                if (state.goalStartMillis != null) {
-                    TextAction("Reset to today", { vm.setGoalStart(null) })
+                val today = todayMidnight()
+                DateFieldCard("Start date", state.goalStartMillis?.takeIf { it != today }?.let(::formatDate) ?: "Today", { picker = "start" }, background = Ink)
+                if (state.goalStartMillis != null && state.goalStartMillis != today) {
+                    TextAction("Reset to today", { vm.setGoalStart(today) })
                 }
                 DateFieldCard("Target date", state.goalDateMillis?.let(::formatDate), { picker = "target" }, background = Ink)
                 TextAction("Clear goal", vm::clearGoal)

@@ -11,6 +11,7 @@ import com.wallpaper.dotz.data.DotzState
 import com.wallpaper.dotz.data.LabelMode
 import com.wallpaper.dotz.data.LifeUnit
 import com.wallpaper.dotz.data.MarkedDate
+import com.wallpaper.dotz.data.todayMidnight
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -106,10 +107,12 @@ class DotzViewModel(app: Application) : AndroidViewModel(app) {
 
     // ── Goal ─────────────────────────────────────────────────────────
     fun startGoal(name: String, target: Long) =
-        edit { it.copy(goalName = name.trim(), goalDateMillis = target, goalStartMillis = null) }
+        // Pin the start to today: leaving it null would make "today" move with the
+        // calendar, so every re-apply would restart the countdown from day 1.
+        edit { it.copy(goalName = name.trim(), goalDateMillis = target, goalStartMillis = todayMidnight()) }
     fun setGoalName(v: String) = edit { it.copy(goalName = v) }
     fun setGoalDate(d: Long) = edit { it.copy(goalDateMillis = d) }
-    fun setGoalStart(d: Long?) = edit { it.copy(goalStartMillis = d) }
+    fun setGoalStart(d: Long) = edit { it.copy(goalStartMillis = d) }
     fun clearGoal() = edit { it.copy(goalName = "", goalDateMillis = null, goalStartMillis = null) }
 
     // ── Life ─────────────────────────────────────────────────────────

@@ -40,11 +40,30 @@ class DotzRepository(private val context: Context) {
 
     // ── Draft ────────────────────────────────────────────────────────
     fun loadDraft(): DotzState {
-        draftPrefs.getString(KEY_STATE, null)?.let { DotzState.fromJson(it) }?.let { return it }
+        draftPrefs.getString(KEY_STATE, null)?.let { DotzState.fromJson(it) }?.let { return migrate(it) }
         // No draft yet: start from whatever the wallpaper last applied (Flutter
         // users upgrading keep their look), else defaults.
         if (wallpaperPrefs.contains("mode")) return fromWallpaperPrefs()
         return DotzState()
+    }
+
+    /** Repairs drafts saved by older builds or restored from a backup. */
+    private fun migrate(draft: DotzState): DotzState {
+        var d = draft
+        // Older builds left the goal start null ("today"). Recover the start the
+        // wallpaper was applied with if it is the same goal, else pin it to today.
+        if (d.goalDateMillis != null && d.goalStartMillis == null) {
+            val appliedEnd = wallpaperPrefs.getLong("goalEndMillis", 0L)
+            val appliedStart = wallpaperPrefs.getLong("goalStartMillis", 0L)
+            val start = appliedStart.takeIf { it > 0L && appliedEnd == d.goalDateMillis } ?: todayMidnight()
+            d = d.copy(goalStartMillis = start)
+        }
+        // A background image path from another device (backup restore) or a
+        // deleted file would otherwise show as "Custom" but draw nothing.
+        if (d.bgImagePath.isNotEmpty() && !File(d.bgImagePath).exists()) {
+            d = d.copy(bgImagePath = "")
+        }
+        return d
     }
 
     fun saveDraft(state: DotzState) {
