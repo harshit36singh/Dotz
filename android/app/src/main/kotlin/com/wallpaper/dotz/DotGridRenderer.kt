@@ -283,7 +283,7 @@ object DotGridRenderer {
     // (12MP+) decoded just to be scaled down afterward risks an OOM in the
     // wallpaper/widget process, which has a much tighter memory budget than
     // a normal activity.
-    private fun decodeSampledBitmap(path: String, reqWidth: Int, reqHeight: Int): Bitmap? {
+    fun decodeSampledBitmap(path: String, reqWidth: Int, reqHeight: Int): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(path, bounds)
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
@@ -439,8 +439,19 @@ object DotGridRenderer {
         if (line.isNotEmpty()) canvas.drawText(line, x, y, paint)
     }
 
-    /** Renders the full Dotz grid (background + dots + label) into a new bitmap. */
-    fun buildBitmap(w: Int, h: Int, s: DotzSettings, labelTypeface: Typeface? = null): Bitmap? {
+    /** Dim drawn over a background photo so the dots stay readable. */
+    const val PHOTO_DIM_ALPHA = 120
+
+    /**
+     * Renders the full Dotz grid (background + dots + label) into a new bitmap.
+     * With [drawBackground] false the bitmap stays transparent behind the dots,
+     * so the in-app preview can keep the background as its own layer and move
+     * the dots on the GPU while you drag, without re-rendering.
+     */
+    fun buildBitmap(
+        w: Int, h: Int, s: DotzSettings, labelTypeface: Typeface? = null,
+        drawBackground: Boolean = true,
+    ): Bitmap? {
         if (w <= 0 || h <= 0) return null
         val bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -460,7 +471,9 @@ object DotGridRenderer {
         paintMarked.strokeCap = cap
 
         // ── Background ───────────────────────────────────────────
-        if (s.bgImagePath.isNotEmpty()) {
+        if (!drawBackground) {
+            // Transparent: the caller draws the background underneath.
+        } else if (s.bgImagePath.isNotEmpty()) {
             try {
                 val bgImg = decodeSampledBitmap(s.bgImagePath, w, h)
                 if (bgImg != null) {
@@ -472,7 +485,7 @@ object DotGridRenderer {
                         postTranslate(dx, dy)
                     }
                     canvas.drawBitmap(bgImg, matrix, Paint(Paint.FILTER_BITMAP_FLAG))
-                    canvas.drawColor(Color.argb(120, 0, 0, 0))
+                    canvas.drawColor(Color.argb(PHOTO_DIM_ALPHA, 0, 0, 0))
                     bgImg.recycle()
                 } else {
                     canvas.drawColor(s.bgColor)
