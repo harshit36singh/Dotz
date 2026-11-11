@@ -1,0 +1,119 @@
+name: Play Store release
+
+# Builds a signed App Bundle and uploads it to Google Play.
+#  - Push a tag like v2.1.0 -> uploads to the track in PLAY_DEFAULT_TRACK
+#    (repo variable, defaults to "internal").
+#  - Or run it by hand from the Actions tab and pick the track.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
+#   PLAY_SERVICE_ACCOUNT_JSON  full JSON key of a service account invited in Play Console
+#   UPLOAD_KEYSTORE_BASE64     base64 of android/app/upload-keystore.jks
+#   UPLOAD_STORE_PASSWORD      keystore password
+#   UPLOAD_KEY_ALIAS           key alias (e.g. "upload")
+#   UPLOAD_KEY_PASSWORD        key password
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Play track'
+        type: choice
+        options: [internal, alpha, beta, production]
+        default: internal
+      status:
+        description: 'Release status (use "draft" until the app has been published once)'
+        type: choice
+        options: [completed, draft]
+        default: completed
+
+concurrency:
+  group: play-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: play-store
+    defaults:
+      run:
+        working-directory: android
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Create .env
+        working-directory: .
+        run: cp .env.example .env
+
+      - name: Restore upload keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.UPLOAD_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.UPLOAD_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.UPLOAD_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.UPLOAD_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::UPLOAD_KEYSTORE_BASE64 secret is missing"; exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 --decode > app/upload-keystore.jks
+          {
+            echo "storeFile=upload-keystore.jks"
+            echo "storePassword=$STORE_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "keyPassword=$KEY_PASSWORD"
+          } > key.properties
+
+      # versionCode: 100 + run number, always above the hand-built 2.0.0 (3).
+      # versionName: the tag without the leading "v", or the default on manual runs.
+      - name: Work out version
+        id: version
+        run: |
+          echo "code=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build signed bundle
+        run: |
+          ARGS="-PversionCode=${{ steps.version.outputs.code }}"
+          if [ -n "${{ steps.version.outputs.name }}" ]; then
+            ARGS="$ARGS -PversionName=${{ steps.version.outputs.name }}"
+          fi
+          ./gradlew lintRelease bundleRelease $ARGS
+
+      - name: Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.wallpaper.dotz
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          mappingFile: android/app/build/outputs/mapping/release/mapping.txt
+          track: ${{ inputs.track || vars.PLAY_DEFAULT_TRACK || 'internal' }}
+          status: ${{ inputs.status || vars.PLAY_DEFAULT_STATUS || 'completed' }}
+
+      - name: Keep the bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotz-aab-${{ steps.version.outputs.code }}
+          path: |
+            android/app/build/outputs/bundle/release/app-release.aab
+            android/app/build/outputs/mapping/release/mapping.txt
+
+      - name: Remove signing files
+        if: always()
+        run: rm -f app/upload-keystore.jks key.properties

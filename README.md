@@ -172,7 +172,33 @@ The background photo is chosen through the system photo picker, so the app needs
 
 ### CI
 
-GitHub Actions (`.github/workflows/android_ci.yml`) runs lint and builds a release APK on every push to `main` and on every pull request. Pushing a `v*` tag also attaches the APK to a GitHub Release. CI has no signing key, so its APKs are unsigned. Build Play Store bundles locally.
+GitHub Actions (`.github/workflows/android_ci.yml`) runs lint and builds a release APK on every push to `main` and on every pull request. Pushing a `v*` tag also attaches an unsigned APK to a GitHub Release.
+
+### Publishing to Google Play automatically
+
+`.github/workflows/play_release.yml` builds a signed App Bundle and uploads it to Google Play:
+
+- **Push a tag** such as `v2.1.0`: it uploads to the `internal` track (change it with the repo variable `PLAY_DEFAULT_TRACK`).
+- **Or run it by hand** from the Actions tab and pick the track (internal, alpha, beta or production) and the status.
+
+`versionCode` is set to `100 + run number`, so every upload is higher than the last. `versionName` comes from the tag.
+
+One-time setup:
+
+1. **Upload the first release by hand** in Play Console. The Play API can't create an app or its first release.
+2. **Create a service account** in Google Cloud with the *Google Play Android Developer API* enabled, and download a JSON key for it.
+3. In Play Console, open **Users and permissions**, invite the service account's email, and give it release permissions for dotz.
+4. Add these repository secrets under **Settings → Secrets and variables → Actions**:
+
+   | Secret | Value |
+   | --- | --- |
+   | `PLAY_SERVICE_ACCOUNT_JSON` | The whole service-account JSON key |
+   | `UPLOAD_KEYSTORE_BASE64` | `base64 -w0 android/app/upload-keystore.jks` |
+   | `UPLOAD_STORE_PASSWORD` | Keystore password |
+   | `UPLOAD_KEY_ALIAS` | Key alias (`upload`) |
+   | `UPLOAD_KEY_PASSWORD` | Key password |
+
+Until the app has been published for the first time, Play only accepts **draft** releases. Run the workflow with status `draft`, or set the repo variable `PLAY_DEFAULT_STATUS=draft`.
 
 ---
 

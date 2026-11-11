@@ -36,8 +36,10 @@ android {
         applicationId = "com.wallpaper.dotz"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3
-        versionName = "2.0.0"
+        // CI passes -PversionCode / -PversionName (from the run number and the
+        // git tag) so every Play upload gets a higher code automatically.
+        versionCode = (findProperty("versionCode") as String?)?.toInt() ?: 3
+        versionName = (findProperty("versionName") as String?) ?: "2.0.0"
         buildConfigField("String", "QUOTE_API_URL", "\"$quoteApiUrl\"")
     }
 
