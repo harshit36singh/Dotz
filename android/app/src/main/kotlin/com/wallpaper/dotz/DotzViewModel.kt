@@ -35,7 +35,13 @@ class DotzViewModel(app: Application) : AndroidViewModel(app) {
     private var saveJob: Job? = null
 
     init {
-        if (_state.value.labelMode == LabelMode.QUOTE && _state.value.quoteText.isBlank()) fetchQuote()
+        refreshQuoteIfStale()
+    }
+
+    /** Quote mode shows the quote of the day: refetch once the stored one is from an earlier day. */
+    private fun refreshQuoteIfStale() {
+        val s = _state.value
+        if (s.labelMode == LabelMode.QUOTE && (s.quoteText.isBlank() || s.quoteDay != todayMidnight())) fetchQuote()
     }
 
     private fun edit(block: (DotzState) -> DotzState) {
@@ -65,19 +71,20 @@ class DotzViewModel(app: Application) : AndroidViewModel(app) {
     // ── Label ────────────────────────────────────────────────────────
     fun setLabelMode(m: LabelMode) {
         edit { it.copy(labelMode = m) }
-        if (m == LabelMode.QUOTE && _state.value.quoteText.isBlank()) fetchQuote()
+        refreshQuoteIfStale()
     }
     fun setCustomLabel(v: String) = edit { it.copy(customLabel = v) }
     fun setLabelColor(c: Int) = edit { it.copy(labelColor = c) }
     fun setLabelFontSize(v: Float) = edit { it.copy(labelFontSize = v) }
 
-    fun fetchQuote() {
+    /** [random] asks for a different quote than the quote of the day ("New quote"). */
+    fun fetchQuote(random: Boolean = false) {
         if (_quoteStatus.value == QuoteStatus.LOADING) return
         _quoteStatus.value = QuoteStatus.LOADING
         viewModelScope.launch {
-            val q = repo.fetchQuote()
+            val q = repo.fetchQuote(random)
             if (q != null) {
-                edit { it.copy(quoteText = q.first, quoteAuthor = q.second) }
+                edit { it.copy(quoteText = q.first, quoteAuthor = q.second, quoteDay = todayMidnight()) }
                 _quoteStatus.value = QuoteStatus.IDLE
             } else {
                 _quoteStatus.value = QuoteStatus.ERROR

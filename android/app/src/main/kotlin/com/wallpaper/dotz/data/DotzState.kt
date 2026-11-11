@@ -45,6 +45,7 @@ data class DotzState(
     val customLabel: String = "",
     val quoteText: String = "",
     val quoteAuthor: String = "",
+    val quoteDay: Long = 0L, // local midnight of the day quoteText was fetched
     val labelColor: Int = 0xFFF2EEE8.toInt(),
     val labelFontSize: Float = 0f, // 0 = auto
     val bgImagePath: String = "",
@@ -66,9 +67,20 @@ data class DotzState(
     /** Goal start actually used: the picked start, else today. */
     fun effectiveGoalStart(): Long = goalStartMillis ?: todayMidnight()
 
+    /**
+     * Text stored as the wallpaper's `customLabel`. Empty when there is nothing
+     * of the user's own to show, so the renderer falls back to the progress
+     * label and keeps it current, instead of freezing the apply-day progress.
+     */
+    private fun storedLabel(): String = when (labelMode) {
+        LabelMode.CUSTOM -> customLabel.trim()
+        LabelMode.QUOTE -> if (quoteText.isBlank()) "" else QuoteApi.format(quoteText, quoteAuthor)
+        else -> ""
+    }
+
     /** Renderer snapshot: exactly what the wallpaper will draw. */
     fun toSettings(): DotzSettings {
-        val base = DotzSettings(
+        return DotzSettings(
             bgColor = bgColor,
             pastColor = pastColor,
             futureColor = futureColor,
@@ -78,7 +90,7 @@ data class DotzState(
             columns = columns,
             showLabel = labelMode != LabelMode.OFF,
             labelMode = labelMode.ordinal,
-            customLabel = "",
+            customLabel = storedLabel(),
             quoteApiUrl = "",
             bgImagePath = bgImagePath,
             mode = mode.nativeIndex,
@@ -101,7 +113,6 @@ data class DotzState(
             showDateNumbers = showDateNumbers,
             todayStyle = todayStyle,
         )
-        return base.copy(customLabel = resolvedLabel(base))
     }
 
     /** The exact text the wallpaper label will show. */
@@ -110,12 +121,7 @@ data class DotzState(
         return when (labelMode) {
             LabelMode.OFF -> ""
             LabelMode.PROGRESS -> progress
-            LabelMode.QUOTE -> when {
-                quoteText.isBlank() -> progress
-                quoteAuthor.isNotBlank() -> "“$quoteText” — $quoteAuthor"
-                else -> "“$quoteText”"
-            }
-            LabelMode.CUSTOM -> customLabel.trim().ifEmpty { progress }
+            LabelMode.QUOTE, LabelMode.CUSTOM -> storedLabel().ifEmpty { progress }
         }
     }
 
@@ -137,6 +143,7 @@ data class DotzState(
         put("labelMode", labelMode.name)
         put("customLabel", customLabel)
         put("quoteText", quoteText); put("quoteAuthor", quoteAuthor)
+        put("quoteDay", quoteDay)
         put("labelColor", labelColor)
         put("labelFontSize", labelFontSize.toDouble())
         put("bgImagePath", bgImagePath)
@@ -171,6 +178,7 @@ data class DotzState(
                 customLabel = o.optString("customLabel", ""),
                 quoteText = o.optString("quoteText", ""),
                 quoteAuthor = o.optString("quoteAuthor", ""),
+                quoteDay = o.optLong("quoteDay", 0L),
                 labelColor = o.optInt("labelColor", d.labelColor),
                 labelFontSize = o.optDouble("labelFontSize", 0.0).toFloat(),
                 bgImagePath = o.optString("bgImagePath", ""),

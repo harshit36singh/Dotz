@@ -8,10 +8,7 @@ import com.wallpaper.dotz.DotzSettings
 import com.wallpaper.dotz.DotzWidgetProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * Storage for the app:
@@ -117,6 +114,7 @@ class DotzRepository(private val context: Context) {
             putInt("dotShape", s.dotShape)
             putInt("labelMode", s.labelMode)
             putString("customLabel", s.customLabel)
+            putLong("quoteDay", state.quoteDay)
             putString("bgImagePath", s.bgImagePath)
             putString("apiUrl", BuildConfig.QUOTE_API_URL)
             putInt("mode", s.mode)
@@ -176,32 +174,10 @@ class DotzRepository(private val context: Context) {
     }
 
     // ── Quote ────────────────────────────────────────────────────────
-    /** Fetches a zenquotes-style quote: `[{"q": "...", "a": "..."}]`. */
-    suspend fun fetchQuote(): Pair<String, String>? = withContext(Dispatchers.IO) {
+    /** Fetches the quote of the day, or a random one when [random]. */
+    suspend fun fetchQuote(random: Boolean = false): Pair<String, String>? = withContext(Dispatchers.IO) {
         val url = BuildConfig.QUOTE_API_URL
-        if (url.isBlank()) return@withContext null
-        try {
-            val conn = (URL(url).openConnection() as HttpURLConnection).apply {
-                requestMethod = "GET"
-                setRequestProperty("Accept", "application/json")
-                connectTimeout = 8000
-                readTimeout = 8000
-            }
-            try {
-                if (conn.responseCode != 200) return@withContext null
-                val body = conn.inputStream.bufferedReader().use { it.readText() }
-                val arr = JSONArray(body)
-                if (arr.length() == 0) return@withContext null
-                val item = arr.getJSONObject(0)
-                val q = item.optString("q").trim()
-                val a = item.optString("a").trim()
-                if (q.isEmpty()) null else q to a
-            } finally {
-                conn.disconnect()
-            }
-        } catch (e: Exception) {
-            null
-        }
+        QuoteApi.fetch(if (random) QuoteApi.randomUrl(url) else url)
     }
 
     companion object {

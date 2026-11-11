@@ -34,7 +34,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -311,8 +313,20 @@ private fun QuoteBlock(vm: DotzViewModel, state: DotzState, status: QuoteStatus)
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Quote via zenquotes.io", style = DotzType.caption, modifier = Modifier.weight(1f))
-            TextAction(if (status == QuoteStatus.ERROR) "Try again" else "New quote", vm::fetchQuote, color = TextPrimary)
+            // zenquotes' free tier asks for a visible, linked attribution.
+            val uriHandler = LocalUriHandler.current
+            Text(
+                "Quotes by zenquotes.io",
+                style = DotzType.caption.copy(textDecoration = TextDecoration.Underline),
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(role = Role.Button) { uriHandler.openUri("https://zenquotes.io/") },
+            )
+            if (status == QuoteStatus.ERROR) {
+                TextAction("Try again", { vm.fetchQuote() }, color = TextPrimary)
+            } else {
+                TextAction("New quote", { vm.fetchQuote(random = true) }, color = TextPrimary)
+            }
         }
     }
 }

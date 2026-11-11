@@ -7,6 +7,8 @@ import android.service.wallpaper.WallpaperService
 import android.os.Handler
 import android.os.Looper
 import android.view.SurfaceHolder
+import com.wallpaper.dotz.data.QuoteApi
+import com.wallpaper.dotz.data.todayMidnight
 
 // NOTE: All grid-drawing logic lives in DotGridRenderer.kt, shared with
 // DotzWidgetProvider so the wallpaper and the home-screen widget can never
@@ -36,37 +38,34 @@ class DotzLiveWallpaper : WallpaperService() {
             if (f.width() > 0 && f.height() > 0) recalc(f.width(), f.height())
         }
 
-        private fun fetchNewQuoteAsync() {
+        private var quoteFetching = false
+        private var lastQuoteAttempt = 0L
+
+        /**
+         * Quote mode: fetch the quote of the day once the stored one ("quoteDay")
+         * is from an earlier day. Retries at most every 30 min, so a failure
+         * (offline at midnight, reboot on a new day) still recovers.
+         */
+        private fun maybeFetchQuote() {
+            if (settings.labelMode != 2 || settings.quoteApiUrl.isEmpty()) return
+            val today = todayMidnight()
+            if (prefs?.getLong("quoteDay", 0L) == today) return
+            val now = System.currentTimeMillis()
+            if (quoteFetching || now - lastQuoteAttempt < 30 * 60_000L) return
+            quoteFetching = true
+            lastQuoteAttempt = now
+            val url = settings.quoteApiUrl
             Thread {
-                try {
-                    val url = java.net.URL(settings.quoteApiUrl)
-                    val connection = url.openConnection() as java.net.HttpURLConnection
-                    connection.requestMethod = "GET"
-                    connection.setRequestProperty("Accept", "application/json")
-                    connection.connectTimeout = 8000
-                    connection.readTimeout = 8000
-
-                    if (connection.responseCode == 200) {
-                        val response = connection.inputStream.bufferedReader().use { it.readText() }
-                        val jsonArray = org.json.JSONArray(response)
-
-                        if (jsonArray.length() > 0) {
-                            val item = jsonArray.getJSONObject(0)
-                            val q = item.optString("q", "").trim()
-                            val a = item.optString("a", "").trim()
-
-                            val newQuote = if (a.isNotEmpty()) "\"$q\" — $a" else "\"$q\""
-
-                            handler.post {
-                                prefs?.edit()?.putString("customLabel", newQuote)?.apply()
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    handler.post {
-                        val f = surfaceHolder.surfaceFrame
-                        if (f.width() > 0 && f.height() > 0) buildCache(f.width(), f.height())
+                val quote = QuoteApi.fetch(url)
+                handler.post {
+                    quoteFetching = false
+                    if (quote != null) {
+                        // The prefs listener rebuilds the wallpaper; the widget is told directly.
+                        prefs?.edit()
+                            ?.putString("customLabel", QuoteApi.format(quote.first, quote.second))
+                            ?.putLong("quoteDay", today)
+                            ?.apply()
+                        DotzWidgetProvider.requestUpdate(this@DotzLiveWallpaper)
                     }
                 }
             }.start()
@@ -77,15 +76,12 @@ class DotzLiveWallpaper : WallpaperService() {
                 if (!isVisible) return
                 val today = DotGridRenderer.dayOfYear()
                 if (today != lastDrawnDay) {
+                    // New day: advance the grid now, even if the quote fetch fails.
                     lastDrawnDay = today
-
-                    if (settings.labelMode == 2 && settings.quoteApiUrl.isNotEmpty()) {
-                        fetchNewQuoteAsync()
-                    } else {
-                        val f = surfaceHolder.surfaceFrame
-                        if (f.width() > 0 && f.height() > 0) buildCache(f.width(), f.height())
-                    }
+                    val f = surfaceHolder.surfaceFrame
+                    if (f.width() > 0 && f.height() > 0) buildCache(f.width(), f.height())
                 }
+                maybeFetchQuote()
                 drawFrame()
                 handler.postDelayed(this, 60_000L)
             }
