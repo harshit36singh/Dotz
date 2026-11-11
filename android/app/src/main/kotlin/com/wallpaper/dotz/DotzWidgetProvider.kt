@@ -1,6 +1,8 @@
 
 package com.wallpaper.dotz
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
@@ -19,6 +21,8 @@ class DotzWidgetProvider : AppWidgetProvider() {
 
     companion object {
 
+        private const val ACTION_MIDNIGHT = "com.wallpaper.dotz.action.WIDGET_MIDNIGHT"
+
         /**
          * Called after the app writes new wallpaper settings
          * and when the widget needs updating.
@@ -33,6 +37,28 @@ class DotzWidgetProvider : AppWidgetProvider() {
             for (id in ids) {
                 updateWidget(context, mgr, id)
             }
+            if (ids.isNotEmpty()) scheduleMidnight(context)
+        }
+
+        private fun midnightIntent(context: Context): PendingIntent = PendingIntent.getBroadcast(
+            context, 0,
+            Intent(context, DotzWidgetProvider::class.java).setAction(ACTION_MIDNIGHT),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+
+        /**
+         * Apps targeting Android 8+ no longer get ACTION_DATE_CHANGED in a
+         * manifest receiver, so wake ourselves just after midnight to draw the
+         * new day. Inexact (no exact-alarm permission); the window keeps it close.
+         */
+        private fun scheduleMidnight(context: Context) {
+            val am = context.getSystemService(AlarmManager::class.java) ?: return
+            val next = java.util.Calendar.getInstance().apply {
+                add(java.util.Calendar.DAY_OF_YEAR, 1)
+                set(java.util.Calendar.HOUR_OF_DAY, 0); set(java.util.Calendar.MINUTE, 0)
+                set(java.util.Calendar.SECOND, 5); set(java.util.Calendar.MILLISECOND, 0)
+            }.timeInMillis
+            am.setWindow(AlarmManager.RTC, next, 10 * 60_000L, midnightIntent(context))
         }
 
         private fun updateWidget(
@@ -101,6 +127,11 @@ class DotzWidgetProvider : AppWidgetProvider() {
         for (id in appWidgetIds) {
             updateWidget(context, appWidgetManager, id)
         }
+        scheduleMidnight(context)
+    }
+
+    override fun onDisabled(context: Context) {
+        context.getSystemService(AlarmManager::class.java)?.cancel(midnightIntent(context))
     }
 
     override fun onAppWidgetOptionsChanged(
@@ -123,7 +154,9 @@ class DotzWidgetProvider : AppWidgetProvider() {
 
         when (intent.action) {
 
+            ACTION_MIDNIGHT,
             Intent.ACTION_DATE_CHANGED,
+            Intent.ACTION_TIME_CHANGED,
             Intent.ACTION_TIMEZONE_CHANGED,
             Intent.ACTION_BOOT_COMPLETED -> requestUpdate(context)
         }
