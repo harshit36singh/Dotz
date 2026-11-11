@@ -184,6 +184,10 @@ fun LookScreen(
                 ListRow("Background image", if (state.bgImagePath.isEmpty()) "None" else "Custom", onOpenBackground)
                 RowDivider()
                 ListRow("Marked dates", state.markedDates.size.toString(), onOpenMarkedDates)
+                RowDivider()
+                // Google Play requires the privacy policy to be reachable in-app.
+                val uriHandler = LocalUriHandler.current
+                ListRow("Privacy policy", "") { uriHandler.openUri(PRIVACY_POLICY_URL) }
             }
         }
     }
@@ -212,6 +216,8 @@ fun LookScreen(
         )
     }
 }
+
+private const val PRIVACY_POLICY_URL = "https://github.com/harshit36singh/Dotz/blob/main/PRIVACY.md"
 
 @Composable
 private fun LabelDetails(vm: DotzViewModel, state: DotzState, quoteStatus: QuoteStatus, onPickColor: () -> Unit) {

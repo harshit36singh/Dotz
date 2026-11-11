@@ -145,6 +145,8 @@ dotz has no accounts, ads, analytics or crash reporting. Your settings, dates an
 
 The background photo is chosen through the system photo picker, so the app needs no storage or media permission.
 
+Full policy: [PRIVACY.md](PRIVACY.md).
+
 ---
 
 ## Device notes
