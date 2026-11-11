@@ -45,7 +45,7 @@ data class DotzSettings(
     val lifeTotalFallback: Int,
     val lifeLivedFallback: Int,
     // Raw dates — preferred whenever present, since they let goal/life mode
-    // advance every day on their own, the same way Year/Weekly mode already
+    // advance every day on their own, the same way Year/Month mode already
     // do via the device clock, instead of only updating when the app is
     // reopened and "Apply" is tapped again.
     val goalEndMillis: Long,
@@ -53,8 +53,8 @@ data class DotzSettings(
     val birthMillis: Long,
     val lifeExpYears: Int,
     val lifeUnit: Int, // 0 = days, 1 = weeks
-    // JSON-encoded List<{month,day,label}> from MarkedDate.toJson() on the
-    // Dart side — SharedPreferences can't hold a structured list directly.
+    // JSON-encoded List<{month,day,label}> from DotzState.markedDatesJson();
+    // SharedPreferences can't hold a structured list directly.
     val markedDatesJson: String,
     val milestoneColor: Int,
     val showDateNumbers: Boolean,
@@ -82,19 +82,20 @@ data class DotzSettings(
         const val TODAY_STYLE_PIP = "pip"
         const val TODAY_STYLE_PLAIN = "plain"
 
-        // Redesign defaults (see ui/theme/Color.kt).
+        // Redesign defaults (see ui/theme/Theme.kt).
         val DEFAULT_BG     = Color.parseColor("#0D0C0A")
         val DEFAULT_PAST   = Color.parseColor("#3A3836")
         val DEFAULT_FUTURE = Color.parseColor("#EDE8E0")
         val DEFAULT_TODAY  = Color.parseColor("#FF5A1F")
         val DEFAULT_MILESTONE = Color.parseColor("#FFCC44")
+        val DEFAULT_LABEL  = Color.parseColor("#F2EEE8")
 
         fun load(prefs: SharedPreferences): DotzSettings = DotzSettings(
             bgColor           = prefs.getInt("bgColor", DEFAULT_BG),
             pastColor         = prefs.getInt("pastColor", DEFAULT_PAST),
             futureColor       = prefs.getInt("futureColor", DEFAULT_FUTURE),
             todayColor        = prefs.getInt("todayColor", DEFAULT_TODAY),
-            labelColor        = prefs.getInt("labelColor", Color.WHITE),
+            labelColor        = prefs.getInt("labelColor", DEFAULT_LABEL),
             labelFontSizeSp   = prefs.getFloat("labelFontSize", 0f),
             columns           = prefs.getInt("columns", 20),
             showLabel         = prefs.getBoolean("showLabel", true),
@@ -186,7 +187,7 @@ object DotGridRenderer {
     /**
      * The calendar date dot index 0 corresponds to, for modes whose dots map
      * to a real date. Null disables number rendering (Life mode, or numbers
-     * toggled off). Weekly/Monthly mode is handled separately since it
+     * toggled off). Month mode is handled separately since it
      * already has month/day directly per-dot.
      */
     private fun numberBaseCalendar(s: DotzSettings): Calendar? {

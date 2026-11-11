@@ -135,7 +135,7 @@ class DotzRepository(private val context: Context) {
             putInt("milestoneColor", s.milestoneColor)
             putBoolean("showDateNumbers", s.showDateNumbers)
             putString("todayStyle", s.todayStyle)
-        }.commit()
+        }.apply() // in-memory at once; the wallpaper and widget read this same instance
         DotzWidgetProvider.requestUpdate(context)
         cleanupBackgrounds(state.bgImagePath)
     }

@@ -46,7 +46,7 @@ data class DotzState(
     val quoteText: String = "",
     val quoteAuthor: String = "",
     val quoteDay: Long = 0L, // local midnight of the day quoteText was fetched
-    val labelColor: Int = 0xFFF2EEE8.toInt(),
+    val labelColor: Int = DotzSettings.DEFAULT_LABEL,
     val labelFontSize: Float = 0f, // 0 = auto
     val bgImagePath: String = "",
     val gridScale: Float = 1f,
